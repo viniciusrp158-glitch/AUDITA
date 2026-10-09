@@ -212,6 +212,12 @@ export function ItemForm({
           />
         </fieldset>
 
+        {/* Celular/tablet: resumo fixo do cálculo enquanto preenche (a prévia completa fica ao final) */}
+        <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-line bg-white/95 px-4 py-2 sm:-mx-8 sm:px-8 backdrop-blur lg:hidden">
+          <ItemStatusPill status={calc.status} />
+          <span className="text-sm font-semibold tabular-nums text-navy">{formatBRL(r.finalPrice)}</span>
+        </div>
+
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
           <Link href={cancelHref} className="text-center text-sm text-muted hover:text-navy">
             Cancelar

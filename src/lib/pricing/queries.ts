@@ -27,7 +27,11 @@ const PARAM_COLS =
 export async function listParameterSets(): Promise<ParameterSet[]> {
   const supabase = await createClient();
   const { data } = await supabase.from("pricing_parameter_sets").select(PARAM_COLS).order("version", { ascending: false });
-  return (data ?? []) as ParameterSet[];
+  // Vigente primeiro, depois rascunhos e, por fim, substituídas da mais recente para a mais antiga
+  const rank = { vigente: 0, rascunho: 1, substituido: 2 } as const;
+  return ((data ?? []) as ParameterSet[]).sort(
+    (a, b) => rank[a.status] - rank[b.status] || (b.published_at ?? "").localeCompare(a.published_at ?? "") || b.version - a.version,
+  );
 }
 
 export async function getParameterSetOr404(id: string): Promise<ParameterSet> {
