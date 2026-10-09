@@ -134,7 +134,7 @@ Observação: os testes registram decisões fictícias em ESP-006/ESP-007 no amb
 
 I3 validado pelo Diretor em 09/10/2026.
 
-## I4 — Demandas / Registro Único de Atendimento (em validação)
+## I4 — Demandas / Registro Único de Atendimento
 
 **Objetivo:** registrar as solicitações dos clientes numa única tela e acompanhá-las até o encerramento, sem burocracia.
 **Requisitos:** AUDDOC017 RF-06, FL-05, RF-08; AUDDOC009 §8 (RUA) e §8.1 (estados); AUDDOC013 (código não reutilizável).
@@ -157,3 +157,43 @@ Observação: os campos de data usam o seletor nativo do navegador, que exibe o 
 | `tsc`, `eslint`, `next build` | sem erros |
 | Vitest — total | 53/53 (I4: 8 novos — código gerado/sequencial e ignorando valores enviados; código permanente e sem exclusão; situação só pela função; transições livres, encerramento e reabertura com eventos; motivo obrigatório; recorrente com visitas/contatos e linha do tempo imutável; vínculos coerentes e cliente inativo; prazo; histórico do cliente e isolamento) |
 | Playwright — total | 13/13 (I4: fluxo FL-05 completo a partir da ficha do cliente — cadastro com unidade/contato/serviço não liberado, visita, análise, motivo obrigatório, encerramento, filtros e pesquisa por cliente; demandas no celular; responsividade de 17 telas em 360 px e 768 px) |
+
+I4 validado pelo Diretor em 09/10/2026; ramo `develop` atualizado com o I4.
+
+## I5 — Parâmetros financeiros e motor AUDDOC011 (em validação)
+
+**Objetivo:** calcular o preço de cada item de orçamento exatamente como o simulador aprovado, sem presumir nenhum valor.
+**Requisitos:** AUDDOC017 RF-09 a RF-14, CA-05, CA-06, CA-07; AUDDOC011 §§2–9 e AUDDOC011-ANX01 (abas Parâmetros e Simulador); decisões G-01, G-02 e G-07 do S0; regra do Diretor de aritmética decimal exata e margens comparadas com 4 casas.
+
+Solução:
+- **Motor** (`src/lib/pricing/engine.ts`): reproduz as células B27–B45 do simulador ANX01, inclusive "vazio ≠ zero" e a ordem das situações (PENDENTE: IDENTIFICAÇÃO → PENDENTE: CUSTOS / PARÂMETROS → REVER VALORES → REVER DESCONTO → REVER MARGEM → PRONTO PARA ANÁLISE INTERNA). Aritmética decimal exata (decimal.js, 40 dígitos); margem efetiva × alvo comparadas com 4 casas; arredondamento a centavos só na exibição. Horas em 5 campos (deslocamento técnico separado — G-02).
+- **Fidelidade comprovada**: 15 cenários calculados pela própria planilha ANX01 oficial (LibreOffice) conferidos célula a célula (`tests/fixtures/anx01-simulador.json`).
+- Migração `20261009224738_i5_precificacao` (MD5 `bba73fa0013cdb6627648744fd2650fb`, idêntico ao aplicado):
+  - `pricing_parameter_sets`: versões numeradas pelo banco; Rascunho → Vigente → Substituída; **uma vigente**; publicação só pela função `publish_parameter_set` (a anterior vira substituída); vigente e substituída **imutáveis**; todos os valores podem ficar vazios (⇒ PENDENTE). Percentuais gravados em fração.
+  - `quotes`: código `PROP-AAAA-NNNN` gerado pelo banco; **uma cotação por demanda** (AUDDOC011 §2); cliente derivado da demanda; só adota a versão vigente; demanda encerrada/não viável/cancelada não recebe cotação; situação travada em Rascunho (fluxo de emissão no I6).
+  - `quote_items`: serviço do catálogo, descrição, periodicidade única/mensal (G-07), 5 campos de horas, 4 de custos diretos, contingência/margem/desconto específicos e justificativa; alteráveis apenas em rascunho.
+  - RLS e trilha de auditoria em tudo (itens aparecem vinculados à cotação).
+- **Telas**:
+  - Configurações → Parâmetros financeiros: lista de versões; rascunho com prévia do custo/hora e da soma de percentuais (alerta se ≥ 100%), aviso de campos vazios, origem/validação; publicação com confirmação; versão publicada só para leitura.
+  - Demanda → card "Orçamento": botão "Criar cotação" (o serviço da demanda entra como item 1).
+  - Orçamentos: lista com pesquisa (PROP, DEM, cliente); ficha com itens, situação de cada item, motivos das pendências, totais **separados em valor único e valor mensal** (nunca somados; total só aparece quando todos os itens da periodicidade estão prontos), parâmetros usados e opção de passar para a nova versão vigente; condições (validade, pagamento, observações).
+  - Item: formulário com **prévia ao vivo** de todas as etapas do cálculo; no celular, resumo fixo (situação + preço) enquanto preenche.
+- Desconto acima do máximo ⇒ REVER DESCONTO; desconto exige justificativa (AUDDOC011 §6). Serviço não liberado pode ser simulado, com aviso (emissão bloqueada no I6). SaaS sem modelo (SIS-001/002) não é calculado por hora técnica e fica fora dos totais.
+- Entrada em pt-BR: "8.000,00", "2.000" (milhar) e "11,2" (%); valores inválidos são recusados com mensagem.
+
+Defeito encontrado e corrigido durante os testes: "2.000" era lido como 2 (ponto tratado como decimal). Corrigido para o padrão brasileiro (ponto = milhar) e coberto por teste unitário.
+
+### Evidências de teste (09/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 85/85 (I5: 24 do motor — 15 cenários do ANX01 célula a célula, fórmulas §4, 5 campos de horas, CA-05 parâmetro vazio ⇒ PENDENTE sem preço, RF-12 soma ≥ 100% bloqueada, desconto no limite × acima, G-01 com 2.000 casos aleatórios, vazio ≠ zero, valores específicos, formatação BRL/% e leitura pt-BR; 8 de integração — versão e situação geradas pelo banco, limites, publicação só pela função e imutabilidade, trilha, PROP-AAAA-NNNN/uma por demanda/cliente derivado/só versão vigente, demanda encerrada, itens com trilha e cálculo a partir dos valores gravados, isolamento de anônimo e não autorizado) |
+| Playwright — total | 16/16 (I5: parâmetros — prévia R$ 100,00/h e 44,19%, vazio ⇒ PENDENTE, valor inválido, confirmação obrigatória, publicação e bloqueio de edição; FL-06 — demanda → cotação → item com prévia até R$ 4.237,59 (mesmo valor do simulador) → total único, item mensal com desconto acima do máximo exige justificativa e fica REVER DESCONTO, total mensal PENDENTE e não somado, validade inválida, remoção com confirmação, vínculo na demanda e pesquisa; celular; responsividade de 21 telas em 360 px e 768 px) |
+| Supabase advisors (segurança) | sem alertas novos (apenas os dois já registrados) |
+| Prévia Vercel | ramo `feat/i5-precificacao` — implantação pronta |
+
+Observações:
+- No ambiente de desenvolvimento a versão vigente é a fictícia "[TESTE] Parâmetros fictícios…" (marcada TESTE). **Os parâmetros reais da AUDITA continuam pendentes** e serão cadastrados como nova versão quando o Diretor/contador os definirem; no ambiente corporativo não haverá versão alguma até lá (orçamentos ficam PENDENTE).
+- O número da versão é atribuído na criação do rascunho; por isso uma versão publicada depois pode ter número menor. A lista mostra sempre a vigente primeiro.
+
