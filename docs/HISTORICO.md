@@ -12,7 +12,13 @@
 | D-06 | Ajustes G-01 a G-10 do S0 aprovados, incluindo cálculo decimal exato e margens com 4 casas (fórmulas AUDDOC011 inalteradas). |
 | — | Nome do sistema: **AUDITA**. Dados fictícios permitidos para testes, sempre identificados. |
 
-## I1 — Fundação (em validação)
+## Fluxo de branches e publicação
+
+- `feat/*`: desenvolvimento de cada incremento.
+- `develop`: integração dos incrementos validados; preview estável na Vercel (protegido por login Vercel).
+- `main`: **produção — só recebe merge com autorização expressa do Diretor.** Sem variáveis de ambiente de produção configuradas, qualquer build de produção falha por segurança.
+
+## I1 — Fundação (validado pelo Diretor em 09/10/2026)
 
 **Objetivo:** aplicação base, login protegido, lista de autorizados, trilha de auditoria e layout institucional.
 **Requisitos:** AUDDOC017 RF-01, RF-08 (parcial), §4, §10, §15; CA-01, CA-10 (parcial), CA-12.
