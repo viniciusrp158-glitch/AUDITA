@@ -1,0 +1,57 @@
+/**
+ * Responsividade (decisão do Diretor, 09/10/2026): todas as telas devem funcionar em celular e computador.
+ * Percorre as telas internas em larguras de celular e tablet e falha se a página tiver rolagem horizontal.
+ */
+import { expect, test, type Page } from "@playwright/test";
+
+const ADMIN = { email: process.env.TEST_ADMIN_EMAIL!, password: process.env.TEST_ADMIN_PASSWORD! };
+
+const PAGES = [
+  "/",
+  "/clientes",
+  "/clientes/novo",
+  "/clientes/convites",
+  "/clientes/solicitacoes",
+  "/demandas",
+  "/orcamentos",
+  "/biblioteca",
+  "/comunicacao",
+  "/configuracoes",
+  "/configuracoes/atividades",
+  "/configuracoes/servicos",
+];
+
+async function login(page: Page) {
+  await page.goto("/login");
+  await page.getByLabel("E-mail").fill(ADMIN.email);
+  await page.getByLabel("Senha").fill(ADMIN.password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page).toHaveURL("/");
+}
+
+for (const vp of [
+  { name: "celular 360px", width: 360, height: 780 },
+  { name: "tablet 768px", width: 768, height: 1024 },
+]) {
+  test(`sem rolagem horizontal — ${vp.name}`, async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, locale: "pt-BR" });
+    const page = await ctx.newPage();
+    await login(page);
+
+    // Inclui a ficha de um cliente e de um serviço existentes
+    await page.goto("/clientes?situacao=todos");
+    const clientHref = await page.locator('a[href^="/clientes/"][href*="-"]').first().getAttribute("href");
+    await page.goto("/configuracoes/servicos");
+    const serviceHref = await page.locator('a[href^="/configuracoes/servicos/"]').first().getAttribute("href");
+
+    const problems: string[] = [];
+    for (const path of [...PAGES, clientHref, serviceHref].filter(Boolean) as string[]) {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      if (overflow > 1) problems.push(`${path}: ${overflow}px`);
+    }
+    expect(problems, `Telas com rolagem horizontal em ${vp.name}`).toEqual([]);
+    await ctx.close();
+  });
+}
