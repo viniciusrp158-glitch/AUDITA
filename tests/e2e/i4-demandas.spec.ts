@@ -62,7 +62,8 @@ test("FL-05: demanda do registro ao encerramento", async ({ page }) => {
   await page.getByLabel("Resumo da solicitação").fill(resumo);
   await page.getByLabel("Unidade / local").selectOption({ label: "Planta Votorantim" });
   await page.getByLabel("Pessoa de contato").selectOption({ label: "Responsável Fictício" });
-  await page.getByLabel("Serviço do catálogo").selectOption({ label: /TRN-NR35/ });
+  const nr35 = await page.locator('select[name="service_id"] option', { hasText: "TRN-NR35" }).getAttribute("value");
+  await page.getByLabel("Serviço do catálogo").selectOption(nr35!);
   await expect(page.getByText(/não gera proposta comercial final/)).toBeVisible();
   await page.getByLabel("Contrato recorrente").check();
   await page.getByLabel(/AUDDOC004 consultada/).check();
