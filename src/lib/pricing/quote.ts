@@ -98,7 +98,11 @@ export type Totals = {
   pending: number;
 };
 
-/** Totais separados por periodicidade (G-07): nunca soma valor único com mensal. */
+/**
+ * Totais separados por periodicidade (G-07): nunca soma valor único com mensal.
+ * Soma os preços comerciais de cada item (preço final arredondado a centavos), para que o total
+ * mostrado na tela e na proposta seja sempre igual à soma das linhas.
+ */
 export function quoteTotals(items: { periodicity: Periodicity; calc: ItemCalc }[]): Totals {
   const acc = (p: Periodicity) => {
     const list = items.filter((i) => i.periodicity === p && i.calc.status !== "SEM_MODELO");
@@ -106,7 +110,10 @@ export function quoteTotals(items: { periodicity: Periodicity; calc: ItemCalc }[
     const total =
       list.length === 0 || pending > 0
         ? null
-        : list.reduce((s, i) => s.plus(i.calc.result.finalPrice!.toString()), new Decimal(0));
+        : list.reduce(
+            (s, i) => s.plus(new Decimal(i.calc.result.finalPrice!.toString()).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)),
+            new Decimal(0),
+          );
     return { total, count: list.length, pending };
   };
   const unica = acc("unica");

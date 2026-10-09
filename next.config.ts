@@ -10,6 +10,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Geração de PDF no servidor (pdfmake/pdfkit carregados do node_modules, sem empacotamento)
+  serverExternalPackages: ["pdfmake"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
