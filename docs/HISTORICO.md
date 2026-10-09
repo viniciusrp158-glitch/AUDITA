@@ -10,6 +10,8 @@
 | D-04 | Desenvolvimento com instalação de pacotes no computador do Diretor (pasta Documentos\AUDITA). |
 | D-05 | Vercel (time AUDITAPRO) para previews. |
 | D-06 | Ajustes G-01 a G-10 do S0 aprovados, incluindo cálculo decimal exato e margens com 4 casas (fórmulas AUDDOC011 inalteradas). |
+| — | Todas as telas devem funcionar em celular e computador (verificação automática de rolagem horizontal em 360 px e 768 px). |
+| — | Ficha cadastral em Word (AUDFOR001) descartada; o cadastro pelo cliente é feito pelo link do I2.1. |
 | — | Nome do sistema: **AUDITA**. Dados fictícios permitidos para testes, sempre identificados. |
 
 ## Fluxo de branches e publicação
@@ -51,7 +53,7 @@ Entregue:
 
 Atualizações pós-validação: link "Alterar senha" no menu; usuário administrador do Diretor criado no `audita-dev` (senha provisória a ser trocada); Vercel conectada (preview `develop`); cadastro público desativado no Supabase (verificado via `/auth/v1/settings`: `disable_signup: true`).
 
-## I2 — Clientes, unidades e contatos (em validação)
+## I2 — Clientes, unidades e contatos (validado pelo Diretor em 09/10/2026)
 
 **Objetivo:** cadastro mestre de clientes com código permanente, unidades, contatos, pesquisa, duplicidade, inativação e histórico.
 **Requisitos:** AUDDOC017 RF-02, RF-03, RF-04, RF-08, FL-01, CA-02, CA-03, CA-10 (dados); AUDDOC013 §§3–5.
@@ -104,3 +106,28 @@ Solução:
 Pendências para uso real: produção (G1), subdomínio do audita.seg.br (a página pública não pode ficar atrás da proteção de login da Vercel), revisão jurídica do termo, aviso por e-mail de novas solicitações (requer provedor de e-mail).
 
 Observação: os testes automatizados criam clientes fictícios "[Teste automatizado] …" (marcados TESTE) no ambiente de desenvolvimento; por regra, não há exclusão física.
+
+## I3 — Catálogo de serviços e situação de liberação (em validação)
+
+**Objetivo:** catálogo interno a partir da AUDDOC004/005, com a situação comercial de cada serviço e o registro das decisões de liberação.
+**Requisitos:** AUDDOC017 RF-05, RF-17, CA-04; AUDDOC004 Rev.00 (matriz e treinamentos por NR); AUDDOC005 §§3, 13, 14; AUDDOC011 §6 (unidade de cobrança e SaaS).
+
+Solução:
+- Migração `20261009192650_i3_catalogo_servicos`: `services` (33 serviços + 12 ofertas de treinamento vinculadas ao TRN-005, com escopo, limites, requisitos, referências, classe A/B/C, verificação documentos/RT/recursos e observações) e `service_status_history`.
+- Situações conforme AUDDOC005 §14: Não liberado, Apto tecnicamente, Apto comercialmente, Expansão futura. **Todos iniciam "Não liberado"** (AUDDOC004 Rev.00); nenhuma liberação foi feita pela carga.
+- Mudança de situação exige fundamento (mín. 10 caracteres) e gera histórico imutável (de/para, fundamento, referência, data, responsável). Fundamento não pode ser reescrito sem nova decisão. Código, tipo e vínculo são permanentes; sem inclusão/exclusão pela API.
+- `service_allows_commercial_proposal`: só "Apto comercialmente" e ativo no catálogo permitem proposta comercial final (será usada no I6). Serviço inativo não pode ser liberado.
+- SIS-001 (HUB) e SIS-002 (PRO) marcados "sem modelo definido": não usam a hora técnica automaticamente (AUDDOC011 §6).
+- Telas em Configurações → Catálogo de serviços: contadores por situação, pesquisa (código, nome, norma), filtros por família e situação; tabela no computador e cartões no celular; ficha com escopo, requisitos, ofertas, verificação operacional, decisão e histórico.
+
+Recuperação (09/10/2026): o código das telas do I3 foi escrito numa sessão cujo ambiente temporário foi encerrado antes do envio ao GitHub; só a migração estava aplicada no banco. O arquivo da migração foi reconstruído a partir do banco e conferido byte a byte (MD5 `385d84dfce4b23e95ed2e0b8bfaceb4a`, idêntico ao aplicado); as telas foram reconstruídas a partir das capturas daquela sessão. Para evitar repetição, todo trabalho passa a ser enviado ao GitHub antes dos testes.
+
+### Evidências de teste (09/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 43/43 (I3: 8 novos — 33+12 itens e vínculo ao TRN-005; carga inicial toda "Não liberado"; SaaS sem hora técnica; CA-04; fundamento obrigatório; histórico imutável; inativo não libera; código permanente e sem inclusão/exclusão; isolamento de anônimo e não autorizado) |
+| Playwright — total | 11/11 (I3: lista, pesquisa por norma, filtro por família, ficha, decisão com fundamento e reversão, verificação operacional; catálogo e ficha no celular; **responsividade: 14 telas sem rolagem horizontal em 360 px e 768 px**) |
+
+Observação: os testes registram decisões fictícias em ESP-006/ESP-007 no ambiente de desenvolvimento e as revertem ao final; ficam visíveis no histórico desses serviços.
