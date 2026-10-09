@@ -7,7 +7,7 @@ export const metadata = { title: "Configurações" };
 const ITENS = [
   { href: "/configuracoes/atividades", titulo: "Registro de atividades", desc: "Trilha de alterações e acessos ao sistema.", pronto: true },
   { href: null, titulo: "Dados institucionais", desc: "Razão social, CNPJ e contatos da AUDITA (pendentes de formalização).", pronto: false, inc: "I2" },
-  { href: null, titulo: "Catálogo de serviços", desc: "Serviços AUDDOC004/005 e situação de liberação.", pronto: false, inc: "I3" },
+  { href: "/configuracoes/servicos", titulo: "Catálogo de serviços", desc: "Serviços AUDDOC004/005 e situação de liberação.", pronto: true },
   { href: null, titulo: "Parâmetros financeiros", desc: "Conjuntos versionados de parâmetros AUDDOC011.", pronto: false, inc: "I5" },
   { href: null, titulo: "Modelos de documentos", desc: "Versões técnicas dos modelos AUDDOC010.", pronto: false, inc: "I6" },
   { href: null, titulo: "Usuários", desc: "No MVP, somente o administrador.", pronto: false, inc: "futuro" },
