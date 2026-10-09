@@ -13,6 +13,7 @@ const PAGES = [
   "/clientes/convites",
   "/clientes/solicitacoes",
   "/demandas",
+  "/demandas/nova",
   "/orcamentos",
   "/biblioteca",
   "/comunicacao",
@@ -43,9 +44,11 @@ for (const vp of [
     const clientHref = await page.locator('a[href^="/clientes/"][href*="-"]').first().getAttribute("href");
     await page.goto("/configuracoes/servicos");
     const serviceHref = await page.locator('a[href^="/configuracoes/servicos/"]').first().getAttribute("href");
+    await page.goto("/demandas?grupo=todas");
+    const demandHref = await page.locator('a[href^="/demandas/"][href*="-"]').first().getAttribute("href");
 
     const problems: string[] = [];
-    for (const path of [...PAGES, clientHref, serviceHref].filter(Boolean) as string[]) {
+    for (const path of [...PAGES, clientHref, serviceHref, demandHref].filter(Boolean) as string[]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
