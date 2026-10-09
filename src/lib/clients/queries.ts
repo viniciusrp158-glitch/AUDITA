@@ -150,3 +150,12 @@ export async function getClientHistory(id: string): Promise<HistoryRow[]> {
     .limit(100);
   return (data ?? []) as HistoryRow[];
 }
+
+export async function countPendingRequests(): Promise<number> {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("client_registration_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pendente");
+  return count ?? 0;
+}

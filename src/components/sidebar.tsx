@@ -33,7 +33,15 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar({ userName, userEmail }: { userName: string; userEmail: string }) {
+export function Sidebar({
+  userName,
+  userEmail,
+  badges = {},
+}: {
+  userName: string;
+  userEmail: string;
+  badges?: Record<string, number>;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -90,7 +98,15 @@ export function Sidebar({ userName, userEmail }: { userName: string; userEmail: 
                 }`}
               >
                 <Icon size={18} className={active ? "text-green" : "text-muted group-hover:text-navy"} />
-                {label}
+                <span className="flex-1">{label}</span>
+                {(badges[href] ?? 0) > 0 && (
+                  <span
+                    className="rounded-full bg-warn px-1.5 text-xs font-bold text-white"
+                    title={`${badges[href]} solicitação(ões) de cadastro pendente(s)`}
+                  >
+                    {badges[href]}
+                  </span>
+                )}
               </Link>
             );
           })}

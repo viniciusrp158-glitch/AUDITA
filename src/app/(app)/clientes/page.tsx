@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Inbox, Link2, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, CodeBadge, StatusBadge, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
 import { formatTaxId } from "@/lib/br";
-import { listClients, PAGE_SIZE } from "@/lib/clients/queries";
+import { countPendingRequests, listClients, PAGE_SIZE } from "@/lib/clients/queries";
 
 export const metadata = { title: "Clientes" };
 
@@ -24,7 +24,7 @@ export default async function ClientesPage({
   const q = (sp.q ?? "").slice(0, 80);
   const situacao = SITUACOES.some((s) => s.value === sp.situacao) ? sp.situacao! : "ativos";
   const page = Math.max(1, Number(sp.p) || 1);
-  const { rows, total, error } = await listClients({ q, situacao, page });
+  const [{ rows, total, error }, pending] = await Promise.all([listClients({ q, situacao, page }), countPendingRequests()]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const qs = (p: number) => `?${new URLSearchParams({ ...(q && { q }), situacao, p: String(p) })}`;
 
@@ -32,9 +32,18 @@ export default async function ClientesPage({
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader title="Clientes" description="Cadastro mestre de empresas, unidades e contatos. O código CLI é permanente." />
-        <ButtonLink href="/clientes/novo">
-          <Plus size={16} /> Novo cliente
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink href="/clientes/solicitacoes" variant="secondary">
+            <Inbox size={16} /> Solicitações
+            {pending > 0 && <span className="rounded-full bg-warn px-1.5 text-xs font-bold text-white">{pending}</span>}
+          </ButtonLink>
+          <ButtonLink href="/clientes/convites" variant="secondary">
+            <Link2 size={16} /> Link de cadastro
+          </ButtonLink>
+          <ButtonLink href="/clientes/novo">
+            <Plus size={16} /> Novo cliente
+          </ButtonLink>
+        </div>
       </div>
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">

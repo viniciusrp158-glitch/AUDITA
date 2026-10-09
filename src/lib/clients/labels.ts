@@ -30,9 +30,21 @@ export const FIELD_LABELS: Record<string, string> = {
   is_primary: "Contato principal",
   purpose: "Finalidade",
   is_test: "Registro de teste",
+  recipient: "Enviado para",
+  cancelled_at: "Cancelado em",
+  used_at: "Utilizado em",
+  review_note: "Motivo",
+};
+
+export const REQUEST_STATUS: Record<string, { label: string; cls: string }> = {
+  pendente: { label: "Pendente", cls: "bg-warn/10 text-warn" },
+  aprovada: { label: "Aprovada", cls: "bg-ok/10 text-ok" },
+  recusada: { label: "Recusada", cls: "bg-surface text-muted" },
 };
 
 export const ENTITY_LABELS: Record<string, string> = {
+  client_invites: "Link de cadastro",
+  client_registration_requests: "Solicitação de cadastro",
   clients: "Cliente",
   client_units: "Unidade",
   client_contacts: "Contato",
@@ -49,7 +61,7 @@ export const ACTION_LABELS: Record<string, string> = {
   access_denied: "Acesso negado",
 };
 
-const HIDDEN = new Set(["id", "client_id", "created_by", "created_at", "updated_at", "updated_by", "search_text", "inactivated_at"]);
+const HIDDEN = new Set(["token_hash", "payload", "invite_id", "reviewed_by", "reviewed_at", "terms_accepted_at", "submitted_at", "expires_at", "id", "client_id", "created_by", "created_at", "updated_at", "updated_by", "search_text", "inactivated_at"]);
 
 type Ctx = { unitNames?: Record<string, string> };
 

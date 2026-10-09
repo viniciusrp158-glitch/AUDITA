@@ -96,7 +96,10 @@ export function SelectField({
 }: BaseProps & { options: { value: string; label: string }[]; defaultValue?: string | null }) {
   return (
     <FieldShell label={label} name={name} required={required} hint={hint} error={error} className={className}>
+      {/* key: remonta o select quando o valor devolvido pelo servidor muda; sem isso, o reset
+          automático do formulário (React 19) volta o select à opção inicial após um erro. */}
       <select
+        key={defaultValue ?? ""}
         id={name}
         name={name}
         required={required}
