@@ -70,7 +70,7 @@ export function DefinitionList({ items }: { items: { label: string; value: React
       {items.map((i) => (
         <div key={i.label}>
           <dt className="text-xs font-medium uppercase tracking-wide text-muted">{i.label}</dt>
-          <dd className="mt-0.5 text-sm text-ink">{i.value || <span className="text-muted">—</span>}</dd>
+          <dd className="mt-0.5 break-words text-sm text-ink">{i.value || <span className="text-muted">—</span>}</dd>
         </div>
       ))}
     </dl>

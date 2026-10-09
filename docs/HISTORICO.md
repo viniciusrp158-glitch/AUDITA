@@ -131,3 +131,29 @@ Recuperação (09/10/2026): o código das telas do I3 foi escrito numa sessão c
 | Playwright — total | 11/11 (I3: lista, pesquisa por norma, filtro por família, ficha, decisão com fundamento e reversão, verificação operacional; catálogo e ficha no celular; **responsividade: 14 telas sem rolagem horizontal em 360 px e 768 px**) |
 
 Observação: os testes registram decisões fictícias em ESP-006/ESP-007 no ambiente de desenvolvimento e as revertem ao final; ficam visíveis no histórico desses serviços.
+
+I3 validado pelo Diretor em 09/10/2026.
+
+## I4 — Demandas / Registro Único de Atendimento (em validação)
+
+**Objetivo:** registrar as solicitações dos clientes numa única tela e acompanhá-las até o encerramento, sem burocracia.
+**Requisitos:** AUDDOC017 RF-06, FL-05, RF-08; AUDDOC009 §8 (RUA) e §8.1 (estados); AUDDOC013 (código não reutilizável).
+
+Solução:
+- Migração `20261009215329_i4_demandas`: `demands` (código `DEM-AAAA-NNNN` gerado pelo banco, permanente; cliente, unidade, contato e serviço do catálogo; origem, resumo, escopo, local, recebimento, prazo; contrato recorrente; viabilidade AUDDOC004; observações) e `demand_events` (linha do tempo somente inclusão: anotação, contato, visita e mudança de situação).
+- Situações do AUDDOC009 §8.1 (decisão G-04): Recebida, Em análise, Aguardando cliente, Proposta enviada, Aceita, Em execução, Entregue, Encerrada, Não viável, Cancelada. **Transições livres** (etapas podem ser puladas); reabertura permitida; cancelar e "não viável" exigem motivo. A situação só muda pela função `change_demand_status`, que registra o evento.
+- Contrato recorrente: visitas e contatos ficam na mesma demanda, sem novo cadastro por visita (AUDDOC009).
+- Vínculos coerentes: unidade e contato devem ser do mesmo cliente; cliente inativo não recebe nova demanda; prazo não anterior ao recebimento; sem exclusão física.
+- Serviço não liberado pode ser registrado e analisado, com aviso de que não gera proposta comercial final (RF-17).
+- Telas: Demandas (Em aberto / Encerradas / Todas, pesquisa por código, resumo e cliente, filtro por situação, aviso de prazo vencido; tabela no computador e cartões no celular), Nova demanda (pode partir da ficha do cliente), ficha da demanda (situação, acompanhamentos, linha do tempo), edição; aba "Demandas e propostas" no cliente.
+- As alterações das demandas também aparecem no histórico do cliente.
+
+Observação: os campos de data usam o seletor nativo do navegador, que exibe o formato do idioma do aparelho (dd/mm/aaaa em navegadores em português); todas as datas exibidas pelo sistema seguem dd/mm/aaaa.
+
+### Evidências de teste (09/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 53/53 (I4: 8 novos — código gerado/sequencial e ignorando valores enviados; código permanente e sem exclusão; situação só pela função; transições livres, encerramento e reabertura com eventos; motivo obrigatório; recorrente com visitas/contatos e linha do tempo imutável; vínculos coerentes e cliente inativo; prazo; histórico do cliente e isolamento) |
+| Playwright — total | 13/13 (I4: fluxo FL-05 completo a partir da ficha do cliente — cadastro com unidade/contato/serviço não liberado, visita, análise, motivo obrigatório, encerramento, filtros e pesquisa por cliente; demandas no celular; responsividade de 17 telas em 360 px e 768 px) |
