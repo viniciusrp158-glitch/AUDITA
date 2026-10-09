@@ -20,3 +20,15 @@ export function formatDateTime(iso: string | Date): string {
 export function formatDate(iso: string | Date): string {
   return dateFmt.format(typeof iso === "string" ? new Date(iso) : iso);
 }
+
+/** Data sem hora ("AAAA-MM-DD", coluna date do banco) → dd/mm/aaaa, sem conversão de fuso. */
+export function formatDay(day: string | null | undefined): string {
+  if (!day) return "";
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(day);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : day;
+}
+
+/** Hoje no fuso de São Paulo, como "AAAA-MM-DD". */
+export function todaySaoPaulo(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}

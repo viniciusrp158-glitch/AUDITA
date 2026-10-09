@@ -6,7 +6,9 @@ import { requireAppUser } from "@/lib/auth";
 import { formatCep, formatCnae, formatCnpj, formatPhone, formatTaxId } from "@/lib/br";
 import { ACTION_LABELS, describeChange, ENTITY_LABELS } from "@/lib/clients/labels";
 import { getClientChildren, getClientHistory, getClientOr404 } from "@/lib/clients/queries";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime, formatDay, todaySaoPaulo } from "@/lib/format";
+import { listDemands } from "@/lib/demands/queries";
+import { DemandStatusPill, isOverdue, OverdueBadge } from "@/components/demand-status";
 import {
   saveContactAction,
   saveUnitAction,
@@ -62,6 +64,8 @@ export default async function ClientePage({
   const client = await getClientOr404(id);
   const { units, contacts } = await getClientChildren(id);
   const history = tab === "historico" ? await getClientHistory(id) : [];
+  const demands = tab === "relacionamento" ? (await listDemands({ clientId: id, grupo: "todas", page: 1 })).rows : [];
+  const today = todaySaoPaulo();
   const base = `/clientes/${id}`;
   const unitNames = Object.fromEntries(units.map((u) => [u.id, u.name]));
 
@@ -280,11 +284,39 @@ export default async function ClientePage({
       )}
 
       {tab === "relacionamento" && (
-        <Card title="Demandas, propostas e serviços">
-          <p className="text-sm text-muted">
-            O histórico de demandas (I4) e de propostas (I6) deste cliente aparecerá aqui, a partir dos registros vinculados ao
-            código <strong className="text-ink">{client.client_code}</strong>.
-          </p>
+        <Card
+          title="Demandas"
+          actions={
+            client.status === "ativo" ? (
+              <Link href={`/demandas/nova?cliente=${client.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-navy hover:underline">
+                <Plus size={15} /> Nova demanda
+              </Link>
+            ) : null
+          }
+        >
+          {demands.length === 0 ? (
+            <p className="text-sm text-muted">Nenhuma demanda registrada para este cliente.</p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {demands.map((d) => (
+                <li key={d.id} className="py-2.5">
+                  <Link href={`/demandas/${d.id}`} className="block hover:text-navy">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs font-semibold text-navy">{d.demand_code}</span>
+                      <DemandStatusPill status={d.status} />
+                      {isOverdue(d, today) && <OverdueBadge />}
+                    </span>
+                    <span className="mt-0.5 block text-sm text-ink">{d.summary}</span>
+                    <span className="block text-xs text-muted">
+                      Recebida {formatDay(d.received_on)}
+                      {d.services ? ` · ${d.services.service_code}` : ""}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-4 border-t border-line pt-3 text-xs text-muted">Propostas e serviços contratados aparecerão aqui a partir do I6.</p>
         </Card>
       )}
 
