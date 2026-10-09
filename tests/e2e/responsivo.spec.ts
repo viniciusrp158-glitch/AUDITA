@@ -20,6 +20,7 @@ const PAGES = [
   "/configuracoes",
   "/configuracoes/atividades",
   "/configuracoes/servicos",
+  "/configuracoes/parametros",
 ];
 
 async function login(page: Page) {
@@ -47,9 +48,14 @@ for (const vp of [
     const serviceHref = await page.locator('a[href^="/configuracoes/servicos/"]').first().getAttribute("href");
     await page.goto("/demandas?grupo=todas");
     const demandHref = await page.locator('ul a[href^="/demandas/"]').first().getAttribute("href");
+    await page.goto("/configuracoes/parametros");
+    const paramHref = await page.locator('a[href^="/configuracoes/parametros/"]').first().getAttribute("href");
+    await page.goto("/orcamentos");
+    const quoteHref = await page.locator('ul a[href^="/orcamentos/"]').first().getAttribute("href");
+    const quoteItemPages = quoteHref ? [`${quoteHref}/itens/novo`] : [];
 
     const problems: string[] = [];
-    for (const path of [...PAGES, clientHref, serviceHref, demandHref].filter(Boolean) as string[]) {
+    for (const path of [...PAGES, clientHref, serviceHref, demandHref, paramHref, quoteHref, ...quoteItemPages].filter(Boolean) as string[]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
