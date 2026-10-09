@@ -167,6 +167,7 @@ test("orçamento no celular: cartões, prévia abaixo do formulário e sem rolag
   await expect(page.getByRole("table")).toBeHidden();
   await page.screenshot({ path: `${SHOTS}/54-orcamentos-celular.png` });
   await page.locator('ul a[href^="/orcamentos/"]').first().click();
+  await page.waitForURL(/\/orcamentos\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/55-orcamento-celular.png`, fullPage: true });

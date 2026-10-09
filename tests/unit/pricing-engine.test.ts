@@ -182,6 +182,10 @@ describe("formatação e entrada em pt-BR", () => {
     expect(formatPercent("0.112")).toBe("11,2%");
     expect(parseBR("1.234,56")).toBe("1234.56");
     expect(parseBR("12,5")).toBe("12.5");
+    expect(parseBR("2.000")).toBe("2000"); // milhar em pt-BR
+    expect(parseBR("1.234.567")).toBe("1234567");
+    expect(parseBR("1.5")).toBe("1.5");
+    expect(parseBR("1.234,5.6")).toBe("invalid");
     expect(parseBR("")).toBeNull();
     expect(parseBR("abc")).toBe("invalid");
     expect(percentToFraction("11,2")).toBe("0.112");

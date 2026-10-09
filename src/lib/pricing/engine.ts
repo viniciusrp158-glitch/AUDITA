@@ -228,7 +228,17 @@ export function formatHours(x: Num | Dec | null): string {
 export function parseBR(input: string | null | undefined): string | null {
   const s = (input ?? "").trim().replace(/\s|R\$|%/g, "");
   if (s === "") return null;
-  const normalized = s.includes(",") ? s.replace(/\./g, "").replace(",", ".") : s;
+  // pt-BR: vírgula é decimal e ponto é milhar ("2.000" = dois mil). Sem vírgula, ponto só é decimal
+  // quando não segue o padrão de milhares (ex.: "1.5"). Pontos fora do padrão de milhar ⇒ inválido.
+  const thousands = /^-?\d{1,3}(\.\d{3})+$/;
+  let normalized: string;
+  if (s.includes(",")) {
+    const [int, frac, ...rest] = s.split(",");
+    if (rest.length || !/^\d+$/.test(frac ?? "") || !(thousands.test(int) || /^-?\d+$/.test(int))) return "invalid";
+    normalized = `${int.replace(/\./g, "")}.${frac}`;
+  } else {
+    normalized = thousands.test(s) ? s.replace(/\./g, "") : s;
+  }
   return /^-?\d+(\.\d+)?$/.test(normalized) ? normalized : "invalid";
 }
 
