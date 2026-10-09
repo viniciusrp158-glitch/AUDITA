@@ -66,6 +66,9 @@ export const REQUEST_STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export const ENTITY_LABELS: Record<string, string> = {
+  pricing_parameter_sets: "Parâmetros financeiros",
+  quotes: "Orçamento",
+  quote_items: "Item de orçamento",
   services: "Catálogo de serviços",
   demands: "Demanda",
   client_invites: "Link de cadastro",

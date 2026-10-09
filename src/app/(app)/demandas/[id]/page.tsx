@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge } from "@/components/demand-status";
-import { Alert } from "@/components/form";
+import { Alert, SubmitButton } from "@/components/form";
+import { QuoteStatusPill } from "@/components/pricing-status";
+import { getQuoteByDemand } from "@/lib/pricing/queries";
+import { createQuoteAction } from "@/app/(app)/orcamentos/actions";
 import { StatusPill } from "@/components/service-status";
 import { ButtonLink, Card, CodeBadge, DefinitionList, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
@@ -23,13 +26,13 @@ export default async function DemandaPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ criada?: string; salva?: string }>;
+  searchParams: Promise<{ criada?: string; salva?: string; erro_cotacao?: string }>;
 }) {
   await requireAppUser();
   const { id } = await params;
   const sp = await searchParams;
   const d = await getDemandOr404(id);
-  const events = await getDemandEvents(id);
+  const [events, quote] = await Promise.all([getDemandEvents(id), getQuoteByDemand(id)]);
   const today = todaySaoPaulo();
   const svc = d.services;
   const released = svc && svc.commercial_status === "apto_comercialmente" && svc.catalog_status === "ativo";
@@ -132,10 +135,38 @@ export default async function DemandaPage({
             </div>
           </Card>
 
-          <Card title="Proposta">
-            <p className="text-sm text-muted">
-              Orçamentos e propostas vinculados a esta demanda aparecerão aqui a partir dos incrementos I5 e I6.
-            </p>
+          <Card title="Orçamento">
+            {quote ? (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="flex flex-wrap items-center gap-2 text-sm">
+                  <Link href={`/orcamentos/${quote.id}`} className="font-mono text-xs font-semibold text-navy hover:underline">
+                    {quote.quote_code}
+                  </Link>
+                  <QuoteStatusPill status={quote.status} />
+                </span>
+                <ButtonLink href={`/orcamentos/${quote.id}`} variant="secondary">
+                  Abrir orçamento
+                </ButtonLink>
+              </div>
+            ) : d.closed_at ? (
+              <p className="text-sm text-muted">Demanda encerrada sem orçamento.</p>
+            ) : (
+              <form action={createQuoteAction.bind(null, d.id)} className="space-y-3">
+                {sp.erro_cotacao && (
+                  <Alert kind="error">
+                    {sp.erro_cotacao === "encerrada"
+                      ? "Demanda encerrada, não viável ou cancelada não recebe cotação."
+                      : "Não foi possível criar a cotação."}
+                  </Alert>
+                )}
+                <p className="text-sm text-muted">
+                  Crie a cotação (uma por demanda) para calcular o preço pelo AUDDOC011. O serviço da demanda entra como primeiro item.
+                </p>
+                <div className="sm:max-w-xs">
+                  <SubmitButton pendingText="Criando…">Criar cotação</SubmitButton>
+                </div>
+              </form>
+            )}
           </Card>
 
           {d.notes && (
