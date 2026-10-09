@@ -75,11 +75,11 @@ Solução:
 
 I2 validado pelo Diretor em 09/10/2026.
 
-## Documento — AUDFOR001 Ficha Cadastral de Cliente (minuta v0.1)
+## Documento — Ficha Cadastral de Cliente (descartada)
 
-Formulário Word para o cliente preencher, com os mesmos campos do cadastro, no padrão AUDDOC001/AUDDOC003. Primeiro código da família FOR; aguarda aprovação para Rev.00. Arquivos em `docs/modelos/` (inclui o gerador).
+Minuta v0.1 em Word elaborada em 09/10/2026 e **descartada pelo Diretor** no mesmo dia, substituída pelo autocadastro por link (I2.1). O código AUDFOR001 chegou a ser proposto, mas nunca foi aprovado nem emitido; arquivos removidos do repositório.
 
-## I2.1 — Autocadastro do cliente por link individual (em validação)
+## I2.1 — Autocadastro do cliente por link individual (validado pelo Diretor em 09/10/2026)
 
 **Objetivo:** o cliente preenche os próprios dados por um link enviado pelo Diretor; os dados chegam ao banco como solicitação pendente e só viram cadastro após aprovação.
 **Decisões do Diretor:** link individual por cliente; uso único; validade de 24 h; acompanhamento enviado/preenchido/expirado; botão genérico de compartilhar; termo recolhido com opção de expandir + caixa de aceite.

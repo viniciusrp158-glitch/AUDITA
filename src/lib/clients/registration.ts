@@ -5,7 +5,7 @@ import { MAX_CONTACTS, MAX_UNITS } from "@/lib/clients/limits";
 
 export { MAX_CONTACTS, MAX_UNITS };
 
-/** Para o autocadastro, documento, município e UF são obrigatórios (ficha AUDFOR001). */
+/** Para o autocadastro, documento, município e UF são obrigatórios (decisão do Diretor, I2.1). */
 export const publicClientSchema = clientSchema.superRefine((v, ctx) => {
   if (!v.tax_id) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["tax_id"], message: "Informe o CNPJ ou CPF." });
   if (!v.address_city) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["address_city"], message: "Informe o município." });

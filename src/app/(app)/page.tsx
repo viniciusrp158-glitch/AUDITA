@@ -10,8 +10,8 @@ type Status = "concluido" | "em_validacao" | "previsto";
 const INCREMENTOS: { id: string; titulo: string; status: Status }[] = [
   { id: "I1", titulo: "Fundação: login, permissões, layout e trilha de auditoria", status: "concluido" },
   { id: "I2", titulo: "Clientes, unidades e contatos com código permanente", status: "concluido" },
-  { id: "I2.1", titulo: "Autocadastro do cliente por link individual", status: "em_validacao" },
-  { id: "I3", titulo: "Catálogo de serviços (AUDDOC004/005) e situação de liberação", status: "previsto" },
+  { id: "I2.1", titulo: "Autocadastro do cliente por link individual", status: "concluido" },
+  { id: "I3", titulo: "Catálogo de serviços (AUDDOC004/005) e situação de liberação", status: "em_validacao" },
   { id: "I4", titulo: "Demandas — Registro Único de Atendimento", status: "previsto" },
   { id: "I5", titulo: "Parâmetros financeiros e motor de cálculo AUDDOC011", status: "previsto" },
   { id: "I6", titulo: "Revisões e emissão de propostas (DOCX/PDF)", status: "previsto" },
