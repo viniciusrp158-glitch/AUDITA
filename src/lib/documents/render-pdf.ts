@@ -12,11 +12,18 @@ const LINE = "#C9D1DB";
 const MUTED = "#5B6573";
 const MM = 2.8346;
 
+// Partes da API do pdfmake 0.3 (servidor) que os tipos publicados ainda não descrevem.
+type PdfmakeServer = typeof pdfmake & {
+  virtualfs: { writeFileSync(name: string, data: Buffer): void };
+  setLocalAccessPolicy(cb: (path: string) => boolean): void;
+};
+const pm = pdfmake as PdfmakeServer;
+
 let ready = false;
 function setup() {
   if (ready) return;
-  pdfmake.virtualfs.writeFileSync("LiberationSans-Regular.ttf", Buffer.from(FONT_REGULAR, "base64"));
-  pdfmake.virtualfs.writeFileSync("LiberationSans-Bold.ttf", Buffer.from(FONT_BOLD, "base64"));
+  pm.virtualfs.writeFileSync("LiberationSans-Regular.ttf", Buffer.from(FONT_REGULAR, "base64"));
+  pm.virtualfs.writeFileSync("LiberationSans-Bold.ttf", Buffer.from(FONT_BOLD, "base64"));
   pdfmake.setFonts({
     Arial: {
       normal: "LiberationSans-Regular.ttf",
@@ -27,7 +34,7 @@ function setup() {
   });
   // Documento 100% autocontido: nenhum acesso a URLs ou arquivos locais.
   pdfmake.setUrlAccessPolicy(() => false);
-  (pdfmake as unknown as { setLocalAccessPolicy(cb: (p: string) => boolean): void }).setLocalAccessPolicy(() => false);
+  pm.setLocalAccessPolicy(() => false);
   ready = true;
 }
 
