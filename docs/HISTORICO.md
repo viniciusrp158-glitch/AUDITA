@@ -24,4 +24,21 @@ Entregue:
 - Registro de atividades (Configurações → Registro de atividades).
 - Usuários fictícios no ambiente de desenvolvimento: `admin.teste@audita.test` (autorizado) e `intruso.teste@audita.test` (autenticado, sem autorização).
 
-Pendências do I1: ver relatório do incremento.
+### Evidências de teste (09/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc --noEmit` | sem erros |
+| `eslint src tests` | sem erros |
+| `next build` | sucesso (14 rotas) |
+| Vitest — unitários (formatação pt-BR/fuso) | 2/2 |
+| Vitest — acesso por chamada direta à API (anônimo, autenticado sem autorização, administrador, imutabilidade da trilha) | 7/7 |
+| Playwright — redirecionamento sem sessão, senha incorreta, usuário não autorizado, fluxo do administrador, layout no celular | 5/5 |
+| Supabase advisors (segurança) | apenas "proteção contra senhas vazadas" desativada (configuração do painel) |
+
+### Pendências do I1
+
+- Configurar no painel do Supabase (`audita-dev`): desativar cadastro público; URL do site e URLs de redirecionamento para a recuperação de senha.
+- Vercel: autorizar o app da Vercel no GitHub para o repositório AUDITA (necessário para criar o projeto e os previews).
+- Criar o usuário administrador real do Diretor (após a configuração de URLs, para definir a senha pelo link de recuperação).
+- MFA (TOTP) do administrador: previsto para depois do I1.
