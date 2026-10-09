@@ -8,6 +8,7 @@ import {
   Building2,
   Calculator,
   ClipboardList,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -102,14 +103,22 @@ export function Sidebar({ userName, userEmail }: { userName: string; userEmail: 
           <p className="truncate text-xs text-muted" title={userEmail}>
             {userEmail}
           </p>
-          <form action={signOut} className="mt-3">
-            <button
-              type="submit"
+          <div className="mt-3 flex items-center gap-1">
+            <Link
+              href="/atualizar-senha"
               className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted hover:bg-surface hover:text-navy"
             >
-              <LogOut size={16} /> Sair
-            </button>
-          </form>
+              <KeyRound size={16} /> Alterar senha
+            </Link>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted hover:bg-surface hover:text-navy"
+              >
+                <LogOut size={16} /> Sair
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
     </>

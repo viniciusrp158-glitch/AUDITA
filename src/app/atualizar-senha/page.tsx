@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { Alert, Field, SubmitButton } from "@/components/form";
@@ -21,6 +22,11 @@ export default function AtualizarSenhaPage() {
         <Field label="Confirmar nova senha" name="confirm" type="password" autoComplete="new-password" />
         <SubmitButton pendingText="Salvando…">Salvar senha</SubmitButton>
       </form>
+      <div className="mt-4 text-center">
+        <Link href="/" className="text-sm text-navy underline-offset-2 hover:underline">
+          Cancelar e voltar ao sistema
+        </Link>
+      </div>
     </AuthShell>
   );
 }
