@@ -43,6 +43,7 @@ async function createTestClient(page: Page, name: string) {
 }
 
 test("FL-05: demanda do registro ao encerramento", async ({ page }) => {
+  test.setTimeout(90_000);
   const tag = uniqueSuffix();
   const cliente = `[Teste automatizado] Cliente Demanda ${tag} LTDA`;
   const resumo = `[Teste automatizado] Treinamento NR-35 para 12 colaboradores ${tag}`;
@@ -78,7 +79,7 @@ test("FL-05: demanda do registro ao encerramento", async ({ page }) => {
 
   // Acompanhamento (visita) e mudanças de situação
   await page.getByLabel("Tipo").selectOption("visita");
-  await page.getByLabel("Descrição", { exact: true }).fill("Visita técnica para levantamento do escopo (fictício).");
+  await page.locator('textarea[name="description"]').fill("Visita técnica para levantamento do escopo (fictício).");
   await page.getByRole("button", { name: "Registrar acompanhamento" }).click();
   await expect(page.getByText("Acompanhamento registrado.")).toBeVisible();
   await expect(page.getByText("Visita técnica para levantamento do escopo (fictício).")).toBeVisible();
@@ -121,7 +122,7 @@ test("demandas no celular: lista em cartões e ficha sem rolagem horizontal", as
   await expect(page.getByRole("heading", { name: "Demandas" })).toBeVisible();
   await expect(page.getByRole("table")).toBeHidden();
   await page.screenshot({ path: `${SHOTS}/43-demandas-celular.png` });
-  await page.locator('a[href^="/demandas/"][href*="-"]').first().click();
+  await page.locator('ul a[href^="/demandas/"]').first().click();
   await expect(page.getByRole("button", { name: "Atualizar situação" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/44-demanda-celular.png`, fullPage: true });

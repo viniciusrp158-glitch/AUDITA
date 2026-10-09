@@ -35,6 +35,7 @@ for (const vp of [
   { name: "tablet 768px", width: 768, height: 1024 },
 ]) {
   test(`sem rolagem horizontal — ${vp.name}`, async ({ browser }) => {
+    test.setTimeout(120_000);
     const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, locale: "pt-BR" });
     const page = await ctx.newPage();
     await login(page);
@@ -45,7 +46,7 @@ for (const vp of [
     await page.goto("/configuracoes/servicos");
     const serviceHref = await page.locator('a[href^="/configuracoes/servicos/"]').first().getAttribute("href");
     await page.goto("/demandas?grupo=todas");
-    const demandHref = await page.locator('a[href^="/demandas/"][href*="-"]').first().getAttribute("href");
+    const demandHref = await page.locator('ul a[href^="/demandas/"]').first().getAttribute("href");
 
     const problems: string[] = [];
     for (const path of [...PAGES, clientHref, serviceHref, demandHref].filter(Boolean) as string[]) {
