@@ -3,22 +3,9 @@ import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/format";
+import { ACTION_LABELS as ACOES, ENTITY_LABELS as ENTIDADES } from "@/lib/clients/labels";
 
 export const metadata = { title: "Registro de atividades" };
-
-const ACOES: Record<string, string> = {
-  insert: "Inclusão",
-  update: "Alteração",
-  delete: "Exclusão",
-  login: "Entrada no sistema",
-  logout: "Saída do sistema",
-  access_denied: "Acesso negado",
-};
-
-const ENTIDADES: Record<string, string> = {
-  app_users: "Usuários",
-  session: "Sessão",
-};
 
 const PAGE_SIZE = 50;
 
