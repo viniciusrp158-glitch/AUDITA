@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/* Identidade visual — AUDDOC003 Rev.00 (paleta institucional; Inter para interfaces) */
+@theme {
+  --color-navy: #031b35;
+  --color-navy-700: #0b2a4d;
+  --color-green: #80bb08;
+  --color-green-dark: #4a9f1a;
+  --color-blue: #0296fd;
+  --color-ink: #031b35;
+  --color-muted: #66758a;
+  --color-line: #d9e2e9;
+  --color-surface: #f3f4f6;
+  --color-ok: #277b43;
+  --color-warn: #a76613;
+  --color-danger: #b63d35;
+
+  --font-sans: "Inter Variable", Inter, Arial, Helvetica, sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
