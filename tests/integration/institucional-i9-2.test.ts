@@ -3,6 +3,7 @@
  * Parte 1 (PGlite, com todas as migrações): versões, publicação, imutabilidade e congelamento no snapshot das revisões —
  *   fluxos que, no banco de desenvolvimento, deixariam uma versão de TESTE como vigente de forma permanente.
  * Parte 2 (banco de desenvolvimento): RLS e permissões reais (somente o administrador), sem gravar nada.
+ * O congelamento no banco real é conferido no teste de emissão (emissao-i6: snapshot com "proponent").
  * Todos os dados são fictícios.
  */
 import type { PGlite } from "@electric-sql/pglite";
@@ -140,18 +141,5 @@ describe.skipIf(!ready)("I9.2 — permissões reais (banco de desenvolvimento, s
     const anon = client();
     expect((await anon.from("institutional_profiles").select("id")).error).not.toBeNull();
     expect((await anon.rpc("publish_institutional_profile", { p_id: fake })).error).not.toBeNull();
-  });
-
-  it("revisões criadas após a migração trazem o proponente congelado no snapshot", async () => {
-    const admin = await signedIn(process.env.TEST_ADMIN_EMAIL!, process.env.TEST_ADMIN_PASSWORD!);
-    const { data, error } = await admin
-      .from("quote_revisions")
-      .select("id, snapshot")
-      .gte("reviewed_at", "2026-10-10T21:06:00Z")
-      .order("reviewed_at", { ascending: false })
-      .limit(5);
-    expect(error).toBeNull();
-    expect(data!.length).toBeGreaterThan(0); // o teste de emissão (I6) roda antes e cria revisões
-    for (const r of data!) expect(Object.prototype.hasOwnProperty.call(r.snapshot, "proponent"), r.id).toBe(true);
   });
 });

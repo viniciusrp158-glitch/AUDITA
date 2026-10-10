@@ -211,6 +211,8 @@ describe.skipIf(!ready)("I6 — revisões, emissão e decisão", () => {
     expect(snap.contact?.full_name).toBe("Responsável Fictício");
     expect(snap.parameters.target_margin).toBeTruthy();
     expect(verifySnapshot(snap)).toEqual([]);
+    // I9.2: o banco congela o proponente vigente (null enquanto não houver dados institucionais publicados)
+    expect(Object.prototype.hasOwnProperty.call(snap, "proponent")).toBe(true);
 
     const q = (await admin.from("quotes").select("status, current_revision_id").eq("id", s.quoteId).single()).data!;
     expect(q).toEqual({ status: "revisada", current_revision_id: ok.data });
