@@ -76,7 +76,7 @@ async function priceFirstItem(page: Page) {
 }
 
 test("FL-02: revisão congelada → emissão DOCX/PDF com marca d'água → download → aceite → nova revisão", async ({ page }) => {
-  test.setTimeout(170_000);
+  test.setTimeout(120_000);
   const tag = uniqueSuffix();
   await login(page);
   await prepareQuote(page, tag);
