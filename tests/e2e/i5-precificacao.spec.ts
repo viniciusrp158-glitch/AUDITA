@@ -135,11 +135,11 @@ test("FL-06: cotação a partir da demanda, itens com prévia, totais único × 
 
   // Condições
   await page.getByLabel("Validade (dias)").fill("400");
-  await page.getByRole("button", { name: "Salvar condições" }).click();
+  await page.getByRole("button", { name: "Salvar conteúdo" }).click();
   await expect(page.getByText("Informe de 1 a 365 dias.")).toBeVisible();
   await page.getByLabel("Validade (dias)").fill("15");
-  await page.getByRole("button", { name: "Salvar condições" }).click();
-  await expect(page.getByText("Condições salvas.")).toBeVisible();
+  await page.getByRole("button", { name: "Salvar conteúdo" }).click();
+  await expect(page.getByText("Conteúdo da proposta salvo.")).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/53-orcamento.png`, fullPage: true });
 
   // Remoção do item exige confirmação
