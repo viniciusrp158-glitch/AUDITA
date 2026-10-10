@@ -160,7 +160,7 @@ Observação: os campos de data usam o seletor nativo do navegador, que exibe o 
 
 I4 validado pelo Diretor em 09/10/2026; ramo `develop` atualizado com o I4.
 
-## I5 — Parâmetros financeiros e motor AUDDOC011 (em validação)
+## I5 — Parâmetros financeiros e motor AUDDOC011
 
 **Objetivo:** calcular o preço de cada item de orçamento exatamente como o simulador aprovado, sem presumir nenhum valor.
 **Requisitos:** AUDDOC017 RF-09 a RF-14, CA-05, CA-06, CA-07; AUDDOC011 §§2–9 e AUDDOC011-ANX01 (abas Parâmetros e Simulador); decisões G-01, G-02 e G-07 do S0; regra do Diretor de aritmética decimal exata e margens comparadas com 4 casas.
@@ -196,4 +196,41 @@ Defeito encontrado e corrigido durante os testes: "2.000" era lido como 2 (ponto
 Observações:
 - No ambiente de desenvolvimento a versão vigente é a fictícia "[TESTE] Parâmetros fictícios…" (marcada TESTE). **Os parâmetros reais da AUDITA continuam pendentes** e serão cadastrados como nova versão quando o Diretor/contador os definirem; no ambiente corporativo não haverá versão alguma até lá (orçamentos ficam PENDENTE).
 - O número da versão é atribuído na criação do rascunho; por isso uma versão publicada depois pode ter número menor. A lista mostra sempre a vigente primeiro.
+
+I5 validado pelo Diretor em 09/10/2026.
+
+## I6 — Revisões, emissão de propostas (DOCX/PDF) e decisão do cliente (em validação)
+
+**Objetivo:** transformar a cotação calculada em proposta ao cliente — revisão congelada, emissão em Word e PDF pelos modelos aprovados, registro de aceite/recusa — sem nunca alterar o que já foi emitido.
+**Requisitos:** AUDDOC017 RF-14, RF-15, RF-16, RF-17, RF-21, RF-22, RF-23, RF-24, CA-04, CA-08, CA-10; AUDDOC010 §§4–7 e anexos M01 (ANX01) e M02 (ANX02); AUDDOC011 §2.
+
+Decisão do Diretor (09/10/2026): **para a versão de testes, considerar alguns serviços liberados**, para simular a emissão sem bloqueio; no sistema oficial, só serviços liberados geram proposta. Feito pelo fluxo normal do catálogo, com fundamento "[TESTE] Liberação fictícia, somente no ambiente de desenvolvimento…" e histórico imutável: **SST-001, SST-009, DOC-002, TRN-001 e TRN-NR06** (script `scripts/dev-liberar-servicos-teste.mjs`, que se recusa a rodar fora do projeto de desenvolvimento). A regra do sistema não foi afrouxada.
+
+Solução:
+- Migração `20261009233901_i6_revisoes_emissao` (MD5 `30b79d193aabe153b6f2ea87f4549ce6`) e correção `20261010023314_i6_corrige_reabertura` (MD5 `6e522724ff8d41ef7335167fa4daf921`; variável ambígua na reabertura, encontrada pelos testes). Ambas idênticas ao aplicado.
+- **Conteúdo da proposta** na cotação: modelo (M01 proposta integrada ou M02 orçamento simplificado) e os campos customizáveis de cada modelo (objetivo, escopo incluído/excluído, local/modalidade, prazo, metodologia, entregáveis, critério de conclusão, pagamento, despesas adicionais, reagendamento/cancelamento, próximo passo). Escopo, exclusões e modalidade vêm pré-preenchidos do catálogo e são revisáveis.
+- **Fluxo (RF-16):** Rascunho → **Concluir revisão (Rev.00, Rev.01…)** → Revisada → **Emitir** → Emitida → Aceita / Recusada; Cancelada a partir de qualquer etapa aberta. "Nova revisão" exige motivo e preserva a anterior (Substituída, com seus documentos). Situações só mudam pelas funções do banco.
+- **Revisão congelada (RF-14, CA-08):** snapshot imutável com cliente (inclusive CNPJ e endereço), contato, demanda, conteúdo, itens, cópia integral dos parâmetros e resultados do motor. O banco confere que os resultados correspondem aos itens atuais, todos PRONTOS, com a versão de parâmetros da cotação. Antes de emitir, a aplicação recalcula a partir do snapshot e interrompe a emissão se algo divergir.
+- **Pendências antes da revisão** (mostradas na tela e repetidas no banco): CNPJ/CPF do cliente, contato, parâmetros, itens com serviço do catálogo, validade e campos obrigatórios do modelo escolhido.
+- **Bloqueio de emissão (RF-17, CA-04):** qualquer item com serviço não "Apto comercialmente" bloqueia a emissão, com o motivo listado.
+- **Documentos (RF-15, RF-23):** DOCX e PDF gerados a partir de um único conteúdo, A4, margens 20 mm, fonte compatível com Arial (AUDDOC001), logotipo e cores do AUDDOC003; estrutura e textos fixos dos modelos M01/M02. **Nunca** contêm horas, custos, parâmetros ou margens. Totais único e mensal separados. Proponente aparece como "AUDITA — razão social e CNPJ pendentes de formalização" (não inventado). Ambiente ou dados de teste ⇒ **marca d'água "DOCUMENTO DE TESTE — SEM VALIDADE COMERCIAL" obrigatória** (verificada também no banco).
+- **Modelos técnicos (RF-21):** M01 e M02 cadastrados com revisão do anexo (Rev.00), versão técnica (v1), nome e SHA-256 do arquivo oficial (conferidos com o dossiê); imutáveis. Tela Configurações → Modelos de documentos.
+- **Armazenamento (RF-22, CA-10):** bucket privado `audita-documentos`; só usuários autorizados leem; sem sobrescrita, exclusão ou caminho fora do padrão. Download por link assinado de 60 s, gerado após conferência de permissão; cada download vai para a trilha (RF-24). SHA-256 de cada arquivo registrado.
+- **Decisão do cliente:** aceite exige data (entre a emissão e hoje), quem aceitou e referência (e-mail, protocolo, assinatura); recusa e cancelamento exigem motivo. A demanda acompanha: emissão ⇒ "Proposta enviada"; aceite ⇒ "Aceita"; demais registros entram na linha do tempo da demanda.
+- Validade: data-limite calculada na emissão; proposta vencida recebe aviso.
+
+### Evidências de teste (10/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 99/99 (I6: 3 unitários — snapshot íntegro e adulteração detectada, M01 com todos os campos, totais separados, marca d'água e **ausência de dados internos**, M02; 11 de integração — modelos e SHA-256, pendências, congelamento e travas, imutabilidade, bloqueio por serviço não liberado, emissão com SHA-256 conferido no download, marca d'água obrigatória, emissão única, CA-10 (anônimo/não autorizado, sem sobrescrita/exclusão), **CA-08** (mudança de parâmetros não altera a revisão emitida; nova revisão usa a nova versão), aceite, recusa/cancelamento e isolamento) |
+| Playwright — total | 19/19 (I6: FL-02 completo — pendências → item → conteúdo → Rev.00 → emissão → download por link assinado (PDF/DOCX) e bloqueio sem sessão → aceite → demanda "Aceita" → nova revisão Rev.01; serviço não liberado bloqueia a emissão e cancelamento exige motivo; orçamento emitido no celular; responsividade de 22 telas em 360 px e 768 px) |
+| Emissão na prévia da Vercel | proposta de teste emitida no servidor da Vercel: PDF (145 KB) e DOCX (67 KB) gerados e baixados do bucket privado |
+| Conferência visual | PDF e DOCX (aberto no LibreOffice) das propostas M01 e M02 conferidos página a página |
+| Supabase advisors (segurança) | sem alertas novos |
+
+Correções durante o incremento: variável ambígua na reabertura (migração aditiva); exemplo de serviço "não liberado" do teste do I3 passou a ser o TRN-NR35 (o SST-001 recebeu liberação fictícia); botão do I5 renomeado para "Salvar conteúdo".
+
+Pendências do sistema real geradas por este incremento: ver `docs/PENDENCIAS_SISTEMA_REAL.md` (formalização e dados institucionais, liberação real dos serviços, condições comerciais padrão, revisão jurídica dos modelos, assinatura eletrônica).
 

@@ -9,7 +9,7 @@ const ITENS = [
   { href: null, titulo: "Dados institucionais", desc: "Razão social, CNPJ e contatos da AUDITA (pendentes de formalização).", pronto: false, inc: "I2" },
   { href: "/configuracoes/servicos", titulo: "Catálogo de serviços", desc: "Serviços AUDDOC004/005 e situação de liberação.", pronto: true },
   { href: "/configuracoes/parametros", titulo: "Parâmetros financeiros", desc: "Conjuntos versionados de parâmetros AUDDOC011.", pronto: true },
-  { href: null, titulo: "Modelos de documentos", desc: "Versões técnicas dos modelos AUDDOC010.", pronto: false, inc: "I6" },
+  { href: "/configuracoes/modelos", titulo: "Modelos de documentos", desc: "Versões técnicas dos modelos AUDDOC010.", pronto: true },
   { href: null, titulo: "Usuários", desc: "No MVP, somente o administrador.", pronto: false, inc: "futuro" },
 ] as const;
 

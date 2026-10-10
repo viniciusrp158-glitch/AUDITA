@@ -21,6 +21,7 @@ const PAGES = [
   "/configuracoes/atividades",
   "/configuracoes/servicos",
   "/configuracoes/parametros",
+  "/configuracoes/modelos",
 ];
 
 async function login(page: Page) {
