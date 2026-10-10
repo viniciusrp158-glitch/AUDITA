@@ -94,7 +94,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   await form.getByRole("button", { name: "Criar usuário" }).click();
   await expect(page.getByText(/Usuário criado\./)).toBeVisible({ timeout: 20_000 });
   await page.reload();
-  await expect(page.getByTestId("users-list")).toContainText(email);
+  await expect(page.getByTestId("users-list").first()).toContainText(email);
 
   // Primeiro acesso do novo usuário
   const ctx = await browser.newContext({ locale: "pt-BR" });
@@ -137,7 +137,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   await row.locator("summary", { hasText: "Gerenciar acesso e senha" }).click();
   await row.locator('select[name="situacao"]').selectOption("inactive");
   await row.getByRole("button", { name: "Salvar acesso" }).click();
-  await expect(row.getByText("Acesso atualizado.")).toBeVisible();
+  await expect(page.getByTestId("inactive-users")).toContainText(email); // inativo vai para a lista recolhida
   const ctx2 = await browser.newContext({ locale: "pt-BR" });
   const off = await ctx2.newPage();
   await login(off, { email, password: nova }, /\/sem-acesso/);
@@ -232,5 +232,5 @@ test("mestre cria outro usuário mestre: mesmas permissões, login próprio, nã
   await row.locator("summary", { hasText: "Gerenciar acesso e senha" }).click();
   await row.locator('select[name="situacao"]').selectOption("inactive");
   await row.getByRole("button", { name: "Salvar acesso" }).click();
-  await expect(row.getByText("Acesso atualizado.")).toBeVisible();
+  await expect(page.getByTestId("inactive-users")).toContainText(email); // inativo vai para a lista recolhida
 });

@@ -86,7 +86,7 @@ export default async function ContaPage() {
             <p className="break-all text-sm text-muted">{user.email}</p>
             <p className="mt-1 text-sm text-muted">
               {user.jobTitle ? `${user.jobTitle} · ` : ""}
-              {ROLE_LABEL[user.role]}
+              {user.isMaster ? "Usuário mestre" : ROLE_LABEL[user.role]}
             </p>
           </div>
         </section>
@@ -151,9 +151,12 @@ export default async function ContaPage() {
                 <CreateUserForm action={createUserAction} />
               </SubDetails>
 
-              <h3 className="pt-2 text-sm font-semibold text-ink">Usuários ({managed.users.length})</h3>
-              <ul className="space-y-2" data-testid="users-list">
-                {managed.users.map((u) => {
+              {(() => {
+                const active = managed.users.filter((u) => u.status === "active");
+                const inactive = managed.users.filter((u) => u.status !== "active");
+                const render = (list: typeof managed.users) => (
+                  <ul className="space-y-2" data-testid="users-list">
+                    {list.map((u) => {
                   const titular = u.is_master || u.is_test_master;
                   const level: AccessLevel = u.is_comaster ? "mestre" : u.role;
                   const isSelf = u.user_id === user.id;
@@ -186,7 +189,20 @@ export default async function ContaPage() {
                     </li>
                   );
                 })}
-              </ul>
+                  </ul>
+                );
+                return (
+                  <>
+                    <h3 className="pt-2 text-sm font-semibold text-ink">Usuários ativos ({active.length})</h3>
+                    {render(active)}
+                    {inactive.length > 0 && (
+                      <SubDetails title={`Usuários inativos (${inactive.length})`} testid="inactive-users">
+                        {render(inactive)}
+                      </SubDetails>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             <p className="mt-3 text-xs text-muted">
               Usuários não são excluídos: inative quem não deve mais acessar (o histórico de ações continua preservado).
