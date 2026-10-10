@@ -28,6 +28,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4",
