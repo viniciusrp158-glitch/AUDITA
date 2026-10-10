@@ -351,3 +351,33 @@ Solução:
 | Playwright — total | 27/27 (I9: jornada completa de homologação; responsividade de todas as telas em 360 px e 768 px) |
 | Cópia e restauração | 21/21 tabelas idênticas (linhas e MD5 iguais na origem e na restaurada); 209 arquivos copiados (24 MB), 160 com SHA-256 conferido com o banco, 0 divergências, 0 registros sem arquivo |
 | Supabase advisors (segurança) | apenas "proteção contra senhas vazadas desligada" (configuração do painel — pendência 17); o aviso "RLS sem política" dos contadores foi eliminado |
+
+## I9.1 — Minha conta, usuários e tema claro/escuro (em validação)
+
+**Objetivo:** atender ao pedido do Diretor (10/10/2026): tema claro/escuro no canto inferior do menu; "Minha conta" no lugar de "Alterar senha" (nome, e-mail, cargo, senha); usuário mestre que cria contas de qualquer nível.
+**Requisitos:** AUDDOC017 §1 (operador inicial único; preparar permissões) e §10 (perfis, RLS testada no banco, chave privilegiada só no servidor); AUDDOC013 §8; AUDDOC003 (identidade visual).
+
+**Decisões do Diretor (10/10/2026):** por ora só o usuário mestre (o Diretor) opera; o mestre — e somente ele — cria contas de qualquer nível; pontos em aberto da matriz D7 do caderno ficam no **modo mais restritivo** (sem acesso) até a resposta.
+
+Registro de rastreabilidade: uma execução anterior desta sessão, interrompida, começou o I9.1 com permissões mais amplas para o Operador (preços, emissão, aceite, biblioteca). As migrações dela (`20261010175436_i9_1_usuarios_niveis`, `20261010181151_i9_1_mestre_teste`) e a função `usuarios` já estavam aplicadas no desenvolvimento; o commit `da877c4` ("docs(i9): I9 validado pelo Diretor") levou junto, por engano, os arquivos em andamento dessa execução. Após a escolha do Diretor pelo modo mais restritivo, as permissões foram **restringidas por migração aditiva** — nada foi apagado.
+
+Solução:
+- **Níveis** (`app_users.role`): Administrador, Operador administrativo, Marketing. **Usuário mestre** (`is_master`, exatamente um; o Diretor). No desenvolvimento, o administrador fictício de teste é "mestre de teste" (marca separada, exige `is_test`; não existe em produção). Mestre e marca de teste só pela administração do banco, nunca pela API.
+- **Modo mais restritivo** — migração `20261010194825_i9_1_permissoes_restritivas` (MD5 `fc0adb89d351c564e289edd8d8d43fa2`): políticas RESTRITIVAS adicionais e funções do fluxo de volta ao administrador.
+  - Operador: clientes, unidades, contatos, demandas (inclusive mudança de situação) e preparo de orçamentos (itens, horas, despesas, conteúdo). Não vê parâmetros, preços, margens, revisões, documentos emitidos, autocadastro, biblioteca nem histórico de orçamentos; não conclui revisão, não emite, não registra aceite/recusa, não autoriza desconto, não adota versão de parâmetros (gatilho `pricing_admin_guard` no banco). Na tela, o orçamento aparece sem valores, com aviso de que preço e emissão ficam com o administrador.
+  - Marketing: nenhuma tabela além da própria conta até o I10.
+- **Gestão de usuários** (só o mestre, em Minha conta): criar (nome, e-mail, cargo, nível, senha provisória gerada com 16 caracteres), redefinir senha provisória, alterar nível e situação (inativar; nada é excluído). A conta de login é criada pela função do Supabase `usuarios` (v2): a chave privilegiada existe só dentro do Supabase; a função confere no banco se quem chama é o mestre e grava o usuário com o token do próprio mestre (trilha correta). **Primeiro acesso exige troca da senha provisória.**
+- **Minha conta:** resumo, nome e cargo editáveis, e-mail exibido (troca de e-mail depende de envio de e-mails com domínio próprio — pendência D8), aparência e segurança (alterar senha).
+- **Tema claro/escuro:** chave no canto inferior do menu e escolha em Minha conta; gravado na conta e em cookie (a página já abre no tema certo). Tokens do AUDDOC003 redefinidos para fundo azul-marinho profundo; logotipo sobre área branca de proteção; PDFs/DOCX emitidos não mudam.
+- **Achado da autoverificação:** a função de gatilho `app_users_guard` ficou executável por PUBLIC; corrigido pela migração `20261010195558_i9_1_revoga_guarda` (MD5 `d1475677afcc658e313de6c0b053fa44`). A autoverificação passou a informar se cada política de Storage é permissiva ou restritiva.
+
+### Evidências de teste (10/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| Migrações | conferidas antes num banco descartável (`scripts/verificar-migracoes.mjs`) e aplicadas com MD5 idêntico; função `usuarios` publicada e conferida com o repositório |
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 136/136 (I9.1: 6 de integração por chamada direta — níveis e mestre; operador cadastra, prepara orçamento sem preço e é barrado em parâmetros, revisões, documentos, autocadastro, biblioteca, histórico de orçamentos e nas 6 funções do fluxo; marketing sem acesso a nenhuma tabela; conta própria x mestre; função de usuários: só o mestre, criação com troca obrigatória, duplicidade, redefinição e inativação que derruba o acesso) |
+| Playwright — total | 31/31 (I9.1: tema escuro persistente, mestre cria operador → primeiro acesso troca a senha → operador só vê o seu escopo e o orçamento sem valores → mestre inativa e o acesso cai; item do orçamento sem margem/desconto para o operador; marketing no celular). Uma falha intermitente de login (tempo de 5 s) no e2e do I6 passou na repetição |
+| Conferência visual | Início, orçamento, item, clientes, demandas, biblioteca, catálogo, parâmetros e novo cliente no tema escuro; Minha conta do mestre; orçamento do operador; conta do marketing no celular |
+| Supabase advisors (segurança) | apenas "proteção contra senhas vazadas" (pendência 17). Desempenho: avisos informativos de políticas permissivas duplicadas (consolidar quando o D7 for respondido) |
