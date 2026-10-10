@@ -12,6 +12,7 @@ export default defineConfig({
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
     trace: "off",
+    actionTimeout: 15_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

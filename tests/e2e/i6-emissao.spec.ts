@@ -30,6 +30,9 @@ const CONTENT: [string, string][] = [
   ["Reagendamento e cancelamento", "[Teste] Reagendamento sem custo com 48 h de antecedência."],
 ];
 
+/** Rótulo que começa com o texto (campos obrigatórios têm " *" no nome acessível). */
+const startsWith = (label: string) => new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}`);
+
 /** Cliente com CNPJ e contato, demanda com serviço liberado (teste) e cotação criada. */
 async function prepareQuote(page: Page, tag: string, serviceCode = "TRN-001") {
   await page.goto("/clientes/novo");
@@ -88,7 +91,7 @@ test("FL-02: revisão congelada → emissão DOCX/PDF com marca d'água → down
 
   // Conteúdo do M01 (campos do catálogo já vêm pré-preenchidos e são substituídos)
   await page.getByLabel("Validade (dias)").fill("15");
-  for (const [label, value] of CONTENT) await page.getByLabel(label, { exact: true }).fill(value);
+  for (const [label, value] of CONTENT) await page.getByLabel(startsWith(label)).fill(value);
   await page.getByRole("button", { name: "Salvar conteúdo" }).click();
   await expect(page.getByText("Conteúdo da proposta salvo.")).toBeVisible();
   await expect(page.getByTestId("review-blockers")).toBeHidden();
@@ -167,7 +170,7 @@ test("RF-17: serviço não liberado — revisão permitida, emissão bloqueada c
   await prepareQuote(page, tag, "TRN-NR35");
   await priceFirstItem(page);
   await page.getByLabel("Validade (dias)").fill("10");
-  for (const [label, value] of CONTENT) await page.getByLabel(label, { exact: true }).fill(value);
+  for (const [label, value] of CONTENT) await page.getByLabel(startsWith(label)).fill(value);
   await page.getByRole("button", { name: "Salvar conteúdo" }).click();
   await expect(page.getByText("Conteúdo da proposta salvo.")).toBeVisible();
   await page.getByRole("button", { name: "Concluir revisão Rev.00" }).click();
