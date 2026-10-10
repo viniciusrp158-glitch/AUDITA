@@ -135,6 +135,8 @@ for (const f of migrations) {
 
 // usuários (Auth é gerido pelo Supabase; aqui só os IDs referenciados) e objetos do Storage
 await db.exec(`set session_replication_role = replica;`);
+// restauração substitui o conteúdo: remove as linhas-semente que as próprias migrações criaram (catálogo, modelos, termos, trilha)
+await db.exec(`truncate ${tables.map((t) => `audita.${t}`).join(", ")} restart identity cascade;`);
 for (const f of files) await db.query("insert into storage.objects (bucket_id, name) values ($1, $2)", [f.bucket, f.path]);
 
 // dados: CSV → tabela de passagem → tabela final (colunas geradas são recalculadas pelo banco restaurado)
@@ -154,6 +156,13 @@ for (const t of tables) {
   await db.exec(`insert into audita.${t} (${keep}) overriding system value select ${keep} from stage_${t};`);
 }
 await db.exec(`insert into auth.users (id) select user_id from audita.app_users on conflict do nothing;`);
+// colunas identity continuam a numeração a partir do último valor restaurado
+for (const r of (
+  await db.query(`select table_name, column_name from information_schema.columns where table_schema = 'audita' and is_identity = 'YES'`)
+).rows)
+  await db.exec(
+    `select setval(pg_get_serial_sequence('audita.${r.table_name}', '${r.column_name}'), coalesce((select max(${r.column_name}) from audita.${r.table_name}), 0) + 1, false);`,
+  );
 await db.exec(`set session_replication_role = origin;`);
 
 const signatures = {};
@@ -169,6 +178,10 @@ const funcs = {
   is_admin: (await db.query(`select audita.is_admin() as v`)).rows[0].v,
   indicadores_2026: (await db.query(`select audita.dashboard_indicators('2026-01-01', '2026-12-31', true) as v`)).rows[0].v,
 };
+
+// a numeração continua sem colisão: uma nova linha na trilha recebe id acima do maior restaurado
+const nextAudit = (await db.query(`select nextval(pg_get_serial_sequence('audita.audit_log', 'id'))::int as v, (select max(id) from audita.audit_log)::int as m`)).rows[0];
+funcs.proximo_id_trilha_maior_que_restaurado = nextAudit.v > nextAudit.m;
 
 const report = {
   executado_em: started.toISOString(),
