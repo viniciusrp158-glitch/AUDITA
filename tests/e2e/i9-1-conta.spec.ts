@@ -69,6 +69,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   for (const t of ["Informações da conta", "Aparência", "Segurança", "Gerenciamento de usuários"])
     await expect(page.locator("summary", { hasText: t })).toBeVisible();
   await expect(page.getByTestId("profile-form")).toBeHidden();
+  await page.screenshot({ path: `${SHOTS}/99-minha-conta-fechada.png`, fullPage: true });
   await page.locator("summary", { hasText: "Informações da conta" }).click();
   const profile = page.getByTestId("profile-form");
   await profile.getByLabel(/^Cargo/).fill("Administrador de teste");
