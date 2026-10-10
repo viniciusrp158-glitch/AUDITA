@@ -147,8 +147,8 @@ describe.skipIf(!ready)("I9.2 — permissões reais (banco de desenvolvimento, s
     const { data, error } = await admin
       .from("quote_revisions")
       .select("id, snapshot")
-      .gte("created_at", "2026-10-10T21:06:00Z")
-      .order("created_at", { ascending: false })
+      .gte("reviewed_at", "2026-10-10T21:06:00Z")
+      .order("reviewed_at", { ascending: false })
       .limit(5);
     expect(error).toBeNull();
     expect(data!.length).toBeGreaterThan(0); // o teste de emissão (I6) roda antes e cria revisões
