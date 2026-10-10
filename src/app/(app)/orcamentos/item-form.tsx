@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Alert, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
-import { ItemStatusPill } from "@/components/pricing-status";
+import { Alert, CheckboxField, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
+import { DiscountAuthorizedBadge, ItemStatusPill } from "@/components/pricing-status";
 import { formatBRL, formatHours, formatPercent, fractionToPercentInput, numberToInput, parseBR, percentToFraction } from "@/lib/pricing/engine";
 import { COST_FIELDS, HOUR_FIELDS, OVERRIDE_FIELDS, PERIODICITY } from "@/lib/pricing/labels";
 import { calculateItem, type ItemValues, type ParameterValues } from "@/lib/pricing/quote";
@@ -18,7 +18,9 @@ export type ServiceOpt = {
   catalog_status: string;
 };
 
-type Initial = Partial<Record<keyof ItemValues | "quantity_ref" | "discount_reason" | "scope_notes", string | null>>;
+type Initial = Partial<Record<Exclude<keyof ItemValues, "discount_authorized"> | "quantity_ref" | "discount_reason" | "scope_notes", string | null>> & {
+  discount_authorized?: boolean | null;
+};
 
 const NUM_KEYS = [...HOUR_FIELDS.map((f) => f.key), ...COST_FIELDS.map((f) => f.key)] as const;
 const PCT_KEYS = OVERRIDE_FIELDS.map((f) => f.key);
@@ -31,6 +33,7 @@ function toFormValues(i: Initial): Record<string, string> {
     quantity_ref: i.quantity_ref ?? "",
     discount_reason: i.discount_reason ?? "",
     scope_notes: i.scope_notes ?? "",
+    discount_authorized: i.discount_authorized ? "on" : "",
   };
   for (const k of NUM_KEYS) out[k] = numberToInput(i[k] ?? null);
   for (const k of PCT_KEYS) out[k] = fractionToPercentInput(i[k] ?? null);
@@ -62,6 +65,7 @@ function toItemValues(f: Record<string, string>): ItemValues {
     contingency: pct("contingency"),
     margin: pct("margin"),
     discount: pct("discount"),
+    discount_authorized: f.discount_authorized === "on",
   };
 }
 
@@ -210,6 +214,21 @@ export function ItemForm({
             error={e.discount_reason}
             maxLength={500}
           />
+          {calc.status === "REVER_MARGEM" && r.discount.gt(0) && (
+            <div className="rounded-md border border-warn/40 bg-warn/5 p-3" data-testid="discount-authorization">
+              <p className="mb-2 text-xs text-ink">
+                Pela fórmula do AUDDOC011, todo desconto deixa a margem efetiva abaixo da meta ({formatPercent(r.effectiveMargin)} contra{" "}
+                {formatPercent(r.targetMargin)}). O desconto está dentro do máximo e pode seguir com autorização expressa.
+              </p>
+              <CheckboxField
+                name="discount_authorized"
+                label="Autorizo este desconto com margem efetiva abaixo da margem-alvo (AUDDOC011 §§4.6 e 5)."
+                hint="A autorização, a justificativa, o responsável e a data ficam registrados no item e na revisão."
+                defaultChecked={values.discount_authorized === "on"}
+              />
+              {e.discount_authorized && <p className="mt-1 text-xs text-danger">{e.discount_authorized}</p>}
+            </div>
+          )}
         </fieldset>
 
         {/* Celular/tablet: resumo fixo do cálculo enquanto preenche (a prévia completa fica ao final) */}
@@ -232,8 +251,9 @@ export function ItemForm({
         <section className="rounded-xl border border-line bg-white">
           <div className="border-b border-line bg-navy px-4 py-2.5 text-sm font-semibold text-white">Prévia AUDDOC011</div>
           <div className="space-y-3 p-4 text-sm">
-            <div data-testid="item-status">
+            <div data-testid="item-status" className="flex flex-wrap gap-1">
               <ItemStatusPill status={calc.status} />
+              {calc.discountAuthorized && <DiscountAuthorizedBadge />}
             </div>
             <dl className="space-y-1.5">
               {[

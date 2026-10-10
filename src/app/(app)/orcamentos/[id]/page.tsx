@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ArrowLeft, Download, FileText, Pencil, Plus } from "lucide-react";
 import { Alert, SubmitButton } from "@/components/form";
-import { ExpiredBadge, ItemStatusPill, QuoteStatusPill, RevisionStatusPill } from "@/components/pricing-status";
+import { DiscountAuthorizedBadge, ExpiredBadge, ItemStatusPill, QuoteStatusPill, RevisionStatusPill } from "@/components/pricing-status";
 import { ButtonLink, Card, DefinitionList, TestBadge } from "@/components/ui";
+import { contractSummary } from "@/lib/documents/proposal";
 import { revisionLabel } from "@/lib/documents/snapshot";
 import { isProduction } from "@/lib/env";
 import { requireAppUser } from "@/lib/auth";
@@ -103,8 +104,12 @@ export default async function OrcamentoPage({
     editable ? getReviewBlockers(id) : Promise.resolve([]),
     quote.status === "revisada" && current ? getEmissionBlockers(current.id) : Promise.resolve([]),
   ]);
-  const notReady = rows.filter((r) => r.calc.status !== "PRONTO").length;
-  const reviewChecklist = [...reviewBlockers, ...(notReady ? [`${notReady} item(ns) ainda não estão PRONTO PARA ANÁLISE INTERNA.`] : [])];
+  const notReady = rows.filter((r) => !r.calc.accepted).length;
+  const reviewChecklist = [
+    ...reviewBlockers,
+    ...(notReady ? [`${notReady} item(ns) ainda não estão PRONTO PARA ANÁLISE INTERNA (ou com desconto autorizado).`] : []),
+  ];
+  const hasMonthly = items.some((i) => i.periodicity === "mensal");
   const watermark = !isProduction || quote.is_test || Boolean(ps?.is_test);
   const snapshotQuote = current?.snapshot.quote;
 
@@ -182,7 +187,10 @@ export default async function OrcamentoPage({
                         </p>
                         <p className="break-words text-sm font-semibold text-ink">{it.description}</p>
                       </div>
-                      <ItemStatusPill status={calc.status} />
+                      <span className="flex flex-wrap gap-1">
+                        <ItemStatusPill status={calc.status} />
+                        {calc.discountAuthorized && <DiscountAuthorizedBadge />}
+                      </span>
                     </div>
                     <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
                       <div>
@@ -202,7 +210,7 @@ export default async function OrcamentoPage({
                         <dd className="tabular-nums text-ink">{formatPercent(calc.result.effectiveMargin)}</dd>
                       </div>
                     </dl>
-                    {calc.result.reasons.length > 0 && calc.status !== "PRONTO" && (
+                    {calc.result.reasons.length > 0 && !calc.accepted && (
                       <ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-warn">
                         {calc.result.reasons.map((m) => (
                           <li key={m}>{m}</li>
@@ -226,7 +234,7 @@ export default async function OrcamentoPage({
 
           <Card title="Conteúdo da proposta">
             {editable ? (
-              <QuoteContentForm action={updateQuoteHeaderAction.bind(null, quote.id)} initial={quote} />
+              <QuoteContentForm action={updateQuoteHeaderAction.bind(null, quote.id)} initial={quote} hasMonthly={hasMonthly} />
             ) : snapshotQuote ? (
               <div className="space-y-3">
                 <p className="text-xs text-muted">
@@ -235,6 +243,9 @@ export default async function OrcamentoPage({
                 <DefinitionList
                   items={[
                     { label: "Validade", value: snapshotQuote.validity_days ? `${snapshotQuote.validity_days} dias` : null },
+                    ...(snapshotQuote.contract_months
+                      ? [{ label: "Contrato (serviços mensais)", value: contractSummary(snapshotQuote.contract_start_on ?? null, snapshotQuote.contract_months) }]
+                      : []),
                     ...CONTENT_FIELDS.filter((f) => snapshotQuote[f.key]).map((f) => ({
                       label: f.label,
                       value: <span className="whitespace-pre-wrap">{snapshotQuote[f.key]}</span>,

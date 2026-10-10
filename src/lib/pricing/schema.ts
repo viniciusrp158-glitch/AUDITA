@@ -112,11 +112,18 @@ export const quoteItemSchema = z
     margin: brPercent({ maxPct: 100, inclusive: false }),
     discount: brPercent({ maxPct: 100, inclusive: true }),
     discount_reason: optText(500),
+    discount_authorized: z
+      .string()
+      .optional()
+      .transform((v) => v === "on"),
     scope_notes: optText(2000),
   })
   .superRefine((v, ctx) => {
     if (v.discount !== null && new Decimal(v.discount).gt(0) && !v.discount_reason) {
       ctx.addIssue({ code: "custom", path: ["discount_reason"], message: "Justifique o desconto (AUDDOC011 §6)." });
+    }
+    if (v.discount_authorized && (v.discount === null || !new Decimal(v.discount).gt(0))) {
+      ctx.addIssue({ code: "custom", path: ["discount_authorized"], message: "Só há autorização quando houver desconto." });
     }
   });
 export type QuoteItemInput = z.infer<typeof quoteItemSchema>;
@@ -149,6 +156,24 @@ export const quoteHeaderSchema = z.object({
   additional_expenses: optText(2000),
   cancellation_terms: optText(2000),
   next_step: optText(1000),
+  // Contrato dos serviços mensais (ajuste do Diretor, 10/10/2026)
+  contract_start_on: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v : null))
+    .refine((v) => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v), { message: "Data inválida." }),
+  contract_months: z
+    .string()
+    .optional()
+    .transform((v, ctx) => {
+      const s = (v ?? "").trim();
+      if (!s) return null;
+      if (!/^\d{1,3}$/.test(s) || Number(s) < 1 || Number(s) > 120) {
+        ctx.addIssue({ code: "custom", message: "Informe de 1 a 120 meses." });
+        return z.NEVER;
+      }
+      return Number(s);
+    }),
 });
 
 export const reasonSchema = z.object({

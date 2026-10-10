@@ -13,6 +13,10 @@ export function RevisionStatusPill({ status }: { status: RevisionStatus }) {
   return <span className={`${base} ${REVISION_STATUS[status].cls}`}>{REVISION_STATUS[status].label}</span>;
 }
 
+export function DiscountAuthorizedBadge() {
+  return <span className={`${base} bg-ok/10 text-ok`}>Desconto autorizado</span>;
+}
+
 export function ExpiredBadge() {
   return <span className={`${base} bg-warn/10 text-warn`}>Validade vencida</span>;
 }

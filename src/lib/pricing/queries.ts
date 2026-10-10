@@ -69,6 +69,8 @@ export type QuoteItem = {
   margin: string | null;
   discount: string | null;
   discount_reason: string | null;
+  discount_authorized: boolean;
+  discount_authorized_at: string | null;
   scope_notes: string | null;
   services: (NonNullable<ServiceInfo> & { service_code: string; name: string }) | null;
 };
@@ -99,16 +101,18 @@ export type Quote = {
   additional_expenses: string | null;
   cancellation_terms: string | null;
   next_step: string | null;
+  contract_start_on: string | null;
+  contract_months: number | null;
   demands: { id: string; demand_code: string; summary: string; status: string; service_id: string | null };
   clients: { id: string; client_code: string; legal_name: string; trade_name: string | null; status: string };
   pricing_parameter_sets: ParameterSet | null;
 };
 
 export const CONTENT_COLS =
-  "document_model, objective, scope_included, scope_excluded, location_modality, schedule, methodology, deliverables, completion_criteria, additional_expenses, cancellation_terms, next_step";
+  "document_model, objective, scope_included, scope_excluded, location_modality, schedule, methodology, deliverables, completion_criteria, additional_expenses, cancellation_terms, next_step, contract_start_on, contract_months";
 
 const ITEM_COLS =
-  "id, position, service_id, description, periodicity, quantity_ref, hours_preparation, hours_execution, hours_delivery, hours_followup, hours_travel, cost_travel, cost_materials, cost_external, cost_other, contingency, margin, discount, discount_reason, scope_notes, services(service_code, name, pricing_model, commercial_status, catalog_status)";
+  "id, position, service_id, description, periodicity, quantity_ref, hours_preparation, hours_execution, hours_delivery, hours_followup, hours_travel, cost_travel, cost_materials, cost_external, cost_other, contingency, margin, discount, discount_reason, discount_authorized, discount_authorized_at, scope_notes, services(service_code, name, pricing_model, commercial_status, catalog_status)";
 
 export async function getQuoteOr404(id: string): Promise<{ quote: Quote; items: QuoteItem[] }> {
   if (!uuidRe.test(id)) notFound();

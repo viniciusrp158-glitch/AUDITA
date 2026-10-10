@@ -361,6 +361,55 @@ describe.skipIf(!ready)("I6 — revisões, emissão e decisão", () => {
     expect((await admin.rpc("reopen_quote", { p_quote_id: s.quoteId, p_reason: "[Teste] reabrir" })).error?.message).toContain("não pode ser reaberta");
   });
 
+  it("desconto: sem autorização a revisão é recusada; autorização exige justificativa; acima do máximo segue bloqueado", async () => {
+    const s = await setupQuote();
+    expect((await admin.from("quote_items").update({ discount: 0.05 }).eq("id", s.itemId)).error).toBeNull();
+    const semAut = await freeze(s.quoteId);
+    expect(semAut.error?.message).toContain("desconto autorizado");
+
+    // Autorização sem justificativa ou sem data é recusada pelo banco
+    const semJust = await admin.from("quote_items").update({ discount_authorized: true, discount_authorized_at: new Date().toISOString() }).eq("id", s.itemId);
+    expect(semJust.error?.code).toBe("23514");
+
+    // Acima do máximo (10%), mesmo autorizado: bloqueado
+    expect(
+      (await admin.from("quote_items").update({ discount: 0.11, discount_reason: "[Teste] negociação", discount_authorized: true, discount_authorized_at: new Date().toISOString() }).eq("id", s.itemId)).error,
+    ).toBeNull();
+    expect((await freeze(s.quoteId)).error?.message).toContain("desconto autorizado");
+    // Resultado forjado como REVER_MARGEM também é recusado acima do máximo
+    const { results } = await engineResults(s.quoteId);
+    const forjado = await admin.rpc("freeze_quote_revision", { p_quote_id: s.quoteId, p_results: { ...results, items: results.items.map((i) => ({ ...i, status: "REVER_MARGEM" })) } });
+    expect(forjado.error?.message).toContain("desconto autorizado");
+
+    // Dentro do máximo e autorizado: segue; a autorização fica no snapshot
+    expect((await admin.from("quote_items").update({ discount: 0.05 }).eq("id", s.itemId)).error).toBeNull();
+    const ok = await freeze(s.quoteId);
+    expect(ok.error).toBeNull();
+    const rev = (await admin.from("quote_revisions").select("snapshot, total_once").eq("id", ok.data).single()).data!;
+    const snap = rev.snapshot as QuoteSnapshot & { items: { discount_authorized: boolean; discount_reason: string }[] };
+    expect(snap.items[0].discount_authorized).toBe(true);
+    expect(snap.items[0].discount_reason).toBe("[Teste] negociação");
+    expect(snap.results.items[0].status).toBe("REVER_MARGEM");
+    expect(String(rev.total_once)).toBe("4025.71");
+    expect(verifySnapshot(snap)).toEqual([]);
+  });
+
+  it("contrato: item mensal exige início e tempo de contrato; ambos vão para o snapshot", async () => {
+    const s = await setupQuote();
+    expect((await admin.from("quote_items").update({ periodicity: "mensal" }).eq("id", s.itemId)).error).toBeNull();
+    const b = (await admin.rpc("quote_review_blockers", { p_quote_id: s.quoteId })).data as string[];
+    expect(b.join(" ")).toContain("Início previsto do contrato");
+    expect(b.join(" ")).toContain("Tempo de contrato");
+    expect((await admin.from("quotes").update({ contract_months: 0 }).eq("id", s.quoteId)).error?.code).toBe("23514");
+    expect((await admin.from("quotes").update({ contract_start_on: "2026-11-01", contract_months: 12 }).eq("id", s.quoteId)).error).toBeNull();
+    const ok = await freeze(s.quoteId);
+    expect(ok.error).toBeNull();
+    const snap = (await admin.from("quote_revisions").select("snapshot").eq("id", ok.data).single()).data!.snapshot as QuoteSnapshot;
+    expect(snap.quote.contract_start_on).toBe("2026-11-01");
+    expect(snap.quote.contract_months).toBe(12);
+    expect(snap.results.totals.mensal).toBe("4237.59");
+  });
+
   it("isolamento: anônimo e não autorizado não leem revisões nem executam o fluxo", async () => {
     const s = await setupQuote();
     const f = await freeze(s.quoteId);

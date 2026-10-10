@@ -57,6 +57,9 @@ export type QuoteSnapshot = {
     additional_expenses: string | null;
     cancellation_terms: string | null;
     next_step: string | null;
+    /** Contrato dos serviços mensais (ausentes em revisões anteriores a 10/10/2026). */
+    contract_start_on?: string | null;
+    contract_months?: number | null;
     is_test: boolean;
   };
   demand: { id: string; code: string; summary: string };
@@ -100,7 +103,7 @@ export function buildResults(
   let allReady = items.length > 0;
   for (const it of items) {
     const c = calculateItem(params, it, it.services);
-    if (c.status !== "PRONTO") allReady = false;
+    if (!c.accepted) allReady = false;
     const price = cents(c.result.finalPrice);
     out.push({
       id: it.id,

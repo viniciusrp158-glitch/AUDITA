@@ -54,6 +54,43 @@ export function addDays(iso: string, days: number): string {
 
 const t = (v: string | null | undefined) => (v ?? "").trim();
 
+function daysInMonth(y: number, m0: number): number {
+  return new Date(Date.UTC(y, m0 + 1, 0)).getUTCDate();
+}
+
+/**
+ * Data final do contrato: véspera do início do período seguinte. Ex.: 01/11/2026 + 12 meses → 31/10/2027;
+ * 15/01/2027 + 1 mês → 14/02/2027; 31/01/2027 + 1 mês → 28/02/2027 (mês sem o dia 31).
+ */
+export function contractEnd(startIso: string, months: number): string {
+  const [y, m, d] = startIso.split("-").map(Number);
+  const total = m - 1 + months;
+  const ty = y + Math.floor(total / 12);
+  const tm = total % 12;
+  const next = d <= daysInMonth(ty, tm) ? new Date(Date.UTC(ty, tm, d)) : new Date(Date.UTC(ty, tm + 1, 1));
+  next.setUTCDate(next.getUTCDate() - 1);
+  return next.toISOString().slice(0, 10);
+}
+
+/** "12 meses — de 01/11/2026 a 31/10/2027" (ou início a definir). */
+export function contractSummary(start: string | null, months: number): string {
+  const n = `${months} ${months === 1 ? "mês" : "meses"}`;
+  return start ? `${n} — de ${day(start)} a ${day(contractEnd(start, months))}` : `${n} (início a definir)`;
+}
+
+/** Valor total do contrato = valor mensal × meses (somente quando há itens mensais e tempo de contrato). */
+function contractTotal(s: QuoteSnapshot): [string, string] | null {
+  const months = s.quote.contract_months;
+  const monthly = s.results.totals.mensal;
+  if (!months || !monthly) return null;
+  return [`VALOR TOTAL DO CONTRATO (${months} × ${formatBRL(monthly)})`, formatBRL(new Decimal(monthly).times(months).toFixed(2))];
+}
+
+function contractRow(s: QuoteSnapshot): [string, string][] {
+  const months = s.quote.contract_months;
+  return months && s.results.totals.mensal ? [["Vigência do contrato", contractSummary(s.quote.contract_start_on ?? null, months)]] : [];
+}
+
 function clientDoc(s: QuoteSnapshot): string {
   const id = s.client.tax_id ?? "";
   if (!id) return "";
@@ -84,8 +121,10 @@ function itemsWithPrices(s: QuoteSnapshot) {
 
 function totalsRows(s: QuoteSnapshot, labels: { once: string; monthly: string; onlyOnce: string; onlyMonthly: string }): [string, string][] {
   const { unica, mensal } = s.results.totals;
-  if (unica && mensal) return [[labels.once, formatBRL(unica)], [labels.monthly, `${formatBRL(mensal)}/mês`]];
-  if (mensal) return [[labels.onlyMonthly, `${formatBRL(mensal)}/mês`]];
+  const contract = contractTotal(s);
+  const extra = contract ? [contract] : [];
+  if (unica && mensal) return [[labels.once, formatBRL(unica)], [labels.monthly, `${formatBRL(mensal)}/mês`], ...extra];
+  if (mensal) return [[labels.onlyMonthly, `${formatBRL(mensal)}/mês`], ...extra];
   return [[labels.onlyOnce, formatBRL(unica)]];
 }
 
@@ -173,6 +212,7 @@ export function buildProposalM01(s: QuoteSnapshot, ctx: EmissionContext): DocMod
       {
         kind: "fields",
         rows: [
+          ...contractRow(s),
           ["Pagamento", t(q.payment_terms)],
           ["Despesas adicionais", t(q.additional_expenses)],
           ["Reagendamento e cancelamento", t(q.cancellation_terms)],
@@ -255,6 +295,7 @@ export function buildBudgetM02(s: QuoteSnapshot, ctx: EmissionContext): DocModel
         rows: [
           ["Inclusões / exclusões", inclusions],
           ["Prazo estimado", t(q.schedule)],
+          ...contractRow(s),
           ["Condição de pagamento", t(q.payment_terms)],
           ["Próximo passo", t(q.next_step)],
         ],

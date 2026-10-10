@@ -36,6 +36,8 @@ export type ItemValues = {
   contingency: N;
   margin: N;
   discount: N;
+  /** Desconto autorizado expressamente (AUDDOC011 §§4.6 e 5) — permite seguir com REVER MARGEM. */
+  discount_authorized?: boolean | null;
 };
 
 export type ServiceInfo = {
@@ -65,6 +67,10 @@ export type ItemCalc = {
   notReleased: boolean;
   /** SaaS (SIS-001/SIS-002) sem modelo de precificação aprovado: não é calculado pela hora técnica. */
   noModel: boolean;
+  /** Item apto a seguir para a revisão: PRONTO, ou REVER MARGEM por desconto (dentro do máximo) autorizado. */
+  accepted: boolean;
+  /** REVER MARGEM causado por desconto e autorizado pelo Diretor. */
+  discountAuthorized: boolean;
 };
 
 export function calculateItem(params: ParameterValues | null, item: ItemValues, service: ServiceInfo, clientIdentified = true): ItemCalc {
@@ -85,9 +91,18 @@ export function calculateItem(params: ParameterValues | null, item: ItemValues, 
       status: "SEM_MODELO",
       notReleased,
       noModel,
+      accepted: false,
+      discountAuthorized: false,
     };
   }
-  return { result, status: result.status, notReleased, noModel };
+  // Pela fórmula oficial (ANX01 B45) qualquer desconto deixa a margem abaixo da meta. REVER DESCONTO (acima do
+  // máximo) vem antes na ordem das situações; portanto REVER MARGEM com desconto > 0 está dentro do máximo.
+  const byDiscount = result.status === "REVER_MARGEM" && result.discount.gt(0);
+  const discountAuthorized = byDiscount && Boolean(item.discount_authorized);
+  if (byDiscount && !discountAuthorized)
+    result.reasons.push("Todo desconto reduz a margem abaixo da meta (AUDDOC011 §4.6). Para seguir, autorize o desconto no item.");
+  if (discountAuthorized) result.reasons.push("Desconto autorizado: margem efetiva abaixo da meta, aceita expressamente (AUDDOC011 §5).");
+  return { result, status: result.status, notReleased, noModel, accepted: result.status === "PRONTO" || discountAuthorized, discountAuthorized };
 }
 
 export type Totals = {
@@ -106,7 +121,7 @@ export type Totals = {
 export function quoteTotals(items: { periodicity: Periodicity; calc: ItemCalc }[]): Totals {
   const acc = (p: Periodicity) => {
     const list = items.filter((i) => i.periodicity === p && i.calc.status !== "SEM_MODELO");
-    const pending = list.filter((i) => i.calc.status !== "PRONTO").length;
+    const pending = list.filter((i) => !i.calc.accepted).length;
     const total =
       list.length === 0 || pending > 0
         ? null
@@ -118,6 +133,6 @@ export function quoteTotals(items: { periodicity: Periodicity; calc: ItemCalc }[
   };
   const unica = acc("unica");
   const mensal = acc("mensal");
-  const ready = items.filter((i) => i.calc.status === "PRONTO").length;
+  const ready = items.filter((i) => i.calc.accepted).length;
   return { unica, mensal, ready, pending: items.length - ready };
 }

@@ -114,11 +114,19 @@ export async function saveItemAction(
   _prev: QuoteActionState,
   formData: FormData,
 ): Promise<QuoteActionState> {
-  await requireAppUser();
+  const user = await requireAppUser();
   if (!uuidRe.test(quoteId) || (itemId !== null && !uuidRe.test(itemId))) return { error: "Item inválido." };
   const values = formToObject(formData);
-  const parsed = quoteItemSchema.safeParse(values);
-  if (!parsed.success) return { values, fieldErrors: fieldErrors(parsed.error), error: "Revise os campos destacados." };
+  const result = quoteItemSchema.safeParse(values);
+  if (!result.success) return { values, fieldErrors: fieldErrors(result.error), error: "Revise os campos destacados." };
+  // Autorização do desconto (AUDDOC011 §5): registrada a cada confirmação, com responsável e data
+  const parsed = {
+    data: {
+      ...result.data,
+      discount_authorized_at: result.data.discount_authorized ? new Date().toISOString() : null,
+      discount_authorized_by: result.data.discount_authorized ? user.id : null,
+    },
+  };
 
   const supabase = await createClient();
   if (itemId) {

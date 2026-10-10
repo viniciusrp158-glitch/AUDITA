@@ -7,15 +7,24 @@ import type { QuoteActionState } from "../actions";
 
 type Model = "ANX01" | "ANX02";
 type ContentKey = (typeof CONTENT_FIELDS)[number]["key"];
-export type QuoteContent = { document_model: Model; validity_days: number | null; notes: string | null } & Record<ContentKey, string | null>;
+export type QuoteContent = {
+  document_model: Model;
+  validity_days: number | null;
+  notes: string | null;
+  contract_start_on: string | null;
+  contract_months: number | null;
+} & Record<ContentKey, string | null>;
 
 /** Conteúdo da proposta (campos customizáveis do AUDDOC010 M01/M02) e condições. */
 export function QuoteContentForm({
   action,
   initial,
+  hasMonthly,
 }: {
   action: (s: QuoteActionState, f: FormData) => Promise<QuoteActionState>;
   initial: QuoteContent;
+  /** Há item mensal: o contrato (início previsto e meses) passa a ser exigido. */
+  hasMonthly: boolean;
 }) {
   const [state, formAction] = useActionState<QuoteActionState, FormData>(action, {});
   const e = state.fieldErrors ?? {};
@@ -65,6 +74,30 @@ export function QuoteContentForm({
           “Não se aplica”.
         </p>
       </div>
+
+      {/* Contrato dos serviços mensais (fica oculto, mas preservado, quando não há item mensal) */}
+      <fieldset className={hasMonthly ? "rounded-lg border border-line p-3" : "hidden"} data-testid="contract-fields">
+        <legend className="px-1 text-sm font-semibold text-navy">Contrato (serviços mensais)</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Início previsto do contrato"
+            name="contract_start_on"
+            type="date"
+            required={hasMonthly}
+            defaultValue={v.contract_start_on}
+            error={e.contract_start_on}
+          />
+          <Field
+            label="Tempo de contrato (meses)"
+            name="contract_months"
+            inputMode="numeric"
+            required={hasMonthly}
+            defaultValue={v.contract_months}
+            error={e.contract_months}
+            hint="A proposta mostra a data final e o valor total do contrato (mensal × meses)."
+          />
+        </div>
+      </fieldset>
 
       {/* Todos os campos ficam no formulário (os que não pertencem ao modelo escolhido apenas ocultos),
           para não perder o que foi digitado ao trocar de modelo. */}
