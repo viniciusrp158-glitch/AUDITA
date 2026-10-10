@@ -2,6 +2,7 @@ import { Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { ButtonLink } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { PHASES, type Phase } from "@/lib/library/labels";
 import { currentRevision, listLibrary } from "@/lib/library/queries";
 import { LibraryList } from "./library-list";
@@ -9,7 +10,7 @@ import { LibraryList } from "./library-list";
 export const metadata = { title: "Biblioteca" };
 
 export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<{ q?: string; fase?: string; familia?: string }> }) {
-  const me = await requireAppUser();
+  const me = await requireAppUser(ADMIN_ONLY);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const fase = Object.keys(PHASES).includes(sp.fase ?? "") ? (sp.fase as Phase) : "";

@@ -29,13 +29,15 @@ test("mestre: menu com Minha conta e tema; troca para escuro, mantém ao recarre
   const toggle = page.getByTestId("theme-toggle");
   if ((await theme(page)) === "escuro") await toggle.click();
   await expect.poll(() => theme(page)).toBe("claro");
+  // a escolha é gravada por uma ação do servidor (conta + cookie): espera a resposta antes de recarregar
+  const saved = page.waitForResponse((r) => r.request().method() === "POST" && r.status() === 200);
   await toggle.click();
+  await saved;
   await expect.poll(() => theme(page)).toBe("escuro");
   await expect(toggle).toHaveAttribute("aria-checked", "true");
   // fundo realmente escuro
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   expect(bg).toBe("rgb(8, 23, 42)");
-  await page.waitForTimeout(500);
   await page.reload();
   await expect.poll(() => theme(page)).toBe("escuro");
   await page.screenshot({ path: `${SHOTS}/93-inicio-escuro.png`, fullPage: true });
@@ -43,7 +45,9 @@ test("mestre: menu com Minha conta e tema; troca para escuro, mantém ao recarre
   await page.locator('a[href^="/orcamentos/"]').first().click();
   await page.waitForURL(/\/orcamentos\/[0-9a-f-]{36}/);
   await page.screenshot({ path: `${SHOTS}/94-orcamento-escuro.png`, fullPage: true });
+  const back = page.waitForResponse((r) => r.request().method() === "POST" && r.status() === 200);
   await page.getByTestId("theme-toggle").click();
+  await back;
   await expect.poll(() => theme(page)).toBe("claro");
 });
 

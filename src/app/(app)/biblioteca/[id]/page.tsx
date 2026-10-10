@@ -4,6 +4,7 @@ import { Alert } from "@/components/form";
 import { LibStatusPill } from "@/components/library-status";
 import { Card, DefinitionList } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime, formatDay } from "@/lib/format";
 import { formatBytes, PHASES } from "@/lib/library/labels";
 import { getLibDocumentOr404, templatesBySha, type LibRevision } from "@/lib/library/queries";
@@ -40,7 +41,7 @@ export default async function BibliotecaDocPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ criado?: string; publicada?: string; cancelada?: string }>;
 }) {
-  const me = await requireAppUser();
+  const me = await requireAppUser(ADMIN_ONLY);
   const isAdmin = me.role === "admin";
   const { id } = await params;
   const sp = await searchParams;

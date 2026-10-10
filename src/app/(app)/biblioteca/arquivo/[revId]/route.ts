@@ -4,13 +4,14 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { LIBRARY_BUCKET } from "@/lib/library/labels";
 import { createClient } from "@/lib/supabase/server";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ revId: string }> }) {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const { revId } = await params;
   if (!uuidRe.test(revId)) return new NextResponse("Arquivo não encontrado.", { status: 404 });
   const supabase = await createClient();
