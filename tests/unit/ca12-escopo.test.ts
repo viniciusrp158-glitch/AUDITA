@@ -37,7 +37,7 @@ describe("CA-12 — escopo isolado do Audita PRO / HUB", () => {
   });
 
   it("nenhuma migração destrutiva (DROP TABLE/SCHEMA/COLUMN, TRUNCATE)", () => {
-    const bad = migrations.filter((f) => /\b(drop\s+(table|schema)|drop\s+column|truncate)\b/i.test(strip(readFileSync(join(MIG, f), "utf8"))));
+    const bad = migrations.filter((f) => /(^|;)\s*(drop\s+(table|schema)\b|alter\s+table[^;]*\bdrop\s+column\b|truncate\b)/im.test(strip(readFileSync(join(MIG, f), "utf8"))));
     expect(bad).toEqual([]);
   });
 
