@@ -143,6 +143,8 @@ test("homologação: jornada completa FL-01 → FL-05 → FL-02 → FL-03 com co
     await expect(page.locator("header").getByText(label)).toBeVisible();
   }
   await expect(page.getByText(/Proposta PROP-\d{4}-\d{4,} Rev\.00 aceita em/).first()).toBeVisible();
+  // H-02: o aviso de criação não permanece após as ações seguintes
+  await expect(page.getByText(/Demanda registrada com o código/)).toHaveCount(0);
   await page.screenshot({ path: `${SHOTS}/91-homologacao-demanda-encerrada.png`, fullPage: true });
 
   // ---------- FL-03 Biblioteca: pesquisar documento oficial → vigente com SHA-256 → baixar

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { EnvBadge } from "@/components/brand";
+import { ClearFlashParams } from "@/components/clear-flash";
 import { NoPermissionNotice } from "@/components/no-permission";
 import { Sidebar } from "@/components/sidebar";
 import { requireAppUser } from "@/lib/auth";
@@ -31,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Suspense fallback={null}>
             <NoPermissionNotice />
           </Suspense>
+          <ClearFlashParams />
           {children}
         </main>
       </div>
