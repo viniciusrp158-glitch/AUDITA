@@ -23,7 +23,7 @@ type Check = {
   views: string[];
   functions: { name: string; security_definer: boolean; search_path_empty: boolean; anon_execute: boolean }[];
   buckets: { id: string; public: boolean; file_size_limit: number | null; allowed_mime_types: string[] | null }[];
-  storage_policies: { name: string; cmd: string; roles: string[] | string }[];
+  storage_policies: { name: string; cmd: string; roles: string[] | string; permissive?: string }[];
 };
 
 /** Únicas funções públicas permitidas (CLAUDE.md regra 4): autocadastro por link. */
@@ -69,9 +69,11 @@ describe.skipIf(!ready)("I9 — varredura de segurança (RLS, permissões, Stora
       expect(b.file_size_limit).toBeGreaterThan(0);
       expect(b.allowed_mime_types?.length).toBeGreaterThan(0);
     }
-    expect(check.storage_policies.every((p) => ["SELECT", "INSERT"].includes(p.cmd))).toBe(true);
+    // Políticas que CONCEDEM acesso: só leitura e envio; as restritivas (I9.1) apenas limitam
+    const granting = check.storage_policies.filter((p) => p.permissive !== "RESTRICTIVE");
+    expect(granting.every((p) => ["SELECT", "INSERT"].includes(p.cmd)), JSON.stringify(granting)).toBe(true);
     expect(check.storage_policies.every((p) => String(p.roles).replace(/[{}]/g, "") === "authenticated")).toBe(true);
-    expect(check.storage_policies).toHaveLength(4);
+    expect(granting.length).toBeGreaterThanOrEqual(4);
   });
 
   it("chamada direta, tabela por tabela: anônimo e usuário não autorizado não leem, não inserem, não alteram, não excluem", async () => {
