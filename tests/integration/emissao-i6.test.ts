@@ -203,7 +203,7 @@ describe.skipIf(!ready)("I6 — revisões, emissão e decisão", () => {
     const rev = (await admin.from("quote_revisions").select("revision_number, status, snapshot, total_once, is_test").eq("id", ok.data).single()).data!;
     expect(rev.revision_number).toBe(0);
     expect(rev.status).toBe("revisada");
-    expect(rev.total_once).toBe("4237.59");
+    expect(String(rev.total_once)).toBe("4237.59");
     expect(rev.is_test).toBe(true);
     const snap = rev.snapshot as QuoteSnapshot;
     expect(snap.quote.code).toBe(s.code);
