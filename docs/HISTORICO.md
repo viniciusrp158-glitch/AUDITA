@@ -242,14 +242,14 @@ O Diretor validou o I6 e pediu três ajustes:
 2. **Cabeçalho "CAMPO / PREENCHIMENTO" repetido no PDF** quando a tabela começava no fim da página. Corrigido no PDF e no Word: o cabeçalho de tabela nunca fica sozinho no fim da página.
 3. **Tempo de contrato para serviços mensais.** Novos campos "Início previsto do contrato" e "Tempo de contrato (meses)", exigidos quando há item mensal. A proposta mostra a vigência ("12 meses — de 01/11/2026 a 31/10/2027") e, por decisão do Diretor, o **valor total do contrato** (mensal × meses), sem somar com valores únicos. Migração `20261010034458_i6_tempo_contrato` (MD5 `4ded046391d6053e8561edfa7d14df67`).
 
-Testes acrescentados: 7 unitários (desconto autorizado e regras de bloqueio; data final do contrato, inclusive meses curtos e ano bissexto; conteúdo do documento com vigência e valor total) e 2 de integração (autorização exigida, justificativa obrigatória, bloqueio acima do máximo mesmo com resultado forjado, contrato obrigatório para item mensal e gravado no snapshot). Compilação na Vercel concluída; a execução completa dos testes ficou pendente porque o computador do Diretor desconectou durante a rodada — será feita antes da validação do I7.
+Testes acrescentados: 7 unitários (desconto autorizado e regras de bloqueio; data final do contrato, inclusive meses curtos e ano bissexto; conteúdo do documento com vigência e valor total) e 2 de integração (autorização exigida, justificativa obrigatória, bloqueio acima do máximo mesmo com resultado forjado, contrato obrigatório para item mensal e gravado no snapshot). Compilação na Vercel concluída. Testes executados em 10/10/2026 (com o I7): todos aprovados, inclusive o e2e "item mensal com desconto autorizado e tempo de contrato até a emissão"; PDF mensal conferido visualmente (cabeçalho da tabela não se repete; vigência e valor total do contrato corretos).
 
-## I7 — Biblioteca documental (em desenvolvimento)
+## I7 — Biblioteca documental (em validação)
 
 **Objetivo:** guardar os documentos oficiais da AUDITA com código, revisão, aprovação e SHA-256, sem nunca sobrescrever versões, com acesso privado e download rastreado.
 **Requisitos:** AUDDOC017 RF-19, RF-20, RF-21, RF-22, RF-24, FL-03, CA-09, CA-10, §18 (minutas nunca vigentes); AUDDOC001; AUDDOC013.
 
-Solução (implementada; testes pendentes do computador):
+Solução:
 - Migração `20261010041535_i7_biblioteca` (MD5 `5b41e4aa2dd5f5b42cd1c4ad16f980d5`): documentos (código AUDDOC/ANX permanente, título, família, fase, visibilidade, anexo vinculado ao principal) e revisões (Rev.NN com arquivo próprio no bucket privado `audita-biblioteca`, SHA-256, aprovação). Rascunho → **Vigente** só com aprovador e data registrados; a vigente anterior vira **Substituída** e continua acessível (CA-09); rascunho pode ser cancelado com motivo; nada é excluído; arquivo de uma revisão nunca muda.
 - Envio pela tela: o arquivo vai do navegador direto ao bucket privado por **link de envio assinado** (o servidor define o caminho; nenhuma chave no navegador); o servidor baixa o arquivo, **calcula ele mesmo o SHA-256** e só então registra. Download por link assinado de 60 s, registrado na trilha.
 - Tela do documento mostra quando o arquivo vigente é a base de um modelo técnico do sistema (mesmo SHA-256 — RF-21).
@@ -257,4 +257,17 @@ Solução (implementada; testes pendentes do computador):
 - **Achados da conferência (levados ao Diretor):**
   - **AUDDOC001:** o arquivo do dossiê (nome antigo AUDPRO001) é a **minuta** — declara "Status: Rascunho", data e responsável "[Inserir…]" e tem tamanho diferente do índice. Importado como **rascunho**, sem vigente, até o envio da Rev.00 aprovada.
   - **AUDDOC014 e AUDDOC015:** conteúdo e SHA-256 são da Rev.00 aprovada; apenas a propriedade interna de título do Word ainda diz "Minuta v0.1". Importados como vigentes, com observação.
+- **Importação executada (10/10/2026):** 25 arquivos conferidos byte a byte com o manifesto antes do envio; 24 publicados como vigentes e o AUDDOC001 mantido como rascunho; reexecução não duplicou nada (0 importados, 25 existentes). Os modelos técnicos M01/M02 do I6 têm o mesmo SHA-256 dos anexos vigentes AUDDOC010-ANX01/ANX02 — a tela do documento mostra esse vínculo.
+- Testes criam documentos fictícios "[TESTE]" com códigos AUDDOC9NN e AUDDOC9NN-ANXMM (faixa reservada a teste no desenvolvimento; não existem no acervo oficial).
+
+### Evidências de teste (10/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 114/114 (I7: 7 de integração — código e vínculo permanentes; revisão só com arquivo no bucket e no caminho do documento; rascunho → vigente com aprovação, Rev.01 substitui e a Rev.00 continua íntegra e acessível (CA-09); imutabilidade do arquivo/SHA-256 e da publicada; cancelamento com motivo; CA-10 — anônimo e não autorizado sem acesso, sem sobrescrita/exclusão/caminho fora do padrão; download na trilha; acervo oficial — AUDDOC001 sem vigente e modelos M01/M02 com o mesmo SHA-256 dos anexos vigentes. Ajustes do I6: 7 unitários + 2 de integração) |
+| Playwright — total | 23/23 (I7: acervo oficial com download por link assinado e vínculo ao modelo técnico; AUDDOC001 sem vigente; novo documento → Rev.00 enviada direto ao bucket → confirmação obrigatória → vigente → Rev.01 substitui, Rev.00 baixável com conteúdo original; revisão repetida e tipo de arquivo recusados; celular. I6: item mensal com desconto autorizado e contrato até a emissão; responsividade de 24 telas em 360 px e 768 px) |
+| Supabase advisors (segurança) | sem alertas novos |
+
+Observação: numa das rodadas, um passo do e2e do I2 ("inativo não aparece no filtro padrão") falhou uma vez e passou nas repetições isolada e em grupo; registrado como intermitente, a acompanhar no I9.
 
