@@ -63,7 +63,7 @@ describe.skipIf(!ready)("I9 — varredura de segurança (RLS, permissões, Stora
   });
 
   it("buckets privados com limite de tamanho e tipos; Storage sem política de alteração ou exclusão", () => {
-    expect(check.buckets.map((b) => b.id)).toEqual(["audita-biblioteca", "audita-documentos"]);
+    expect(check.buckets.map((b) => b.id)).toEqual(["audita-biblioteca", "audita-documentos", "audita-marca"]);
     for (const b of check.buckets) {
       expect(b.public).toBe(false);
       expect(b.file_size_limit).toBeGreaterThan(0);
