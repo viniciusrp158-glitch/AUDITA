@@ -172,7 +172,8 @@ for (const t of tables) {
 }
 
 // funções do sistema sobre a base restaurada (como o administrador)
-const admin = (await db.query(`select user_id from audita.app_users where role = 'admin' and status = 'ativo' limit 1`)).rows[0]?.user_id;
+const admin = (await db.query(`select user_id from audita.app_users where role = 'admin' and status = 'active' limit 1`)).rows[0]?.user_id;
+if (!admin) throw new Error("Nenhum administrador ativo na base restaurada.");
 await db.exec(`set request.jwt.claim.sub = '${admin}';`);
 const funcs = {
   is_admin: (await db.query(`select audita.is_admin() as v`)).rows[0].v,
