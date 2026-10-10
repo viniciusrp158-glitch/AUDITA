@@ -16,12 +16,14 @@ const tracked = execSync("git ls-files", { cwd: ROOT, encoding: "utf8" }).split(
 describe("CA-12 — escopo isolado do Audita PRO / HUB", () => {
   it("toda migração cria ou altera objetos somente no schema audita (e apenas buckets/políticas próprias no Storage)", () => {
     const problems: string[] = [];
+    let seen = 0;
     const ddl =
       /\b(create(?:\s+or\s+replace)?\s+(?:table|view|materialized\s+view|function|procedure|type|sequence|schema|trigger\s+\w+[\s\S]*?\bon)|alter\s+(?:table|function|view|type|sequence|schema)|insert\s+into|update|delete\s+from|truncate|drop\s+(?:table|view|function|schema|type|policy|trigger|index))\s+(?:if\s+(?:not\s+)?exists\s+)?([a-z_]+)\.([a-z_]+)/gi;
     for (const f of migrations) {
       const sql = strip(readFileSync(join(MIG, f), "utf8"));
       for (const m of sql.matchAll(ddl)) {
         const [, verb, schema, obj] = m;
+        seen++;
         const okAudita = schema.toLowerCase() === "audita";
         const okStorage = schema.toLowerCase() === "storage" && /^insert\s+into$/i.test(verb.replace(/\s+/g, " ")) && obj === "buckets";
         if (!okAudita && !okStorage) problems.push(`${f}: ${verb.split(/\s+/).slice(0, 3).join(" ")} ${schema}.${obj}`);
@@ -33,6 +35,7 @@ describe("CA-12 — escopo isolado do Audita PRO / HUB", () => {
       }
       if (/\bpublic\.[a-z_]+/i.test(sql)) problems.push(`${f}: referência ao schema public (Audita PRO)`);
     }
+    expect(seen, "a varredura precisa de fato encontrar os comandos DDL").toBeGreaterThan(50);
     expect(problems).toEqual([]);
   });
 
