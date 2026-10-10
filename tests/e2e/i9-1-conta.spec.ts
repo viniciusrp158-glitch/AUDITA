@@ -27,7 +27,11 @@ test("mestre: menu com Minha conta e tema; troca para escuro, mantém ao recarre
   await expect(box.getByText("Alterar senha")).toHaveCount(0);
 
   const toggle = page.getByTestId("theme-toggle");
-  if ((await theme(page)) === "escuro") await toggle.click();
+  if ((await theme(page)) === "escuro") {
+    const reset = page.waitForResponse((r) => r.request().method() === "POST" && r.status() === 200);
+    await toggle.click();
+    await reset;
+  }
   await expect.poll(() => theme(page)).toBe("claro");
   // a escolha é gravada por uma ação do servidor (conta + cookie): espera a resposta antes de recarregar
   const saved = page.waitForResponse((r) => r.request().method() === "POST" && r.status() === 200);
