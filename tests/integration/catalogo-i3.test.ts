@@ -71,7 +71,10 @@ describe.skipIf(!ready)("I3 — catálogo de serviços", () => {
   });
 
   it("CA-04: serviço não liberado não permite proposta comercial final", async () => {
-    const { data } = await admin.from("services").select("id").eq("service_code", "SST-001").single();
+    // TRN-NR35 segue "Não liberado" (SST-001, SST-009, DOC-002, TRN-001 e TRN-NR06 têm liberação FICTÍCIA no
+    // ambiente de desenvolvimento para homologar a emissão — decisão do Diretor de 09/10/2026)
+    const { data } = await admin.from("services").select("id, commercial_status").eq("service_code", "TRN-NR35").single();
+    expect(data!.commercial_status).toBe("nao_liberado");
     const r = await admin.rpc("service_allows_commercial_proposal", { p_service_id: data!.id });
     expect(r.data).toBe(false);
   });
