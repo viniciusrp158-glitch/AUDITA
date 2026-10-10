@@ -46,7 +46,8 @@ function cell(text: string, o: { width: number; bold?: boolean; fill?: string; c
     borders,
     shading: o.fill ? { type: ShadingType.CLEAR, color: "auto", fill: o.fill } : undefined,
     margins: { top: 60, bottom: 60, left: 100, right: 100 },
-    children: [new Paragraph({ alignment: o.align, children: runs(text, { bold: o.bold, color: o.color }) })],
+    // Cabeçalho de tabela (fundo azul) "mantém com o próximo": nunca fica sozinho no fim da página
+    children: [new Paragraph({ alignment: o.align, keepNext: o.fill === NAVY, children: runs(text, { bold: o.bold, color: o.color }) })],
   });
 }
 

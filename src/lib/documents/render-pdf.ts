@@ -69,6 +69,7 @@ function block(b: Block): Content[] {
           table: {
             widths: ["30%", "70%"],
             headerRows: 1,
+            keepWithHeaderRows: 1,
             dontBreakRows: true,
             body: [[head("CAMPO"), head("PREENCHIMENTO")], ...b.rows.map(([k, v]) => [{ text: k, bold: true, fillColor: LIGHT }, { text: v || "—" }])],
           },
@@ -79,7 +80,7 @@ function block(b: Block): Content[] {
     case "columns":
       return [
         {
-          table: { widths: ["50%", "50%"], headerRows: 1, body: [[head(b.headers[0]), head(b.headers[1])], [b.left || "—", b.right || "—"]] },
+          table: { widths: ["50%", "50%"], headerRows: 1, keepWithHeaderRows: 1, dontBreakRows: true, body: [[head(b.headers[0]), head(b.headers[1])], [b.left || "—", b.right || "—"]] },
           layout: gridLayout,
           margin: [0, 0, 0, 8],
         },
@@ -91,6 +92,7 @@ function block(b: Block): Content[] {
           table: {
             widths: b.widths.map((x) => `${x}%`),
             headerRows: 1,
+            keepWithHeaderRows: 1,
             dontBreakRows: true,
             body: [
               b.headers.map((h, i) => head(h, b.align[i])),
