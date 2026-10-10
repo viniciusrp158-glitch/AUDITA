@@ -18,7 +18,8 @@ export default defineConfig({
     // Requer `npm run build` antes.
     command: `npx next start -p ${PORT}`,
     url: `http://127.0.0.1:${PORT}/login`,
-    reuseExistingServer: false,
+    // E2E_REUSE=1 reaproveita um servidor já iniciado (execuções longas em segundo plano)
+    reuseExistingServer: process.env.E2E_REUSE === "1",
     timeout: 60_000,
   },
 });
