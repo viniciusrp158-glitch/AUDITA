@@ -14,8 +14,8 @@ const INCREMENTOS: { id: string; titulo: string; status: Status }[] = [
   { id: "I3", titulo: "Catálogo de serviços (AUDDOC004/005) e situação de liberação", status: "concluido" },
   { id: "I4", titulo: "Demandas — Registro Único de Atendimento", status: "concluido" },
   { id: "I5", titulo: "Parâmetros financeiros e motor de cálculo AUDDOC011", status: "concluido" },
-  { id: "I6", titulo: "Revisões e emissão de propostas (DOCX/PDF)", status: "em_validacao" },
-  { id: "I7", titulo: "Biblioteca documental", status: "previsto" },
+  { id: "I6", titulo: "Revisões e emissão de propostas (DOCX/PDF)", status: "concluido" },
+  { id: "I7", titulo: "Biblioteca documental", status: "em_validacao" },
   { id: "I8", titulo: "Indicadores gerenciais", status: "previsto" },
   { id: "I9", titulo: "Homologação do MVP", status: "previsto" },
 ];

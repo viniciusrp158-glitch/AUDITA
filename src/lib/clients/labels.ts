@@ -66,6 +66,10 @@ export const REQUEST_STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export const ENTITY_LABELS: Record<string, string> = {
+  library_documents: "Biblioteca — documento",
+  library_revisions: "Biblioteca — revisão",
+  quote_revisions: "Revisão de proposta",
+  generated_documents: "Documento emitido",
   pricing_parameter_sets: "Parâmetros financeiros",
   quotes: "Orçamento",
   quote_items: "Item de orçamento",
@@ -84,6 +88,7 @@ export const ACTION_LABELS: Record<string, string> = {
   insert: "Inclusão",
   update: "Alteração",
   delete: "Exclusão",
+  download: "Download de arquivo",
   login: "Entrada no sistema",
   logout: "Saída do sistema",
   access_denied: "Acesso negado",

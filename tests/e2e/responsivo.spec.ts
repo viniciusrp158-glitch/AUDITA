@@ -16,6 +16,7 @@ const PAGES = [
   "/demandas/nova",
   "/orcamentos",
   "/biblioteca",
+  "/biblioteca/novo",
   "/comunicacao",
   "/configuracoes",
   "/configuracoes/atividades",
@@ -54,9 +55,11 @@ for (const vp of [
     await page.goto("/orcamentos");
     const quoteHref = await page.locator('ul a[href^="/orcamentos/"]').first().getAttribute("href");
     const quoteItemPages = quoteHref ? [`${quoteHref}/itens/novo`] : [];
+    await page.goto("/biblioteca?q=AUDDOC010");
+    const libHref = await page.locator('ul a[href^="/biblioteca/"]').first().getAttribute("href");
 
     const problems: string[] = [];
-    for (const path of [...PAGES, clientHref, serviceHref, demandHref, paramHref, quoteHref, ...quoteItemPages].filter(Boolean) as string[]) {
+    for (const path of [...PAGES, clientHref, serviceHref, demandHref, paramHref, quoteHref, ...quoteItemPages, libHref].filter(Boolean) as string[]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
