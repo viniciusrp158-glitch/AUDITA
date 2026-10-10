@@ -174,7 +174,7 @@ export default async function OrcamentoPage({
                 {rows.map(({ it, calc }, idx) => (
                   <li key={it.id} className="rounded-lg border border-line p-3" data-testid="quote-item">
                     <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 basis-56">
                         <p className="text-xs text-muted">
                           Item {idx + 1}
                           {it.services ? ` · ${it.services.service_code}` : ""} · {PERIODICITY[it.periodicity].label}
