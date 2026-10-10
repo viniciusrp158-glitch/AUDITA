@@ -94,9 +94,9 @@ Deno.serve(async (req) => {
     const id = String(body.user_id ?? "");
     if (!/^[0-9a-f-]{36}$/.test(id)) return json(400, { erro: "Usuário inválido." });
     if (!senhaValida(body.senha)) return json(400, { erro: "A senha provisória precisa ter 12 caracteres ou mais, com letras e números." });
-    const target = await user.from("app_users").select("user_id, is_master").eq("user_id", id).maybeSingle();
+    const target = await user.from("app_users").select("user_id, is_master, is_test_master").eq("user_id", id).maybeSingle();
     if (target.error || !target.data) return json(404, { erro: "Usuário não encontrado." });
-    if (target.data.is_master) return json(400, { erro: "Use “Minha conta” para alterar a sua própria senha." });
+    if (target.data.is_master || target.data.is_test_master) return json(400, { erro: "Use “Minha conta” para alterar a sua própria senha." });
     const upd = await admin.auth.admin.updateUserById(id, { password: body.senha });
     if (upd.error) return json(400, { erro: "Não foi possível redefinir a senha." });
     const flag = await user.from("app_users").update({ must_change_password: true }).eq("user_id", id);
