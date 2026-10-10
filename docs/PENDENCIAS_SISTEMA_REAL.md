@@ -21,6 +21,7 @@
 | 13 | Enviar o arquivo **aprovado** da Rev.00 do AUDDOC001 (PDA): o arquivo do dossiê ainda é a minuta (status "Rascunho", data e responsável "[Inserir…]", tamanho diferente do índice da Fase 1) | AUDDOC001; AUDDOC017 §18 | D | Biblioteca → AUDDOC001 → enviar revisão e publicar | I7 |
 | 14 | Harmonizar a propriedade interna de título dos arquivos Word do AUDDOC014 e AUDDOC015 (ainda dizem "Minuta v0.1"; conteúdo e SHA-256 já são da Rev.00 aprovada) — em revisão controlada | AUDDOC001; AUDDOC014; AUDDOC015 | D | Biblioteca (nova revisão, se o Diretor optar) | I7 |
 | 15 | Definir a política de desconto por família de serviços (hoje: desconto até o máximo dos parâmetros, com autorização expressa registrada) | AUDDOC011 §§4.6, 5 e 7 | D, C | Parâmetros financeiros e autorização no item | I6 |
+| 16 | Definir metas para os indicadores (ex.: conversão, ticket médio, valor cotado por mês) e planejar o caixa — entradas e saídas efetivas — para a V1.1 | AUDDOC017 §14 e RF-18 | D, C, S | Início (indicadores); módulo de caixa na V1.1 | I8 |
 
 ## Observações
 - No ambiente de **desenvolvimento** há dados e decisões fictícias, sempre marcadas TESTE: parâmetros "[TESTE] Parâmetros fictícios…", liberação fictícia de SST-001, SST-009, DOC-002, TRN-001 e TRN-NR06 (decisão do Diretor de 09/10/2026) e propostas emitidas com marca d'água. **Nada disso vai para a produção**: as migrações não carregam dados de teste.

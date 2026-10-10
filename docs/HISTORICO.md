@@ -244,7 +244,7 @@ O Diretor validou o I6 e pediu três ajustes:
 
 Testes acrescentados: 7 unitários (desconto autorizado e regras de bloqueio; data final do contrato, inclusive meses curtos e ano bissexto; conteúdo do documento com vigência e valor total) e 2 de integração (autorização exigida, justificativa obrigatória, bloqueio acima do máximo mesmo com resultado forjado, contrato obrigatório para item mensal e gravado no snapshot). Compilação na Vercel concluída. Testes executados em 10/10/2026 (com o I7): todos aprovados, inclusive o e2e "item mensal com desconto autorizado e tempo de contrato até a emissão"; PDF mensal conferido visualmente (cabeçalho da tabela não se repete; vigência e valor total do contrato corretos).
 
-## I7 — Biblioteca documental (em validação)
+## I7 — Biblioteca documental (validado pelo Diretor em 10/10/2026)
 
 **Objetivo:** guardar os documentos oficiais da AUDITA com código, revisão, aprovação e SHA-256, sem nunca sobrescrever versões, com acesso privado e download rastreado.
 **Requisitos:** AUDDOC017 RF-19, RF-20, RF-21, RF-22, RF-24, FL-03, CA-09, CA-10, §18 (minutas nunca vigentes); AUDDOC001; AUDDOC013.
@@ -270,4 +270,32 @@ Solução:
 | Supabase advisors (segurança) | sem alertas novos |
 
 Observação: numa das rodadas, um passo do e2e do I2 ("inativo não aparece no filtro padrão") falhou uma vez e passou nas repetições isolada e em grupo; registrado como intermitente, a acompanhar no I9.
+
+### Ajuste do I7 pedido na validação (10/10/2026)
+
+**Anexos recolhíveis na lista da biblioteca.** Documentos com anexos aparecem só com a linha do documento principal e um botão com seta para baixo ("N anexos"). Ao clicar, os anexos aparecem logo abaixo, recuados; um novo clique recolhe. Funciona na tabela (computador) e nos cartões (celular). Durante uma busca, os anexos encontrados aparecem já abertos, para que o resultado não fique escondido. Teste e2e acrescentado: AUDDOC010 mostra "6 anexos", abre as 6 linhas e recolhe.
+
+## I8 — Indicadores gerenciais (em validação)
+
+**Objetivo:** mostrar ao Diretor, na tela Início, os números do negócio calculados a partir dos registros do sistema, com período selecionável e sem misturar dados de teste com registros reais.
+**Requisitos:** AUDDOC017 §14 (indicadores gerenciais), RF-18 (caixa: previsto para V1.1, fora do MVP), CA-11 (indicador conferível com os registros de origem); AUDDOC011 §2 (valores únicos e mensais nunca somados).
+
+Solução:
+- Migração `20261010151517_i8_indicadores` (MD5 `e12ba2028df09cf8ec65aa742035f87e`, idêntica ao aplicado): função `audita.dashboard_indicators(de, até, incluir_teste)` com **segurança do chamador** (só calcula o que o usuário já pode ver pelas regras de acesso; anônimo é recusado). Datas avaliadas no fuso America/Sao_Paulo. Somente leitura, sem tabelas novas.
+- **Indicadores:** clientes ativos; propostas em aberto (agora e criadas no período); **valor cotado** (última revisão emitida de cada cotação no período); **valor aceito** e **ticket médio aceito**; **conversão** = aceitas ÷ (aceitas + recusadas) no período (aparece "sem dados" quando não há decisões, sem dividir por zero); demandas pendentes, vencidas e recebidas; cotações do período por situação atual.
+- Cotação reaberta e aceita de novo conta **uma vez**, pela última revisão. Valores **únicos e mensais aparecem separados**, nunca somados. Aviso fixo: valores de propostas **não são dinheiro recebido**; o caixa fica para a V1.1 (RF-18).
+- **Período:** este mês, mês anterior, últimos 30 e 90 dias, ano atual ou personalizado (de/até).
+- **Dados de teste:** em produção ficam **fora por padrão**; no desenvolvimento (só há dados fictícios) entram por padrão, com o selo "Inclui dados de TESTE"; um link alterna.
+- **Alertas:** sem parâmetros vigentes; propostas emitidas vencidas ou vencendo em até 7 dias; demandas com prazo vencido; pedidos de autocadastro pendentes; rascunhos na biblioteca.
+- "Andamento do desenvolvimento" passou a ficar recolhido no fim da página.
+
+### Evidências de teste (10/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` (Vercel) | sem erros |
+| Vitest — total | 118/118 (I8: 4 de integração — **CA-11**: cada indicador recalculado de forma independente a partir das tabelas e conferido; variações exatas após criar cliente, demanda, emissão (+R$ 4.237,59), aceite, reabertura com novo aceite (conta uma vez), recusa e conversão; exclusão de dados de teste; período vazio; isolamento — usuário sem permissão vê zeros e anônimo é recusado) |
+| Playwright — total | 26/26 (I8: painel com KPIs, alternância de dados de teste, período personalizado e mês anterior (01/09/2026 a 30/09/2026), andamento recolhível, celular sem rolagem horizontal. I7: anexos recolhíveis. Responsividade das telas em 360 px e 768 px, incluindo o Início) |
+| Conferência visual | painel no computador e no celular |
+| Supabase advisors (segurança) | sem alertas novos |
 
