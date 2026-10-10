@@ -31,7 +31,7 @@ export const getAppUser = cache(async (): Promise<AppUser | null> => {
 
   const { data, error } = await supabase
     .from("app_users")
-    .select("full_name, job_title, role, status, is_master, is_test, is_test_master, theme, must_change_password")
+    .select("full_name, job_title, role, status, is_master, is_comaster, is_test, is_test_master, theme, must_change_password")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -42,7 +42,7 @@ export const getAppUser = cache(async (): Promise<AppUser | null> => {
     fullName: data.full_name,
     jobTitle: data.job_title,
     role: data.role as Role,
-    isMaster: Boolean(data.is_master || (data.is_test && data.is_test_master)),
+    isMaster: Boolean(data.is_master || data.is_comaster || (data.is_test && data.is_test_master)),
     theme: data.theme,
     mustChangePassword: data.must_change_password,
   };

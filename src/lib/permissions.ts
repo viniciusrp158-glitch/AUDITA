@@ -18,6 +18,17 @@ export const ROLE_HINT: Record<Role, string> = {
   marketing: "Rascunhos de comunicação quando o módulo existir (I10). Até lá, apenas a própria conta. Não vê preços nem clientes (AUDDOC017 §10).",
 };
 
+/** Níveis oferecidos ao criar/alterar usuários. "mestre" = mestre adicional: Administrador + marca de mestre
+ *  (mesmas permissões do mestre titular, inclusive gerenciar usuários) — pedido do Diretor em 10/10/2026. */
+export type AccessLevel = "mestre" | Role;
+export const LEVEL_LABEL: Record<AccessLevel, string> = { mestre: "Usuário mestre", ...ROLE_LABEL };
+export const LEVEL_HINT: Record<AccessLevel, string> = {
+  mestre:
+    "Mesmas permissões e acessos do usuário mestre: tudo o que o Administrador faz e também cria usuários e define níveis. Cada pessoa com o próprio login.",
+  ...ROLE_HINT,
+};
+export const LEVELS: AccessLevel[] = ["mestre", "admin", "operador", "marketing"];
+
 /** Menu principal por nível. */
 export const NAV_ROLES: Record<string, Role[]> = {
   "/": ["admin"],

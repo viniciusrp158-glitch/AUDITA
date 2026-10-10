@@ -65,12 +65,19 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   await expect(page.getByTestId("master-badge")).toBeVisible();
 
   // Dados da própria conta
+  // Blocos fechados ao abrir a página (pedido do Diretor): só os títulos
+  for (const t of ["Informações da conta", "Aparência", "Segurança", "Gerenciamento de usuários"])
+    await expect(page.locator("summary", { hasText: t })).toBeVisible();
+  await expect(page.getByTestId("profile-form")).toBeHidden();
+  await page.locator("summary", { hasText: "Informações da conta" }).click();
   const profile = page.getByTestId("profile-form");
   await profile.getByLabel(/^Cargo/).fill("Administrador de teste");
   await profile.getByRole("button", { name: "Salvar dados" }).click();
   await expect(page.getByText("Dados da conta salvos.")).toBeVisible();
 
   // Novo usuário: validação e criação
+  await page.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
+  await page.locator("summary", { hasText: "Novo usuário" }).click();
   const form = page.getByTestId("create-user-form");
   await form.getByRole("button", { name: "Criar usuário" }).click();
   await expect(form.getByText("Informe o nome completo.")).toBeVisible();
@@ -124,7 +131,9 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   await ctx.close();
 
   // O mestre inativa o usuário: o acesso cai
+  await page.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
   const row = page.getByTestId("user-row").filter({ hasText: email });
+  await row.locator("summary", { hasText: "Gerenciar acesso e senha" }).click();
   await row.locator('select[name="situacao"]').selectOption("inactive");
   await row.getByRole("button", { name: "Salvar acesso" }).click();
   await expect(row.getByText("Acesso atualizado.")).toBeVisible();
@@ -171,4 +180,56 @@ test("marketing: só a própria conta até o I10; celular sem rolagem horizontal
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/97-conta-marketing-celular.png`, fullPage: true });
   await ctx.close();
+});
+
+test("mestre cria outro usuário mestre: mesmas permissões, login próprio, não altera o próprio nível", async ({ page, browser }) => {
+  test.setTimeout(120_000);
+  const tag = uniqueSuffix();
+  const email = `mestre.${tag.toLowerCase()}@audita.test`;
+  await login(page, ADMIN, /\/$/);
+  await page.goto("/conta");
+  await page.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
+  await page.locator("summary", { hasText: "Novo usuário" }).click();
+  const form = page.getByTestId("create-user-form");
+  await form.getByLabel(/^Nome completo/).fill(`[TESTE] Mestre adicional ${tag}`);
+  await form.getByLabel(/^E-mail de acesso/).fill(email);
+  await form.locator('select[name="nivel"]').selectOption("mestre");
+  await expect(form.getByTestId("role-hint")).toContainText("Mesmas permissões e acessos do usuário mestre");
+  await form.getByRole("button", { name: "Gerar senha" }).click();
+  const provisoria = await form.locator('input[name="senha"]').inputValue();
+  await form.getByRole("button", { name: "Criar usuário" }).click();
+  await expect(page.getByText(/Usuário criado\./)).toBeVisible({ timeout: 20_000 });
+
+  const ctx = await browser.newContext({ locale: "pt-BR" });
+  const m = await ctx.newPage();
+  await login(m, { email, password: provisoria }, /\/atualizar-senha\?primeiro=1/);
+  const nova = `Mestre${tag}2026`;
+  await m.locator('input[name="password"]').fill(nova);
+  await m.locator('input[name="confirm"]').fill(nova);
+  await m.getByRole("button", { name: "Salvar senha" }).click();
+  await expect(m).toHaveURL(/\/$/);
+  // mesmo menu do mestre e gestão de usuários disponível
+  await expect(m.getByTestId("user-box")).toContainText("Usuário mestre");
+  for (const item of ["Início", "Biblioteca", "Configurações"]) await expect(m.locator('aside[aria-label="Menu principal"] nav').getByRole("link", { name: item })).toBeVisible();
+  await m.goto("/conta");
+  await expect(m.getByTestId("master-badge")).toBeVisible();
+  await m.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
+  const self = m.getByTestId("user-row").filter({ hasText: email });
+  await expect(self).toContainText("você");
+  await expect(self.locator("summary", { hasText: "Gerenciar acesso e senha" })).toHaveCount(0);
+  const titular = m.getByTestId("user-row").filter({ hasText: ADMIN.email });
+  await expect(titular).toContainText("Usuário mestre (titular)");
+  await expect(titular.locator("summary", { hasText: "Gerenciar acesso e senha" })).toHaveCount(0);
+  await m.screenshot({ path: `${SHOTS}/98-mestre-adicional.png`, fullPage: true });
+  await ctx.close();
+
+  // o titular retira o acesso de teste ao final (inativa)
+  await page.reload();
+  await page.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
+  const row = page.getByTestId("user-row").filter({ hasText: email });
+  await expect(row).toContainText("Usuário mestre");
+  await row.locator("summary", { hasText: "Gerenciar acesso e senha" }).click();
+  await row.locator('select[name="situacao"]').selectOption("inactive");
+  await row.getByRole("button", { name: "Salvar acesso" }).click();
+  await expect(row.getByText("Acesso atualizado.")).toBeVisible();
 });

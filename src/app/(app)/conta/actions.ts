@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export type AccountState = { ok?: string; error?: string; fieldErrors?: Record<string, string>; seq?: number };
 
 const ROLES = ["admin", "operador", "marketing"] as const;
+const LEVELS = ["mestre", ...ROLES] as const;
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Tema claro/escuro: guardado na conta (vale em qualquer aparelho) e num cookie (a página já abre no tema certo). */
@@ -57,6 +58,7 @@ export type ManagedUser = {
   role: (typeof ROLES)[number];
   status: "active" | "inactive";
   is_master: boolean;
+  is_comaster: boolean;
   is_test: boolean;
   is_test_master: boolean;
   must_change_password: boolean;
@@ -100,7 +102,7 @@ const createSchema = z.object({
   nome: z.string().trim().min(2, "Informe o nome completo.").max(160),
   email: z.string().trim().toLowerCase().email("Informe um e-mail válido."),
   cargo: z.string().trim().max(120),
-  nivel: z.enum(ROLES, { message: "Escolha o nível de acesso." }),
+  nivel: z.enum(LEVELS, { message: "Escolha o nível de acesso." }),
   senha: z
     .string()
     .min(12, "A senha provisória precisa ter 12 caracteres ou mais.")
@@ -141,12 +143,17 @@ export async function resetPasswordAction(userId: string, _prev: AccountState, f
 export async function updateAccessAction(userId: string, _prev: AccountState, formData: FormData): Promise<AccountState> {
   const me = await requireAppUser(["admin"]);
   if (!me.isMaster || !uuidRe.test(userId)) return { error: "Operação não permitida." };
-  const role = String(formData.get("nivel") ?? "");
+  const level = String(formData.get("nivel") ?? "");
   const status = String(formData.get("situacao") ?? "");
-  if (!ROLES.includes(role as (typeof ROLES)[number]) || !["active", "inactive"].includes(status)) return { error: "Dados inválidos." };
+  if (!LEVELS.includes(level as (typeof LEVELS)[number]) || !["active", "inactive"].includes(status)) return { error: "Dados inválidos." };
+  if (userId === me.id) return { error: "Ninguém altera o próprio nível ou situação; peça a outro usuário mestre." };
   const supabase = await createClient();
-  const { data, error } = await supabase.from("app_users").update({ role, status }).eq("user_id", userId).select("user_id");
-  if (error || !data?.length) return { error: error?.message?.includes("mestre") ? error.message : "Não foi possível alterar o acesso." };
+  const { data, error } = await supabase
+    .from("app_users")
+    .update({ role: level === "mestre" ? "admin" : level, is_comaster: level === "mestre", status })
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error || !data?.length) return { error: error?.message?.includes("mestre") || error?.message?.includes("próprio") ? error.message : "Não foi possível alterar o acesso." };
   revalidatePath("/conta");
   return { ok: "Acesso atualizado.", seq: Date.now() };
 }

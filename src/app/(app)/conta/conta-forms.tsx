@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Alert, Field, SubmitButton } from "@/components/form";
-import { ROLE_HINT, ROLE_LABEL, type Role } from "@/lib/permissions";
+import { LEVEL_HINT, LEVEL_LABEL, LEVELS, type AccessLevel } from "@/lib/permissions";
 import type { AccountState } from "./actions";
 import { setThemeAction } from "./actions";
 
@@ -60,7 +60,7 @@ export function ThemeChoice({ initial }: { initial: "claro" | "escuro" }) {
   );
 }
 
-const ROLE_OPTIONS = (Object.keys(ROLE_LABEL) as Role[]).map((r) => ({ value: r, label: ROLE_LABEL[r] }));
+const ROLE_OPTIONS = LEVELS.map((r) => ({ value: r, label: LEVEL_LABEL[r] }));
 
 /** Senha provisória sugerida (16 caracteres, letras e números), gerada no navegador. */
 function suggestPassword(): string {
@@ -76,7 +76,7 @@ function suggestPassword(): string {
 export function CreateUserForm({ action }: { action: Act }) {
   const [state, formAction] = useActionState<AccountState, FormData>(action, {});
   const e = state.fieldErrors ?? {};
-  const [role, setRole] = useState<Role>("operador");
+  const [role, setRole] = useState<AccessLevel>("operador");
   const [pwd, setPwd] = useState("");
   return (
     <form action={formAction} className="space-y-4" noValidate data-testid="create-user-form" key={state.seq ?? 0}>
@@ -93,7 +93,7 @@ export function CreateUserForm({ action }: { action: Act }) {
           <select
             name="nivel"
             value={role}
-            onChange={(ev) => setRole(ev.target.value as Role)}
+            onChange={(ev) => setRole(ev.target.value as AccessLevel)}
             className="w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-navy focus:ring-2 focus:ring-navy/15"
           >
             {ROLE_OPTIONS.map((o) => (
@@ -103,7 +103,7 @@ export function CreateUserForm({ action }: { action: Act }) {
             ))}
           </select>
           <span className="mt-1 block text-xs text-muted" data-testid="role-hint">
-            {ROLE_HINT[role]}
+            {LEVEL_HINT[role]}
           </span>
         </label>
       </div>
@@ -141,7 +141,7 @@ export function CreateUserForm({ action }: { action: Act }) {
   );
 }
 
-export function AccessForm({ action, role, status }: { action: Act; role: Role; status: "active" | "inactive" }) {
+export function AccessForm({ action, role, status }: { action: Act; role: AccessLevel; status: "active" | "inactive" }) {
   const [state, formAction] = useActionState<AccountState, FormData>(action, {});
   return (
     <form action={formAction} className="flex flex-wrap items-end gap-2" data-testid="access-form">

@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { Crown, KeyRound, Lock, Palette, UserRound, UsersRound } from "lucide-react";
+import { ChevronDown, Crown, KeyRound, Lock, Palette, UserPlus, UserRound, UsersRound } from "lucide-react";
 import { Alert } from "@/components/form";
 import { requireAppUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
-import { ROLE_HINT, ROLE_LABEL } from "@/lib/permissions";
+import { LEVEL_HINT, ROLE_LABEL, type AccessLevel } from "@/lib/permissions";
 import { getThemeCookie } from "@/lib/theme";
 import { createUserAction, listManagedUsers, resetPasswordAction, updateAccessAction, updateProfileAction } from "./actions";
 import { AccessForm, CreateUserForm, ProfileForm, ResetPasswordForm, ThemeChoice } from "./conta-forms";
 
 export const metadata = { title: "Minha conta" };
 
+/** Bloco recolhível: fechado ao abrir a página; mostra só o título até ser clicado (pedido do Diretor). */
 function Section({
   icon: Icon,
   title,
@@ -24,16 +25,29 @@ function Section({
   testid?: string;
 }) {
   return (
-    <section className="rounded-xl border border-line bg-white p-4 sm:p-6" data-testid={testid} aria-label={title}>
-      <div className="mb-4 flex items-start gap-3">
-        <Icon size={22} className="mt-0.5 shrink-0 text-muted" aria-hidden />
-        <div>
-          <h2 className="text-base font-semibold text-ink">{title}</h2>
-          <p className="text-sm text-muted">{description}</p>
-        </div>
+    <details className="group rounded-xl border border-line bg-white" data-testid={testid}>
+      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-4 hover:bg-surface/60 sm:px-6 [&::-webkit-details-marker]:hidden">
+        <Icon size={22} className="shrink-0 text-navy" aria-hidden />
+        <span className="flex-1 text-base font-semibold text-ink">{title}</span>
+        <ChevronDown size={20} className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="border-t border-line px-4 pb-5 pt-4 sm:px-6">
+        <p className="mb-4 text-sm text-muted">{description}</p>
+        {children}
       </div>
-      {children}
-    </section>
+    </details>
+  );
+}
+
+function SubDetails({ title, children, testid }: { title: React.ReactNode; children: React.ReactNode; testid?: string }) {
+  return (
+    <details className="group/sub rounded-lg border border-line" data-testid={testid}>
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 text-sm font-semibold text-navy hover:bg-surface/60 [&::-webkit-details-marker]:hidden">
+        <ChevronDown size={16} className="shrink-0 text-muted transition group-open/sub:rotate-180" aria-hidden />
+        {title}
+      </summary>
+      <div className="border-t border-line p-3">{children}</div>
+    </details>
   );
 }
 
@@ -60,8 +74,8 @@ export default async function ContaPage() {
         <p className="mt-1 text-sm text-muted">Suas informações, aparência, segurança{user.isMaster ? " e os usuários do sistema AUDITA" : ""}.</p>
       </div>
 
-      <div className="space-y-6">
-        <section className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-white p-4 sm:p-6" aria-label="Resumo da conta">
+      <div className="space-y-3">
+        <section className="mb-3 flex flex-wrap items-center gap-4 rounded-xl border border-line bg-white p-4 sm:p-6" aria-label="Resumo da conta">
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-surface text-navy" aria-hidden>
             <UserRound size={30} />
           </span>
@@ -120,21 +134,31 @@ export default async function ContaPage() {
             testid="users-section"
           >
             {managed.error && <Alert kind="error">{managed.error}</Alert>}
-            <div className="mb-6 rounded-lg border border-line p-4">
-              <h3 className="mb-1 text-sm font-semibold text-ink">Novo usuário</h3>
-              <p className="mb-4 text-xs text-muted">
-                Os níveis seguem o AUDDOC017 §10 no modo mais restritivo (decisão de 10/10/2026): o que ainda está em aberto na matriz D7 do
-                caderno de pendências fica sem acesso até a sua resposta.
-              </p>
-              <CreateUserForm action={createUserAction} />
-            </div>
+            <div className="space-y-3">
+              <SubDetails
+                testid="new-user"
+                title={
+                  <span className="inline-flex items-center gap-2">
+                    <UserPlus size={16} aria-hidden /> Novo usuário
+                  </span>
+                }
+              >
+                <p className="mb-4 text-xs text-muted">
+                  “Usuário mestre” tem as mesmas permissões e acessos do mestre, inclusive gerenciar usuários, com login próprio. Os demais
+                  níveis seguem o AUDDOC017 §10 no modo mais restritivo (decisão de 10/10/2026): o que ainda está em aberto na matriz D7 do
+                  caderno de pendências fica sem acesso até a sua resposta.
+                </p>
+                <CreateUserForm action={createUserAction} />
+              </SubDetails>
 
-            <h3 className="mb-2 text-sm font-semibold text-ink">Usuários ({managed.users.length})</h3>
-            <ul className="space-y-3" data-testid="users-list">
-              {managed.users.map((u) => (
-                <li key={u.user_id} className="rounded-lg border border-line p-3" data-testid="user-row">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0">
+              <h3 className="pt-2 text-sm font-semibold text-ink">Usuários ({managed.users.length})</h3>
+              <ul className="space-y-2" data-testid="users-list">
+                {managed.users.map((u) => {
+                  const titular = u.is_master || u.is_test_master;
+                  const level: AccessLevel = u.is_comaster ? "mestre" : u.role;
+                  const isSelf = u.user_id === user.id;
+                  return (
+                    <li key={u.user_id} className="rounded-lg border border-line p-3" data-testid="user-row">
                       <p className="break-words text-sm font-semibold text-ink">
                         {u.full_name}
                         {u.status === "inactive" && <span className="ml-2 rounded-full bg-surface px-2 py-0.5 text-xs text-muted">Inativo</span>}
@@ -143,22 +167,27 @@ export default async function ContaPage() {
                       <p className="break-all text-xs text-muted">{u.email ?? "—"}</p>
                       <p className="mt-0.5 text-xs text-muted">
                         {u.job_title ? `${u.job_title} · ` : ""}
-                        {u.is_master || u.is_test_master ? "Usuário mestre" : ROLE_LABEL[u.role]}
+                        {titular ? "Usuário mestre (titular)" : u.is_comaster ? "Usuário mestre" : ROLE_LABEL[u.role]}
+                        {isSelf ? " · você" : ""}
                         {u.must_change_password ? " · troca de senha pendente" : ""}
                         {u.last_sign_in_at ? ` · último acesso ${formatDateTime(u.last_sign_in_at)}` : " · ainda não acessou"}
                       </p>
-                    </div>
-                  </div>
-                  {!(u.is_master || u.is_test_master) && (
-                    <div className="mt-3 grid gap-3 border-t border-line pt-3 lg:grid-cols-2">
-                      <AccessForm action={updateAccessAction.bind(null, u.user_id)} role={u.role} status={u.status} />
-                      <ResetPasswordForm action={resetPasswordAction.bind(null, u.user_id)} />
-                      <p className="text-xs text-muted lg:col-span-2">{ROLE_HINT[u.role]}</p>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+                      {!titular && !isSelf && (
+                        <div className="mt-2">
+                          <SubDetails title="Gerenciar acesso e senha" testid="manage-user">
+                            <div className="grid gap-3 lg:grid-cols-2">
+                              <AccessForm action={updateAccessAction.bind(null, u.user_id)} role={level} status={u.status} />
+                              <ResetPasswordForm action={resetPasswordAction.bind(null, u.user_id)} />
+                              <p className="text-xs text-muted lg:col-span-2">{LEVEL_HINT[level]}</p>
+                            </div>
+                          </SubDetails>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
             <p className="mt-3 text-xs text-muted">
               Usuários não são excluídos: inative quem não deve mais acessar (o histórico de ações continua preservado).
             </p>

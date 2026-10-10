@@ -219,4 +219,35 @@ describe.skipIf(!ready)("I9.1 — níveis de acesso (modo mais restritivo) e usu
     expect((await off.rpc("current_app_role")).data).toBeNull();
     expect((await off.from("clients").select("id").limit(1)).data ?? []).toEqual([]);
   }, 60_000);
+
+  it("mestre adicional: mesmas permissões do mestre, sem alterar o próprio nível nem o titular", async () => {
+    const email = `comestre.${tag.toLowerCase()}@audita.test`;
+    const senha = `Comestre${tag}7`;
+    const created = await usersFn(mestre, { acao: "criar", nome: `[TESTE] Mestre adicional ${tag}`, email, nivel: "mestre", senha });
+    expect(created.status).toBe(201);
+    const id = created.body.user_id as string;
+    const co = await signedIn(email, senha);
+    await co.from("app_users").update({ must_change_password: false }).eq("user_id", id);
+    expect((await co.rpc("is_master")).data).toBe(true);
+    expect((await co.rpc("current_app_role")).data).toBe("admin");
+    expect((await usersFn(co, { acao: "listar" })).status).toBe(200);
+    // altera outro usuário (marketing) e devolve
+    const mk = (await marketing.auth.getUser()).data.user!.id;
+    expect((await co.from("app_users").update({ role: "operador" }).eq("user_id", mk).select("user_id")).error).toBeNull();
+    await co.from("app_users").update({ role: "marketing" }).eq("user_id", mk);
+    // não altera a si mesmo nem o titular; não redefine a senha do titular
+    expect((await co.from("app_users").update({ is_comaster: false }).eq("user_id", id)).error?.code).toBe("42501");
+    expect((await co.from("app_users").update({ status: "inactive" }).eq("user_id", id)).error?.code).toBe("42501");
+    const titular = (await mestre.auth.getUser()).data.user!.id;
+    expect((await co.from("app_users").update({ role: "operador" }).eq("user_id", titular)).error?.code).toBe("42501");
+    expect((await usersFn(co, { acao: "redefinir_senha", user_id: titular, senha: "QualquerSenha123" })).status).toBe(400);
+    // quem não é mestre não concede a marca
+    const opId = (await operador.auth.getUser()).data.user!.id;
+    expect((await operador.from("app_users").update({ is_comaster: true }).eq("user_id", opId)).error?.code).toBe("42501");
+    expect((await co.from("app_users").update({ is_comaster: true }).eq("user_id", opId)).error).not.toBeNull(); // exige nível Administrador
+    // o titular retira a marca (vira administrador comum) e depois inativa
+    expect((await mestre.from("app_users").update({ is_comaster: false }).eq("user_id", id)).error).toBeNull();
+    expect((await co.rpc("is_master")).data).toBe(false);
+    expect((await mestre.from("app_users").update({ status: "inactive" }).eq("user_id", id)).error).toBeNull();
+  }, 60_000);
 });

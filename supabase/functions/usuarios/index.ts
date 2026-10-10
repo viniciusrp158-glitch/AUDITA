@@ -8,7 +8,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 const URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ROLES = ["admin", "operador", "marketing"];
+// "mestre" = mestre adicional: nível Administrador + marca de mestre (mesmas permissões do mestre titular)
+const ROLES = ["mestre", "admin", "operador", "marketing"];
 
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8" } });
@@ -42,7 +43,7 @@ Deno.serve(async (req) => {
   if (body.acao === "listar") {
     const rows = await user
       .from("app_users")
-      .select("user_id, full_name, job_title, role, status, is_master, is_test, is_test_master, must_change_password, created_at")
+      .select("user_id, full_name, job_title, role, status, is_master, is_comaster, is_test, is_test_master, must_change_password, created_at")
       .order("full_name");
     if (rows.error) return json(400, { erro: "Não foi possível listar os usuários." });
     const usuarios = [];
@@ -79,7 +80,8 @@ Deno.serve(async (req) => {
       user_id: id,
       full_name: fullName,
       job_title: jobTitle || null,
-      role,
+      role: role === "mestre" ? "admin" : role,
+      is_comaster: role === "mestre",
       status: "active",
       must_change_password: true,
     });
@@ -96,7 +98,10 @@ Deno.serve(async (req) => {
     if (!senhaValida(body.senha)) return json(400, { erro: "A senha provisória precisa ter 12 caracteres ou mais, com letras e números." });
     const target = await user.from("app_users").select("user_id, is_master, is_test_master").eq("user_id", id).maybeSingle();
     if (target.error || !target.data) return json(404, { erro: "Usuário não encontrado." });
-    if (target.data.is_master || target.data.is_test_master) return json(400, { erro: "Use “Minha conta” para alterar a sua própria senha." });
+    const self = (await user.auth.getUser(auth.slice(7))).data.user?.id;
+    if (target.data.is_master || target.data.is_test_master)
+      return json(400, { erro: "A senha do usuário mestre titular só é alterada por ele, em “Minha conta”." });
+    if (id === self) return json(400, { erro: "Use “Minha conta” para alterar a sua própria senha." });
     const upd = await admin.auth.admin.updateUserById(id, { password: body.senha });
     if (upd.error) return json(400, { erro: "Não foi possível redefinir a senha." });
     const flag = await user.from("app_users").update({ must_change_password: true }).eq("user_id", id);
