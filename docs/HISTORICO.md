@@ -299,3 +299,16 @@ Solução:
 | Conferência visual | painel no computador e no celular |
 | Supabase advisors (segurança) | sem alertas novos |
 
+### Ajustes do I8 pedidos na validação (10/10/2026)
+
+1. **Alertas em destaque:** passaram para o topo do painel, em vermelho-claro, com ícone e contagem; alertas de atenção (parâmetros, prazos e propostas vencidas) têm ainda uma faixa vermelha à esquerda.
+2. **Gráficos fáceis de ler**, nas cores do AUDDOC003 (azul `#0296fd` para valor cotado e verde `#4a9f1a` para valor aceito; paleta conferida pelo validador de contraste e daltonismo; verde e vermelho de situação sempre acompanhados de rótulo). Cada gráfico tem título em forma de pergunta e um "Como ler" em linguagem simples:
+   - "Quanto cotamos e quanto foi aceito por mês" — colunas dos últimos 6 meses (valores únicos);
+   - "Contratos mensais" — o mesmo para valores recorrentes, em gráfico separado (nunca somados aos únicos), exibido quando houver;
+   - "Em que etapa estão as cotações do período?" — barras por situação;
+   - "Das propostas respondidas, quantas foram aceitas?" — conversão com barra aceitas × recusadas;
+   - "As demandas em aberto estão no prazo?" — barra no prazo × prazo vencido.
+   A evolução mensal usa a mesma função do banco de cada mês (mesma regra dos indicadores — CA-11). No celular, os indicadores ficam em duas colunas. Sem migração nova.
+
+Testes: e2e do painel ampliado (6 meses no gráfico, "Como ler" em cada gráfico, cor dos alertas, gráfico de conversão vazio sem dados de teste) e responsividade — aprovados; telas conferidas no computador e no celular.
+
