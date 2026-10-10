@@ -50,7 +50,7 @@ export default async function ModelosPage() {
                 { label: "Revisão do anexo", value: t.document_revision },
                 { label: "Versão técnica", value: `${t.technical_version} (${t.status === "vigente" ? "vigente" : "substituída"})` },
                 { label: "Cadastrada em", value: formatDateTime(t.created_at) },
-                { label: "Arquivo oficial de origem", value: t.source_file_name },
+                { label: "Arquivo oficial de origem", value: <span className="break-all">{t.source_file_name}</span> },
                 { label: "SHA-256 do arquivo oficial", value: <span className="break-all font-mono text-xs">{t.source_sha256}</span> },
                 { label: "Observações", value: t.notes },
               ]}
