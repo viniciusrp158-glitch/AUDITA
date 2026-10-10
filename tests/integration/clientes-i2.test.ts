@@ -149,7 +149,14 @@ describe.skipIf(!ready)("I2 — cadastro de clientes", () => {
     expect(ins.error?.code).toBe("42501");
     const units = await intruso.from("client_units").select("id").limit(1);
     expect(units.data).toEqual([]);
+    // Contadores: desde o I9 o administrador LÊ (cópia de segurança); escrita só pela função allocate_code
+    expect((await intruso.from("code_counters").select("*")).data ?? []).toEqual([]);
     const counters = await admin.from("code_counters").select("*");
-    expect(counters.error?.code).toBe("42501");
+    expect(counters.error).toBeNull();
+    expect(counters.data!.length).toBeGreaterThan(0);
+    const row = counters.data![0] as Record<string, unknown>;
+    expect((await admin.from("code_counters").insert({ ...row, scope: "x-teste" })).error?.code).toBe("42501");
+    const upd = await admin.from("code_counters").update({ last_value: 0 }).eq("code_type", row.code_type as string).select();
+    expect(upd.error?.code).toBe("42501");
   });
 });
