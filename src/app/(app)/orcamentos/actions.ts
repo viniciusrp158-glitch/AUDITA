@@ -195,7 +195,8 @@ export async function reviewQuoteAction(quoteId: string, _prev: FlowState, formD
 }
 
 /** Gera DOCX e PDF a partir do snapshot congelado, guarda no bucket privado e registra a emissão (RF-15, RF-16, RF-17, RF-24). */
-export async function emitRevisionAction(quoteId: string, _prev: FlowState): Promise<FlowState> {
+export async function emitRevisionAction(quoteId: string, prev: FlowState): Promise<FlowState> {
+  void prev; // assinatura exigida pelo useActionState
   await requireAppUser();
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const supabase = await createClient();

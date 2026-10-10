@@ -6,5 +6,8 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     testTimeout: 20000,
+    // Os testes de integração compartilham o banco de desenvolvimento (ex.: versão vigente dos parâmetros);
+    // rodam um arquivo por vez para não interferirem entre si.
+    fileParallelism: false,
   },
 });

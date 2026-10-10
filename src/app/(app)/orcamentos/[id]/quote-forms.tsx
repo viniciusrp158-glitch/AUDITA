@@ -26,7 +26,6 @@ export function QuoteContentForm({
     );
   const [model, setModel] = useState<Model>((v.document_model as Model) || "ANX01");
   const visible = CONTENT_FIELDS.filter((f) => (f.models as readonly string[]).includes(model) || ("optionalIn" in f && (f.optionalIn as readonly string[]).includes(model)));
-  const hidden = CONTENT_FIELDS.filter((f) => !visible.includes(f));
   const required = (f: (typeof CONTENT_FIELDS)[number]) => (f.models as readonly string[]).includes(model);
 
   return (
@@ -67,20 +66,20 @@ export function QuoteContentForm({
         </p>
       </div>
 
-      {visible.map((f) => (
-        <TextAreaField
-          key={f.key}
-          label={f.label}
-          name={f.key}
-          required={required(f)}
-          rows={f.rows}
-          maxLength={f.max}
-          defaultValue={v[f.key]}
-          error={e[f.key]}
-        />
-      ))}
-      {hidden.map((f) => (
-        <input key={f.key} type="hidden" name={f.key} value={v[f.key] ?? ""} />
+      {/* Todos os campos ficam no formulário (os que não pertencem ao modelo escolhido apenas ocultos),
+          para não perder o que foi digitado ao trocar de modelo. */}
+      {CONTENT_FIELDS.map((f) => (
+        <div key={f.key} className={visible.includes(f) ? "" : "hidden"}>
+          <TextAreaField
+            label={f.label}
+            name={f.key}
+            required={required(f)}
+            rows={f.rows}
+            maxLength={f.max}
+            defaultValue={v[f.key]}
+            error={e[f.key]}
+          />
+        </div>
       ))}
 
       <TextAreaField label="Observações internas (não saem no documento)" name="notes" rows={2} maxLength={4000} defaultValue={v.notes} error={e.notes} />
