@@ -51,19 +51,19 @@ function Kpi({
 }) {
   const body = (
     <>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-navy" data-testid={testid}>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted sm:text-xs">{label}</p>
+      <p className="mt-1 break-words text-lg font-semibold tabular-nums text-navy sm:text-2xl" data-testid={testid}>
         {value}
       </p>
       {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
     </>
   );
   return href ? (
-    <Link href={href} className="block rounded-xl border border-line bg-white p-4 transition hover:border-navy/40">
+    <Link href={href} className="block min-w-0 rounded-xl border border-line bg-white p-3 transition hover:border-navy/40 sm:p-4">
       {body}
     </Link>
   ) : (
-    <div className="rounded-xl border border-line bg-white p-4">{body}</div>
+    <div className="min-w-0 rounded-xl border border-line bg-white p-3 sm:p-4">{body}</div>
   );
 }
 
@@ -181,7 +181,7 @@ export default async function InicioPage({
         </p>
       ) : (
         <>
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores">
+          <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Indicadores">
             <Kpi label="Clientes ativos" value={ind.clients_active} sub="Situação atual" href="/clientes" testid="kpi-clients" />
             <Kpi
               label="Propostas em aberto"
