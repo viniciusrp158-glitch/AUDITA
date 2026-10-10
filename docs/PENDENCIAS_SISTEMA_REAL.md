@@ -32,7 +32,7 @@
 
 | # | Pendência | AUDDOC | Quem | Onde entra no sistema | Bloqueia? |
 |---|---|---|---|---|---|
-| 13 | **Tela de dados institucionais** (razão social, CNPJ, endereço, contatos da AUDITA) usada nas propostas — recebe os dados do item 1 | AUDDOC013; AUDDOC010 M01 | S | Configurações → Dados institucionais | Sim |
+| 13 | ~~Tela de dados institucionais~~ — **resolvido no I9.2 (10/10/2026)**: Configurações → Dados institucionais, em versões, ligada ao campo "Empresa proponente" e ao rodapé das propostas. Falta só preencher e publicar com as respostas do item 1 (caderno C1/D6) | AUDDOC013; AUDDOC010 M01 | S | Configurações → Dados institucionais | Sim (só o preenchimento) |
 | 14 | **Matriz de permissões (D7 do caderno)** — o I9.1 já está implementado no modo mais restritivo: o mestre cria contas de qualquer nível; Operador administrativo só faz o que o AUDDOC017 §10 define (clientes, demandas, preparar orçamentos sem preços); Marketing sem módulos até o I10. Cada "?" respondido no D7 será liberado por nova migração, com testes. Consolidar as políticas duplicadas (aviso de desempenho do Supabase) nessa mesma migração | AUDDOC017 §1 e §10; AUDDOC013 §8 | D, S | Minha conta → usuários; políticas do banco | Não |
 | 15 | **Provedor de e-mail** com domínio próprio (recuperação de senha, avisos de novas solicitações de cadastro) | AUDDOC017 §10 | D, S | Autenticação e autocadastro | Sim |
 | 16 | ~~Aviso de sucesso que permanece na tela após ações seguintes (achado H-02)~~ — **resolvido no I9.1** | AUDDOC017 §15 | S | Telas de demanda/cliente | Não |
