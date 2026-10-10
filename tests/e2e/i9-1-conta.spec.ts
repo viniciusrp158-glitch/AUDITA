@@ -88,7 +88,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   await op.goto("/clientes"); // não escapa da troca
   await expect(op).toHaveURL(/\/atualizar-senha\?primeiro=1/);
   const nova = `Pessoal${tag}2026`;
-  await op.getByLabel("Nova senha").fill(nova);
+  await op.getByLabel("Nova senha", { exact: true }).fill(nova);
   await op.getByLabel("Confirmar nova senha").fill(nova);
   await op.getByRole("button", { name: "Salvar senha" }).click();
   await expect(op).toHaveURL(/\/clientes/);
