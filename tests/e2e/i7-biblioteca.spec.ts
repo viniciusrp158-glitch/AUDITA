@@ -68,7 +68,7 @@ test("FL-03 / CA-09: novo documento, Rev.00 → vigente, Rev.01 substitui e a an
     const code = `${parentCode}-ANX${String(1 + Math.floor(Math.random() * 99)).padStart(2, "0")}`;
     await page.getByLabel("Código").fill(code);
     await page.getByLabel("Título").fill(`[TESTE] Anexo e2e ${code}`);
-    await page.getByLabel("Família").fill("Teste");
+    await page.locator("#family").fill("Teste");
     await page.getByLabel("Fase").selectOption("fase3");
     await page.getByLabel("Documento principal (somente anexos)").selectOption({ label: parentLabel });
     await page.getByRole("button", { name: "Cadastrar documento" }).click();
