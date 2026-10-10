@@ -24,10 +24,11 @@ async function uploadRevision(page: Page, revision: string, content: string) {
   await expect(page.getByText(`${revision} registrada como rascunho.`)).toBeVisible({ timeout: 20_000 });
 }
 
-async function publishDraft(page: Page) {
+async function publishDraft(page: Page, confirm: boolean) {
   const draft = page.getByTestId("draft").first();
   await draft.getByLabel("Aprovado por").fill("[TESTE] Diretor");
   await draft.getByLabel("Data de aprovação").fill("2026-10-10");
+  if (confirm) await draft.getByLabel(/Confirmo que este arquivo é a versão aprovada/).check();
   await draft.getByRole("button", { name: "Publicar como vigente" }).click();
 }
 
@@ -83,7 +84,7 @@ test("FL-03 / CA-09: novo documento, Rev.00 → vigente, Rev.01 substitui e a an
 
   // Rev.00: envio direto ao bucket privado; publicação exige confirmação
   await uploadRevision(page, "Rev.00", `[TESTE] conteúdo Rev.00 ${Date.now()}`);
-  await publishDraft(page);
+  await publishDraft(page, false);
   await expect(page.getByText("Confirme que o arquivo é a versão aprovada.")).toBeVisible();
   await page.getByTestId("draft").first().getByLabel(/Confirmo que este arquivo é a versão aprovada/).check();
   await page.getByTestId("draft").first().getByRole("button", { name: "Publicar como vigente" }).click();
@@ -92,10 +93,8 @@ test("FL-03 / CA-09: novo documento, Rev.00 → vigente, Rev.01 substitui e a an
 
   // Rev.01 substitui; Rev.00 continua no histórico e para download
   await uploadRevision(page, "Rev.01", `[TESTE] conteúdo Rev.01 ${Date.now()}`);
-  await publishDraft(page);
-  await page.getByTestId("draft").first().getByLabel(/Confirmo que este arquivo é a versão aprovada/).check();
-  await page.getByTestId("draft").first().getByRole("button", { name: "Publicar como vigente" }).click();
-  await expect(page.getByTestId("vigente")).toContainText("Rev.01");
+  await publishDraft(page, true);
+  await expect(page.getByTestId("vigente")).toContainText("Rev.01", { timeout: 15_000 });
   const history = page.getByTestId("revisions");
   await expect(history.locator("li")).toHaveCount(2);
   await expect(history.locator("li").nth(1)).toContainText("Substituída");
