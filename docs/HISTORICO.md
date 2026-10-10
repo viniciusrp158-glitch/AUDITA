@@ -324,3 +324,28 @@ Pedido do Diretor na validação do I8, registrado para **depois do I9**, sem de
 Ponto que dependerá de decisão do Diretor antes da implementação (AUDDOC017 §1 e §10): o MVP prevê **um único administrador** e manda "preparar permissões para expansão futura sem exibir papéis fictícios"; os perfis futuros são **Operador administrativo** (cadastra e prepara orçamentos, sem alterar permissões, liberar serviços nem aprovar preços) e **Marketing**. Criar usuários exige definir com qual perfil cada um entra — e as restrições de cada perfil precisam estar no banco (RLS), não só na tela. A criação de usuários usa a chave privilegiada **somente no servidor** (AUDDOC017 §10). Trocar e-mail exige confirmação pelo próprio e-mail.
 
 Como o I9.1 vem depois da homologação, ele terá sua própria regressão completa antes de ser considerado concluído.
+
+## I9 — Homologação do MVP (em validação)
+
+**Objetivo:** comprovar, com testes executados e evidências, que o MVP atende aos critérios de aceite CA-01 a CA-12 e aos fluxos do AUDDOC017 §13, antes de qualquer decisão sobre produção.
+**Requisitos:** AUDDOC017 §10 (segurança, backups e recuperação testável), §13 (FL-01 a FL-05), §15, §16 (CA-01 a CA-12).
+
+Relatório completo: **`docs/HOMOLOGACAO_MVP.md`**. Lista final de pendências: **`docs/PENDENCIAS_SISTEMA_REAL.md`** (26 itens em 5 etapas, cada um com o AUDDOC).
+
+Solução:
+- **Jornada contínua** `tests/e2e/homologacao-i9.spec.ts`: FL-01 → FL-05 → FL-02 → FL-05 (Em execução → Entregue → Encerrada) → FL-03 → painel (variações exatas) → saída. FL-04 fica no I10 (V1.2).
+- **Varredura de segurança** que se atualiza sozinha: função `audita.security_self_check()` (só administrador) + `tests/integration/seguranca-i9.test.ts` (todas as tabelas e buckets por chamada direta).
+- **CA-12** `tests/unit/ca12-escopo.test.ts`: migrações só no schema `audita` (e buckets/políticas próprias), nenhuma migração destrutiva, nenhum domínio do PRO/HUB e nenhum segredo no Git.
+- **Cópia de segurança e restauração** `scripts/backup-restauracao.mjs`: exportação com o login do administrador, restauração num Postgres separado (PGlite) a partir das migrações do repositório e conferência por quantidade de linhas e MD5.
+- Migração `20261010164610_i9_autoverificacao` (MD5 `44b2eae468cea11d9d0d40e79ba544b6`, idêntica ao aplicado).
+- **Correção (achado H-01):** pesquisa de clientes não usa mais os dígitos soltos de termos com letras para procurar no CNPJ — era também a causa da falha intermitente registrada no I7.
+
+### Evidências de teste (10/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 130/130 (I9: 6 da varredura de segurança, 4 do CA-12, 2 da pesquisa por documento; teste de contadores do I2 atualizado: leitura só do administrador, escrita de ninguém) |
+| Playwright — total | 27/27 (I9: jornada completa de homologação; responsividade de todas as telas em 360 px e 768 px) |
+| Cópia e restauração | 21/21 tabelas idênticas (linhas e MD5 iguais na origem e na restaurada); 209 arquivos copiados (24 MB), 160 com SHA-256 conferido com o banco, 0 divergências, 0 registros sem arquivo |
+| Supabase advisors (segurança) | apenas "proteção contra senhas vazadas desligada" (configuração do painel — pendência 17); o aviso "RLS sem política" dos contadores foi eliminado |
