@@ -136,4 +136,33 @@ export const quoteHeaderSchema = z.object({
     }),
   payment_terms: optText(1000),
   notes: optText(4000),
+  // Conteúdo dos modelos AUDDOC010 M01/M02 (I6)
+  document_model: z.enum(["ANX01", "ANX02"], { message: "Selecione o modelo." }),
+  objective: optText(4000),
+  scope_included: optText(4000),
+  scope_excluded: optText(4000),
+  location_modality: optText(1000),
+  schedule: optText(1000),
+  methodology: optText(4000),
+  deliverables: optText(4000),
+  completion_criteria: optText(2000),
+  additional_expenses: optText(2000),
+  cancellation_terms: optText(2000),
+  next_step: optText(1000),
+});
+
+export const reasonSchema = z.object({
+  reason: z.string().trim().min(5, "Informe o motivo (mín. 5 caracteres).").max(1000),
+});
+
+export const acceptanceSchema = z.object({
+  accepted_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data do aceite."),
+  accepted_by_name: z.string().trim().min(2, "Informe quem aceitou.").max(200),
+  decision_reference: z.string().trim().min(3, "Informe a referência do aceite (e-mail, protocolo, assinatura).").max(500),
+  decision_note: optText(2000),
+});
+
+export const refusalSchema = z.object({
+  decision_note: z.string().trim().min(3, "Informe o motivo.").max(2000),
+  decision_reference: optText(500),
 });

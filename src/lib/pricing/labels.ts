@@ -32,6 +32,37 @@ export const QUOTE_STATUS = {
 } as const;
 export type QuoteStatus = keyof typeof QUOTE_STATUS;
 
+export const REVISION_STATUS = {
+  revisada: { label: "Revisada", cls: "bg-blue/10 text-navy" },
+  emitida: { label: "Emitida", cls: "bg-navy text-white" },
+  aceita: { label: "Aceita", cls: "bg-ok/10 text-ok" },
+  recusada: { label: "Recusada", cls: "bg-danger/10 text-danger" },
+  cancelada: { label: "Cancelada", cls: "bg-surface text-muted" },
+  substituida: { label: "Substituída", cls: "bg-surface text-muted" },
+} as const;
+export type RevisionStatus = keyof typeof REVISION_STATUS;
+
+export const DOCUMENT_MODELS = {
+  ANX01: { code: "AUDDOC010-ANX01", label: "M01 — Proposta comercial integrada (orçamento + aceite)", short: "Proposta (M01)" },
+  ANX02: { code: "AUDDOC010-ANX02", label: "M02 — Orçamento simplificado", short: "Orçamento simplificado (M02)" },
+} as const;
+
+/** Campos de conteúdo por modelo (iguais aos verificados pelo banco em quote_review_blockers). */
+export const CONTENT_FIELDS = [
+  { key: "objective", label: "Objetivo e necessidade do cliente", models: ["ANX01"], rows: 3, max: 4000 },
+  { key: "scope_included", label: "Escopo incluído (atividades e limites)", models: ["ANX01", "ANX02"], rows: 4, max: 4000 },
+  { key: "scope_excluded", label: "Exclusões / depende de contratação", models: ["ANX01"], rows: 3, max: 4000, optionalIn: ["ANX02"] },
+  { key: "location_modality", label: "Local / modalidade", models: ["ANX01"], rows: 2, max: 1000 },
+  { key: "schedule", label: "Prazo / vigência", models: ["ANX01", "ANX02"], rows: 2, max: 1000 },
+  { key: "methodology", label: "Metodologia", models: ["ANX01"], rows: 3, max: 4000 },
+  { key: "deliverables", label: "Entregáveis", models: ["ANX01"], rows: 3, max: 4000 },
+  { key: "completion_criteria", label: "Critério de conclusão", models: ["ANX01"], rows: 2, max: 2000 },
+  { key: "payment_terms", label: "Pagamento", models: ["ANX01", "ANX02"], rows: 2, max: 1000 },
+  { key: "additional_expenses", label: "Despesas adicionais", models: ["ANX01"], rows: 2, max: 2000 },
+  { key: "cancellation_terms", label: "Reagendamento e cancelamento", models: ["ANX01"], rows: 2, max: 2000 },
+  { key: "next_step", label: "Próximo passo", models: ["ANX02"], rows: 2, max: 1000 },
+] as const;
+
 export const PERIODICITY = {
   unica: { label: "Única", short: "único" },
   mensal: { label: "Mensal (recorrente)", short: "mensal" },

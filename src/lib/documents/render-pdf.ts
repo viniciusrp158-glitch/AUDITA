@@ -136,7 +136,7 @@ export async function renderPdf(m: DocModel): Promise<Buffer> {
     pageMargins: [20 * MM, 26 * MM, 20 * MM, 20 * MM],
     info: { title: `${m.title} ${m.reference}`, author: "AUDITA", creator: "Sistema AUDITA", subject: m.templateCode },
     defaultStyle: { font: "Arial", fontSize: 9.5, lineHeight: 1.15, color: "#16202B" },
-    watermark: m.watermark ? { text: m.watermark, color: "#B42318", opacity: 0.12, bold: true, fontSize: 30, angle: -40 } : undefined,
+    watermark: m.watermark ? { text: m.watermark, color: "#B42318", opacity: 0.1, bold: true, fontSize: 22, angle: -45 } : undefined,
     header: () => ({
       margin: [20 * MM, 8 * MM, 20 * MM, 0],
       stack: [

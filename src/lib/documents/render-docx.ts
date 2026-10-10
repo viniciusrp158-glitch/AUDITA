@@ -158,7 +158,7 @@ export async function renderDocx(m: DocModel): Promise<Buffer> {
         properties: {
           page: {
             size: { width: Math.round(210 * MM), height: Math.round(297 * MM) },
-            margin: { top: Math.round(20 * MM), bottom: Math.round(20 * MM), left: Math.round(20 * MM), right: Math.round(20 * MM), header: Math.round(8 * MM), footer: Math.round(8 * MM) },
+            margin: { top: Math.round(20 * MM), bottom: Math.round(20 * MM), left: Math.round(20 * MM), right: Math.round(20 * MM), header: Math.round(10 * MM), footer: Math.round(8 * MM) },
           },
         },
         headers: {
@@ -193,7 +193,10 @@ export async function renderDocx(m: DocModel): Promise<Buffer> {
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 children: [
-                  new TextRun({ font: FONT, size: 14, color: "5B6573", children: ["Página ", PageNumber.CURRENT, " de ", PageNumber.TOTAL_PAGES] }),
+                  new TextRun({ font: FONT, size: 14, color: "5B6573", text: "Página " }),
+                  new TextRun({ font: FONT, size: 14, color: "5B6573", children: [PageNumber.CURRENT] }),
+                  new TextRun({ font: FONT, size: 14, color: "5B6573", text: " de " }),
+                  new TextRun({ font: FONT, size: 14, color: "5B6573", children: [PageNumber.TOTAL_PAGES] }),
                 ],
               }),
             ],

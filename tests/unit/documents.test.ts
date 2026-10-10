@@ -164,7 +164,7 @@ describe("documentos da proposta (M01/M02)", () => {
       "VALOR TOTAL — PARCELA ÚNICA",
       "R$ 4.237,59",
       "VALOR MENSAL (RECORRENTE)",
-      "por mês",
+      "R$ 1.576,78/mês",
       "ATENÇÃO",
       TEST_WATERMARK,
     ])

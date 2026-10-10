@@ -84,8 +84,8 @@ function itemsWithPrices(s: QuoteSnapshot) {
 
 function totalsRows(s: QuoteSnapshot, labels: { once: string; monthly: string; onlyOnce: string; onlyMonthly: string }): [string, string][] {
   const { unica, mensal } = s.results.totals;
-  if (unica && mensal) return [[labels.once, formatBRL(unica)], [labels.monthly, `${formatBRL(mensal)} por mês`]];
-  if (mensal) return [[labels.onlyMonthly, `${formatBRL(mensal)} por mês`]];
+  if (unica && mensal) return [[labels.once, formatBRL(unica)], [labels.monthly, `${formatBRL(mensal)}/mês`]];
+  if (mensal) return [[labels.onlyMonthly, `${formatBRL(mensal)}/mês`]];
   return [[labels.onlyOnce, formatBRL(unica)]];
 }
 
@@ -160,7 +160,7 @@ export function buildProposalM01(s: QuoteSnapshot, ctx: EmissionContext): DocMod
       {
         kind: "table",
         headers: ["ITEM / QUANTIDADE", "UNIDADE", "VALOR"],
-        widths: [55, 25, 20],
+        widths: [52, 24, 24],
         align: ["left", "left", "right"],
         rows,
         totals: totalsRows(s, {
@@ -195,8 +195,8 @@ export function buildProposalM01(s: QuoteSnapshot, ctx: EmissionContext): DocMod
       {
         kind: "fields",
         rows: [
-          ["Aceite do cliente", "Nome: ______________________  Cargo: ______________  Data: ___/___/______\nAssinatura ou manifestação eletrônica rastreável: ______________________"],
-          ["Referência do aceite", "( ) E-mail   ( ) Sistema   ( ) Protocolo   ( ) Assinatura   ( ) Anexo — identificação: ______________"],
+          ["Aceite do cliente", "Nome: ________________________________________\nCargo: ______________________   Data: ____/____/________\nAssinatura ou manifestação eletrônica rastreável:\n\n________________________________________"],
+          ["Referência do aceite", "( ) E-mail   ( ) Sistema   ( ) Protocolo   ( ) Assinatura   ( ) Anexo\nIdentificação: ________________________________"],
           ["Início autorizado?", "( ) Sim   ( ) Não — dependente de condições e liberação comercial"],
         ],
       },

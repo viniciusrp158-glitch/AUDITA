@@ -1,16 +1,33 @@
 import Link from "next/link";
-import { ArrowLeft, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, Download, FileText, Pencil, Plus } from "lucide-react";
 import { Alert, SubmitButton } from "@/components/form";
-import { ItemStatusPill, QuoteStatusPill } from "@/components/pricing-status";
-import { ButtonLink, Card, TestBadge } from "@/components/ui";
+import { ExpiredBadge, ItemStatusPill, QuoteStatusPill, RevisionStatusPill } from "@/components/pricing-status";
+import { ButtonLink, Card, DefinitionList, TestBadge } from "@/components/ui";
+import { revisionLabel } from "@/lib/documents/snapshot";
+import { isProduction } from "@/lib/env";
 import { requireAppUser } from "@/lib/auth";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatDay, todaySaoPaulo } from "@/lib/format";
 import { formatBRL, formatHours, formatPercent } from "@/lib/pricing/engine";
-import { PERIODICITY } from "@/lib/pricing/labels";
-import { getQuoteOr404, getVigenteParameterSet } from "@/lib/pricing/queries";
+import { CONTENT_FIELDS, DOCUMENT_MODELS, PERIODICITY } from "@/lib/pricing/labels";
+import {
+  getEmissionBlockers,
+  getQuoteOr404,
+  getReviewBlockers,
+  getVigenteParameterSet,
+  listRevisions,
+  type QuoteRevision,
+} from "@/lib/pricing/queries";
 import { calculateItem, quoteTotals } from "@/lib/pricing/quote";
-import { adoptVigenteAction, updateQuoteHeaderAction } from "../actions";
-import { QuoteHeaderForm } from "./quote-forms";
+import {
+  adoptVigenteAction,
+  decideQuoteAction,
+  emitRevisionAction,
+  reopenQuoteAction,
+  reviewQuoteAction,
+  updateQuoteHeaderAction,
+} from "../actions";
+import { AcceptForm, EmitForm, ReasonForm, ReviewForm } from "./flow-forms";
+import { QuoteContentForm } from "./quote-forms";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,17 +35,58 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `${quote.quote_code} · Orçamento` };
 }
 
+const FLOW_MSG: Record<string, string> = {
+  revisada: "Revisão concluída e congelada.",
+  emitida: "Proposta emitida: documentos DOCX e PDF gerados e arquivados.",
+  reaberta: "Cotação reaberta para nova revisão. A revisão anterior continua preservada no histórico.",
+  aceita: "Aceite registrado.",
+  recusada: "Recusa registrada.",
+  cancelada: "Cotação cancelada.",
+};
+
+function Details({ summary, children, open }: { summary: string; children: React.ReactNode; open?: boolean }) {
+  return (
+    <details className="group rounded-lg border border-line" open={open}>
+      <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold text-navy marker:hidden">
+        <span className="inline-block transition group-open:rotate-90">›</span> {summary}
+      </summary>
+      <div className="border-t border-line p-3">{children}</div>
+    </details>
+  );
+}
+
+function DocLinks({ quoteId, rev }: { quoteId: string; rev: QuoteRevision }) {
+  if (!rev.generated_documents?.length) return null;
+  return (
+    <div className="flex flex-wrap gap-2">
+      {[...rev.generated_documents]
+        .sort((a, b) => (a.kind === "pdf" ? -1 : 1) - (b.kind === "pdf" ? -1 : 1))
+        .map((d) => (
+          <a
+            key={d.id}
+            href={`/orcamentos/${quoteId}/documentos/${d.id}`}
+            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:border-navy/40"
+            title={`SHA-256 ${d.sha256}`}
+          >
+            <Download size={14} /> {d.kind.toUpperCase()}
+            <span className="font-normal text-muted">({Math.max(1, Math.round(d.size_bytes / 1024))} KB)</span>
+          </a>
+        ))}
+    </div>
+  );
+}
+
 export default async function OrcamentoPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ criada?: string; item?: string }>;
+  searchParams: Promise<{ criada?: string; item?: string; fluxo?: string }>;
 }) {
   await requireAppUser();
   const { id } = await params;
   const sp = await searchParams;
-  const [{ quote, items }, vigente] = await Promise.all([getQuoteOr404(id), getVigenteParameterSet()]);
+  const [{ quote, items }, vigente, revisions] = await Promise.all([getQuoteOr404(id), getVigenteParameterSet(), listRevisions(id)]);
   const ps = quote.pricing_parameter_sets;
   const editable = quote.status === "rascunho";
   const clientActive = quote.clients.status !== "inativo";
@@ -36,6 +94,19 @@ export default async function OrcamentoPage({
   const totals = quoteTotals(rows.map((r) => ({ periodicity: r.it.periodicity, calc: r.calc })));
   const newerVigente = vigente && vigente.id !== quote.parameter_set_id;
   const anyNotReleased = rows.some((r) => r.calc.notReleased);
+  const current = revisions.find((r) => r.id === quote.current_revision_id) ?? null;
+  const nextRevision = revisions.length ? Math.max(...revisions.map((r) => r.revision_number)) + 1 : 0;
+  const today = todaySaoPaulo();
+  const expired = current?.status === "emitida" && current.valid_until !== null && current.valid_until < today;
+
+  const [reviewBlockers, emissionBlockers] = await Promise.all([
+    editable ? getReviewBlockers(id) : Promise.resolve([]),
+    quote.status === "revisada" && current ? getEmissionBlockers(current.id) : Promise.resolve([]),
+  ]);
+  const notReady = rows.filter((r) => r.calc.status !== "PRONTO").length;
+  const reviewChecklist = [...reviewBlockers, ...(notReady ? [`${notReady} item(ns) ainda não estão PRONTO PARA ANÁLISE INTERNA.`] : [])];
+  const watermark = !isProduction || quote.is_test || Boolean(ps?.is_test);
+  const snapshotQuote = current?.snapshot.quote;
 
   return (
     <>
@@ -45,7 +116,9 @@ export default async function OrcamentoPage({
       <header className="mb-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md bg-navy px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-white">{quote.quote_code}</span>
+          {current && <span className="rounded-md border border-line px-2 py-0.5 font-mono text-xs font-semibold text-navy">{revisionLabel(current.revision_number)}</span>}
           <QuoteStatusPill status={quote.status} />
+          {expired && <ExpiredBadge />}
           {quote.is_test && <TestBadge />}
         </div>
         <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight text-ink">{quote.demands.summary}</h1>
@@ -64,7 +137,8 @@ export default async function OrcamentoPage({
         {sp.criada && <Alert kind="info">Cotação criada com o código {quote.quote_code}.</Alert>}
         {sp.item === "salvo" && <Alert kind="info">Item salvo.</Alert>}
         {sp.item === "removido" && <Alert kind="info">Item removido.</Alert>}
-        {!ps && (
+        {sp.fluxo && FLOW_MSG[sp.fluxo] && <Alert kind="info">{FLOW_MSG[sp.fluxo]}</Alert>}
+        {editable && !ps && (
           <Alert kind="warning">
             Sem versão vigente de parâmetros financeiros: os itens ficam em <strong>PENDENTE</strong> e sem preço.{" "}
             <Link href="/configuracoes/parametros" className="underline">
@@ -73,15 +147,15 @@ export default async function OrcamentoPage({
             .
           </Alert>
         )}
-        {anyNotReleased && (
+        {editable && anyNotReleased && (
           <Alert kind="warning">
-            Há itens com serviço não liberado comercialmente (AUDDOC004). Simulação interna permitida; a emissão da proposta ficará bloqueada (I6).
+            Há itens com serviço não liberado comercialmente (AUDDOC004). A revisão interna é permitida; a emissão ficará bloqueada até a liberação.
           </Alert>
         )}
         {!clientActive && <Alert kind="warning">Cliente inativo: reative o cadastro para prosseguir com a proposta.</Alert>}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-6">
           <Card
             title={`Itens (${items.length})`}
@@ -150,11 +224,83 @@ export default async function OrcamentoPage({
             )}
           </Card>
 
-          <Card title="Condições">
+          <Card title="Conteúdo da proposta">
             {editable ? (
-              <QuoteHeaderForm action={updateQuoteHeaderAction.bind(null, quote.id)} initial={quote} />
+              <QuoteContentForm action={updateQuoteHeaderAction.bind(null, quote.id)} initial={quote} />
+            ) : snapshotQuote ? (
+              <div className="space-y-3">
+                <p className="text-xs text-muted">
+                  Conteúdo congelado na {revisionLabel(current!.revision_number)} — {DOCUMENT_MODELS[snapshotQuote.model].label}.
+                </p>
+                <DefinitionList
+                  items={[
+                    { label: "Validade", value: snapshotQuote.validity_days ? `${snapshotQuote.validity_days} dias` : null },
+                    ...CONTENT_FIELDS.filter((f) => snapshotQuote[f.key]).map((f) => ({
+                      label: f.label,
+                      value: <span className="whitespace-pre-wrap">{snapshotQuote[f.key]}</span>,
+                    })),
+                  ]}
+                />
+              </div>
             ) : (
-              <p className="text-sm text-muted">Cotação fora de rascunho: condições bloqueadas.</p>
+              <p className="text-sm text-muted">Cotação fora de rascunho.</p>
+            )}
+          </Card>
+
+          <Card title={`Revisões (${revisions.length})`}>
+            {revisions.length === 0 ? (
+              <p className="text-sm text-muted">Nenhuma revisão concluída. A Rev.00 é criada ao concluir a revisão do rascunho.</p>
+            ) : (
+              <ol className="space-y-3">
+                {revisions.map((r) => (
+                  <li key={r.id} className="rounded-lg border border-line p-3" data-testid="revision">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs font-semibold text-navy">{revisionLabel(r.revision_number)}</span>
+                      <RevisionStatusPill status={r.status} />
+                      {r.document_model && <span className="text-xs text-muted">{DOCUMENT_MODELS[r.document_model].short}</span>}
+                      {r.is_test_document && <TestBadge />}
+                    </div>
+                    <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
+                      <div>
+                        <dt className="text-muted">Valor único</dt>
+                        <dd className="tabular-nums text-ink">{r.total_once ? formatBRL(r.total_once) : "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted">Valor mensal</dt>
+                        <dd className="tabular-nums text-ink">{r.total_monthly ? `${formatBRL(r.total_monthly)}/mês` : "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted">Revisada em</dt>
+                        <dd className="tabular-nums text-ink">{formatDateTime(r.reviewed_at)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted">Emitida em</dt>
+                        <dd className="tabular-nums text-ink">{r.emitted_at ? formatDateTime(r.emitted_at) : "—"}</dd>
+                      </div>
+                      {r.valid_until && (
+                        <div>
+                          <dt className="text-muted">Válida até</dt>
+                          <dd className="tabular-nums text-ink">{formatDay(r.valid_until)}</dd>
+                        </div>
+                      )}
+                      <div>
+                        <dt className="text-muted">Parâmetros</dt>
+                        <dd className="text-ink">Versão {r.snapshot.parameters.version}</dd>
+                      </div>
+                    </dl>
+                    {r.reason && <p className="mt-2 text-xs text-ink">Motivo da revisão: {r.reason}</p>}
+                    {r.status === "aceita" && (
+                      <p className="mt-2 text-xs text-ok">
+                        Aceita em {formatDay(r.accepted_on)} por {r.accepted_by_name} — {r.decision_reference}
+                      </p>
+                    )}
+                    {r.decision_note && r.status !== "aceita" && <p className="mt-2 text-xs text-muted">Registro: {r.decision_note}</p>}
+                    <div className="mt-2">
+                      <DocLinks quoteId={quote.id} rev={r} />
+                    </div>
+                  </li>
+                ))}
+              </ol>
             )}
           </Card>
         </div>
@@ -177,9 +323,170 @@ export default async function OrcamentoPage({
               })}
               {totals.unica.count + totals.mensal.count === 0 && <p className="text-muted">Sem itens calculáveis.</p>}
               <p className="text-xs text-muted">
-                {totals.ready} de {items.length} ite{items.length === 1 ? "m" : "ns"} pronto{totals.ready === 1 ? "" : "s"} para análise interna. O
-                total só aparece quando todos os itens da periodicidade estão prontos.
+                {totals.ready} de {items.length} ite{items.length === 1 ? "m" : "ns"} pronto{totals.ready === 1 ? "" : "s"} para análise interna. Total =
+                soma dos preços dos itens (em centavos), por periodicidade.
               </p>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-line bg-white" aria-label="Fluxo da proposta" data-testid="flow">
+            <div className="flex items-center gap-2 border-b border-line px-4 py-2.5 text-sm font-semibold text-ink">
+              <FileText size={16} className="text-green-dark" /> Revisão e emissão
+            </div>
+            <div className="space-y-3 p-4">
+              {quote.status === "rascunho" && (
+                <>
+                  {reviewChecklist.length > 0 ? (
+                    <div className="space-y-2" data-testid="review-blockers">
+                      <p className="text-sm font-semibold text-ink">Pendências para concluir a {revisionLabel(nextRevision)}:</p>
+                      <ul className="list-disc space-y-1 pl-4 text-xs text-warn">
+                        {reviewChecklist.map((b) => (
+                          <li key={b}>{b}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <ReviewForm
+                      action={reviewQuoteAction.bind(null, quote.id)}
+                      revisionLabel={revisionLabel(nextRevision)}
+                      needsReason={nextRevision > 0}
+                    />
+                  )}
+                  <Details summary="Cancelar cotação">
+                    <ReasonForm
+                      action={decideQuoteAction.bind(null, quote.id, "cancelada")}
+                      field="decision_note"
+                      label="Motivo do cancelamento"
+                      button="Cancelar cotação"
+                      pending="Cancelando…"
+                      variant="danger"
+                    />
+                  </Details>
+                </>
+              )}
+
+              {quote.status === "revisada" && current && (
+                <>
+                  <p className="text-sm text-ink">
+                    {revisionLabel(current.revision_number)} concluída em {formatDateTime(current.reviewed_at)} (conteúdo congelado).
+                  </p>
+                  {emissionBlockers.length > 0 ? (
+                    <div className="space-y-2" data-testid="emission-blockers">
+                      <Alert kind="error">
+                        Emissão bloqueada (AUDDOC017 RF-17):
+                        <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                          {emissionBlockers.map((b) => (
+                            <li key={b}>{b}</li>
+                          ))}
+                        </ul>
+                      </Alert>
+                    </div>
+                  ) : (
+                    <EmitForm
+                      action={emitRevisionAction.bind(null, quote.id)}
+                      watermark={watermark}
+                      modelLabel={DOCUMENT_MODELS[current.snapshot.quote.model].short}
+                    />
+                  )}
+                  <Details summary="Reabrir para edição" open={emissionBlockers.length > 0}>
+                    <ReasonForm
+                      action={reopenQuoteAction.bind(null, quote.id)}
+                      field="reason"
+                      label="Motivo da reabertura"
+                      button="Reabrir para edição"
+                      pending="Reabrindo…"
+                      hint="A revisão atual fica preservada como “Substituída”."
+                    />
+                  </Details>
+                  <Details summary="Cancelar cotação">
+                    <ReasonForm
+                      action={decideQuoteAction.bind(null, quote.id, "cancelada")}
+                      field="decision_note"
+                      label="Motivo do cancelamento"
+                      button="Cancelar cotação"
+                      pending="Cancelando…"
+                      variant="danger"
+                    />
+                  </Details>
+                </>
+              )}
+
+              {quote.status === "emitida" && current && (
+                <>
+                  <p className="text-sm text-ink">
+                    {revisionLabel(current.revision_number)} emitida em {formatDateTime(current.emitted_at!)} · válida até{" "}
+                    <strong className={expired ? "text-warn" : ""}>{formatDay(current.valid_until)}</strong>.
+                  </p>
+                  <DocLinks quoteId={quote.id} rev={current} />
+                  <Details summary="Registrar aceite do cliente" open>
+                    <AcceptForm action={decideQuoteAction.bind(null, quote.id, "aceita")} minDate={current.emitted_at!.slice(0, 10)} />
+                  </Details>
+                  <Details summary="Registrar recusa">
+                    <ReasonForm
+                      action={decideQuoteAction.bind(null, quote.id, "recusada")}
+                      field="decision_note"
+                      withReference
+                      label="Motivo da recusa"
+                      button="Registrar recusa"
+                      pending="Registrando…"
+                    />
+                  </Details>
+                  <Details summary="Nova revisão (alterar a proposta)">
+                    <ReasonForm
+                      action={reopenQuoteAction.bind(null, quote.id)}
+                      field="reason"
+                      label="Motivo da nova revisão"
+                      button="Abrir nova revisão"
+                      pending="Reabrindo…"
+                      hint="A proposta emitida fica preservada como “Substituída”, com seus documentos."
+                    />
+                  </Details>
+                  <Details summary="Cancelar cotação">
+                    <ReasonForm
+                      action={decideQuoteAction.bind(null, quote.id, "cancelada")}
+                      field="decision_note"
+                      label="Motivo do cancelamento"
+                      button="Cancelar cotação"
+                      pending="Cancelando…"
+                      variant="danger"
+                    />
+                  </Details>
+                </>
+              )}
+
+              {(quote.status === "aceita" || quote.status === "recusada") && current && (
+                <>
+                  <p className="text-sm text-ink">
+                    {quote.status === "aceita"
+                      ? `Aceita em ${formatDay(current.accepted_on)} por ${current.accepted_by_name} (${current.decision_reference}).`
+                      : `Recusada: ${current.decision_note}`}
+                  </p>
+                  <DocLinks quoteId={quote.id} rev={current} />
+                  <Details summary={quote.status === "aceita" ? "Nova revisão (alteração de escopo aceito)" : "Nova revisão (renegociar)"}>
+                    <ReasonForm
+                      action={reopenQuoteAction.bind(null, quote.id)}
+                      field="reason"
+                      label="Motivo da nova revisão"
+                      button="Abrir nova revisão"
+                      pending="Reabrindo…"
+                    />
+                  </Details>
+                  {quote.status === "recusada" && (
+                    <Details summary="Cancelar cotação">
+                      <ReasonForm
+                        action={decideQuoteAction.bind(null, quote.id, "cancelada")}
+                        field="decision_note"
+                        label="Motivo do cancelamento"
+                        button="Cancelar cotação"
+                        pending="Cancelando…"
+                        variant="danger"
+                      />
+                    </Details>
+                  )}
+                </>
+              )}
+
+              {quote.status === "cancelada" && <p className="text-sm text-muted">Cotação cancelada. O histórico e os documentos emitidos continuam disponíveis.</p>}
             </div>
           </section>
 
@@ -205,6 +512,7 @@ export default async function OrcamentoPage({
                 </SubmitButton>
               </form>
             )}
+            {!editable && <p className="mt-2 text-xs text-muted">Revisões guardam a cópia dos parâmetros usados; mudanças futuras não as alteram (CA-08).</p>}
           </Card>
         </aside>
       </div>

@@ -2,7 +2,8 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { normalizeSearch } from "@/lib/clients/queries";
 import { createClient } from "@/lib/supabase/server";
-import type { ParamStatus, Periodicity, QuoteStatus } from "./labels";
+import type { QuoteSnapshot } from "@/lib/documents/snapshot";
+import type { ParamStatus, Periodicity, QuoteStatus, RevisionStatus } from "./labels";
 import type { ParameterValues, ServiceInfo } from "./quote";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -85,10 +86,26 @@ export type Quote = {
   is_test: boolean;
   created_at: string;
   updated_at: string;
+  current_revision_id: string | null;
+  document_model: "ANX01" | "ANX02";
+  objective: string | null;
+  scope_included: string | null;
+  scope_excluded: string | null;
+  location_modality: string | null;
+  schedule: string | null;
+  methodology: string | null;
+  deliverables: string | null;
+  completion_criteria: string | null;
+  additional_expenses: string | null;
+  cancellation_terms: string | null;
+  next_step: string | null;
   demands: { id: string; demand_code: string; summary: string; status: string; service_id: string | null };
   clients: { id: string; client_code: string; legal_name: string; trade_name: string | null; status: string };
   pricing_parameter_sets: ParameterSet | null;
 };
+
+export const CONTENT_COLS =
+  "document_model, objective, scope_included, scope_excluded, location_modality, schedule, methodology, deliverables, completion_criteria, additional_expenses, cancellation_terms, next_step";
 
 const ITEM_COLS =
   "id, position, service_id, description, periodicity, quantity_ref, hours_preparation, hours_execution, hours_delivery, hours_followup, hours_travel, cost_travel, cost_materials, cost_external, cost_other, contingency, margin, discount, discount_reason, scope_notes, services(service_code, name, pricing_model, commercial_status, catalog_status)";
@@ -101,9 +118,10 @@ export async function getQuoteOr404(id: string): Promise<{ quote: Quote; items: 
       .from("quotes")
       .select(
         `id, quote_code, demand_id, client_id, parameter_set_id, status, validity_days, payment_terms, notes, is_test, created_at, updated_at,
+         current_revision_id, ${CONTENT_COLS},
          demands(id, demand_code, summary, status, service_id),
          clients(id, client_code, legal_name, trade_name, status),
-         pricing_parameter_sets(${PARAM_COLS})`,
+         pricing_parameter_sets!quotes_parameter_set_id_fkey(${PARAM_COLS})`,
       )
       .eq("id", id)
       .maybeSingle(),
@@ -184,4 +202,71 @@ export async function getServiceOptions(): Promise<ServiceOption[]> {
     commercial_status: s.commercial_status,
     catalog_status: s.catalog_status,
   }));
+}
+
+export type GeneratedDocument = {
+  id: string;
+  kind: "docx" | "pdf";
+  file_name: string;
+  size_bytes: number;
+  sha256: string;
+  watermark: boolean;
+  created_at: string;
+};
+
+export type QuoteRevision = {
+  id: string;
+  revision_number: number;
+  status: RevisionStatus;
+  snapshot: QuoteSnapshot;
+  total_once: string | null;
+  total_monthly: string | null;
+  reason: string | null;
+  reviewed_at: string;
+  document_model: "ANX01" | "ANX02" | null;
+  is_test_document: boolean | null;
+  emitted_at: string | null;
+  valid_until: string | null;
+  decided_at: string | null;
+  accepted_on: string | null;
+  accepted_by_name: string | null;
+  decision_reference: string | null;
+  decision_note: string | null;
+  superseded_at: string | null;
+  generated_documents: GeneratedDocument[];
+};
+
+export async function listRevisions(quoteId: string): Promise<QuoteRevision[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("quote_revisions")
+    .select(
+      "id, revision_number, status, snapshot, total_once, total_monthly, reason, reviewed_at, document_model, is_test_document, emitted_at, valid_until, decided_at, accepted_on, accepted_by_name, decision_reference, decision_note, superseded_at, generated_documents(id, kind, file_name, size_bytes, sha256, watermark, created_at)",
+    )
+    .eq("quote_id", quoteId)
+    .order("revision_number", { ascending: false });
+  return (data ?? []) as unknown as QuoteRevision[];
+}
+
+export async function getReviewBlockers(quoteId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("quote_review_blockers", { p_quote_id: quoteId });
+  return (data as string[] | null) ?? [];
+}
+
+export async function getEmissionBlockers(revisionId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("revision_emission_blockers", { p_revision_id: revisionId });
+  return (data as string[] | null) ?? [];
+}
+
+export async function getVigenteTemplate(code: "AUDDOC010-ANX01" | "AUDDOC010-ANX02") {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("document_templates")
+    .select("id, template_code, model_code, document_revision, technical_version")
+    .eq("template_code", code)
+    .eq("status", "vigente")
+    .maybeSingle();
+  return data as { id: string; template_code: string; model_code: string; document_revision: string; technical_version: string } | null;
 }
