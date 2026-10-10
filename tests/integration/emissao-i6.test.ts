@@ -329,6 +329,7 @@ describe.skipIf(!ready)("I6 — revisões, emissão e decisão", () => {
     expect(r1.revision_number).toBe(1);
     expect(r1.parameter_set_id).toBe(newParams);
     expect(Number(r1.total_once)).toBeGreaterThan(Number(before.total_once));
+    await publishParams(); // volta aos parâmetros de teste padrão para os próximos testes
   });
 
   it("decisão: aceite exige data válida, quem aceitou e referência; demanda passa a 'Aceita'", async () => {
