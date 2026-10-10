@@ -190,6 +190,49 @@ test("RF-17: serviço não liberado — revisão permitida, emissão bloqueada c
   await expect(page.getByText("Cotação cancelada.").first()).toBeVisible();
 });
 
+test("ajustes do Diretor: item mensal com desconto autorizado e tempo de contrato até a emissão", async ({ page }) => {
+  test.setTimeout(120_000);
+  const tag = uniqueSuffix();
+  await login(page);
+  await prepareQuote(page, tag, "SST-001");
+
+  // Item mensal com 5% de desconto: REVER MARGEM até autorizar
+  await page.getByTestId("quote-item").first().getByRole("link", { name: "Editar item" }).click();
+  await page.getByLabel("Periodicidade").selectOption("mensal");
+  await page.getByLabel("Execução", { exact: true }).fill("19");
+  await page.getByLabel("Demais custos diretos", { exact: true }).fill("250");
+  await page.getByLabel("Desconto aplicado").fill("5");
+  await page.getByLabel("Justificativa do desconto").fill("[Teste] Contrato de 12 meses");
+  await expect(page.getByTestId("item-status")).toContainText("REVER MARGEM");
+  await expect(page.getByTestId("discount-authorization")).toBeVisible();
+  await page.getByLabel(/Autorizo este desconto/).check();
+  await expect(page.getByTestId("item-status")).toContainText("Desconto autorizado");
+  await expect(page.getByTestId("item-final-price")).toHaveText("R$ 4.025,71");
+  await page.getByRole("button", { name: "Salvar item" }).click();
+  await expect(page.getByText("Item salvo.")).toBeVisible();
+  await expect(page.getByTestId("quote-item").first()).toContainText("Desconto autorizado");
+
+  // Contrato exigido por haver item mensal
+  await expect(page.getByTestId("review-blockers")).toContainText("Tempo de contrato");
+  await page.getByLabel("Validade (dias)").fill("15");
+  for (const [label, value] of CONTENT) await page.getByLabel(startsWith(label)).fill(value);
+  await page.getByLabel(startsWith("Início previsto do contrato")).fill("2026-11-01");
+  await page.getByLabel(startsWith("Tempo de contrato (meses)")).fill("12");
+  await page.getByRole("button", { name: "Salvar conteúdo" }).click();
+  await expect(page.getByText("Conteúdo da proposta salvo.")).toBeVisible();
+  await expect(page.getByTestId("review-blockers")).toBeHidden();
+
+  await page.getByRole("button", { name: "Concluir revisão Rev.00" }).click();
+  await expect(page.getByText("Revisão concluída e congelada.")).toBeVisible();
+  await expect(page.getByText(/12 meses — de 01\/11\/2026 a 31\/10\/2027/)).toBeVisible();
+  await page.getByRole("button", { name: "Emitir proposta" }).click();
+  await expect(page.getByText("Proposta emitida: documentos DOCX e PDF gerados e arquivados.")).toBeVisible({ timeout: 30_000 });
+  const href = await page.getByTestId("flow").getByRole("link", { name: /PDF/ }).getAttribute("href");
+  const pdf = await page.request.get(href!);
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
+  await page.screenshot({ path: `${SHOTS}/65-mensal-desconto-contrato.png`, fullPage: true });
+});
+
 test("orçamento emitido no celular: fluxo, revisões e downloads sem rolagem horizontal", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
   const page = await ctx.newPage();
