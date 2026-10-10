@@ -325,6 +325,8 @@ Ponto que dependerá de decisão do Diretor antes da implementação (AUDDOC017 
 
 Como o I9.1 vem depois da homologação, ele terá sua própria regressão completa antes de ser considerado concluído.
 
+**Decisão do Diretor (10/10/2026):** por enquanto, manter **apenas o usuário mestre** (o Diretor). No I9.1, o usuário mestre — e somente ele — poderá criar contas de **qualquer nível** previsto no AUDDOC017 §10 (Administrador, Operador administrativo, Marketing). As permissões de cada nível serão confirmadas pelo Diretor na matriz do documento de pendências (seção do Diretor) e aplicadas no banco (RLS), não só na tela.
+
 ## I9 — Homologação do MVP (em validação)
 
 **Objetivo:** comprovar, com testes executados e evidências, que o MVP atende aos critérios de aceite CA-01 a CA-12 e aos fluxos do AUDDOC017 §13, antes de qualquer decisão sobre produção.

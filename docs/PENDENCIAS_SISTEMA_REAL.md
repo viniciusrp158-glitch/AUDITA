@@ -2,6 +2,7 @@
 
 > Pedido do Diretor (10/10/2026): ao final da versão de teste, entregar a lista completa, **em ordem de execução** e **associada ao AUDDOC** correspondente, com tudo o que precisa ser definido/preenchido para o sistema rodar de verdade.
 > Versão final emitida em 10/10/2026, após a homologação do MVP (ver `HOMOLOGACAO_MVP.md`). Novas pendências entram por revisão deste arquivo.
+> **Caderno de respostas:** `docs/Caderno_Pendencias_Sistema_AUDITA_v1.0.docx` — as mesmas pendências organizadas por responsável (contabilidade, jurídico, Diretor, implantação), com campos para preencher e o AUDDOC de cada item.
 > **Quem**: D = Diretor; C = contador; J = assessoria jurídica; S = desenvolvimento do sistema.
 > **Bloqueia o uso real?** Sim = sem isso o sistema não deve operar com clientes reais; Não = pode vir depois.
 
@@ -32,7 +33,7 @@
 | # | Pendência | AUDDOC | Quem | Onde entra no sistema | Bloqueia? |
 |---|---|---|---|---|---|
 | 13 | **Tela de dados institucionais** (razão social, CNPJ, endereço, contatos da AUDITA) usada nas propostas — recebe os dados do item 1 | AUDDOC013; AUDDOC010 M01 | S | Configurações → Dados institucionais | Sim |
-| 14 | **I9.1 — Minha conta, usuários e tema claro/escuro** (pedido do Diretor em 10/10/2026). Antes, **decidir os perfis**: o AUDDOC017 prevê um único administrador no MVP e perfis futuros (Operador administrativo, Marketing) com restrições no banco | AUDDOC017 §1 e §10 | D, S | Menu do usuário; Minha conta; Novo usuário (só o usuário mestre) | Não |
+| 14 | **I9.1 — Minha conta, usuários e tema claro/escuro** (pedido do Diretor em 10/10/2026). Decidido: por ora só o usuário mestre; o mestre poderá criar contas de **qualquer nível** (Administrador, Operador administrativo, Marketing). Falta o Diretor **confirmar a matriz de permissões** de cada nível, que será aplicada no banco (RLS) | AUDDOC017 §1 e §10 | D, S | Menu do usuário; Minha conta; Novo usuário (só o usuário mestre) | Não |
 | 15 | **Provedor de e-mail** com domínio próprio (recuperação de senha, avisos de novas solicitações de cadastro) | AUDDOC017 §10 | D, S | Autenticação e autocadastro | Sim |
 | 16 | Aviso de sucesso que permanece na tela após ações seguintes (achado H-02 da homologação) | AUDDOC017 §15 | S | Telas de demanda/cliente | Não |
 
@@ -47,6 +48,7 @@
 | 21 | **Backup em produção**: rotina do plano contratado no Supabase (cópias diárias/recuperação) e **novo ensaio de restauração** com o roteiro `backup-restauracao.mjs` **antes** de cadastrar dados reais | AUDDOC017 §10 | D, S | Infraestrutura | Sim |
 | 22 | **Regressão completa no ambiente de produção** (sem dados de teste persistentes) e conferência das telas no celular | AUDDOC017 §15 | S | — | Sim |
 | 23 | Limpeza controlada de arquivos sem registro deixados por emissões recusadas (achado H-03); em produção, monitorar | AUDDOC017 §10 | S | Storage | Não |
+| 27 | **Prazos de retenção e descarte** por categoria de registro (o sistema hoje não exclui nada — inativação lógica); descarte/anonimização só com decisão registrada | AUDDOC013 §9 e §14; AUDDOC015-ANX01 R028/R039 | J, D | Regra de retenção e rotina aprovada | Sim (piloto) |
 
 ## Etapa E — Próximas versões (fora do MVP)
 

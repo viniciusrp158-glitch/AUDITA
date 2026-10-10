@@ -1,0 +1,1795 @@
+{
+"Orientações": [
+[
+1,
+{
+"A": "AUDDOC004  |  MATRIZ DE SERVIÇOS E RESPONSABILIDADE TÉCNICA"
+}
+],
+[
+4,
+{
+"A": "AUDDOC004 | Rev.00 — MATRIZ INTERNA VIGENTE (08/10/2026) • Nenhum serviço liberado para comercialização."
+}
+],
+[
+6,
+{
+"A": "Objetivo",
+"B": "Classificar e validar serviços segundo atribuições, requisitos normativos, competência demonstrada e recursos disponíveis.",
+"D": "INDICADORES DA TRIAGEM"
+}
+],
+[
+7,
+{
+"A": "A — Prestação direta",
+"B": "Somente após comprovação documental e aprovação interna específica por serviço.",
+"D": "Serviços mapeados",
+"E": "=COUNTA('Matriz de Serviços'!A5:A37)"
+}
+],
+[
+8,
+{
+"A": "B — Em verificação",
+"B": "Serviço potencial, ainda sujeito a análise; não anunciar como liberado.",
+"D": "Em verificação",
+"E": "=COUNTIF('Matriz de Serviços'!D5:D37,\"B — Em verificação\")"
+}
+],
+[
+9,
+{
+"A": "C — Expansão futura",
+"B": "Serviço que depende de parceiros, credenciais ou estrutura ainda não disponíveis.",
+"D": "Expansão futura",
+"E": "=COUNTIF('Matriz de Serviços'!D5:D37,\"C — Expansão futura\")"
+}
+],
+[
+10,
+{
+"A": "Situação comercial",
+"B": "Usar 'Não liberado' até análise completa e confirmação formal de disponibilidade.",
+"D": "Prestação direta liberada",
+"E": "=COUNTIF('Matriz de Serviços'!M5:M37,\"Liberado\")"
+}
+],
+[
+11,
+{
+"A": "Levantamento",
+"B": "Preencher Habilitações; acrescentar evidências, certificados e recursos exigidos."
+}
+],
+[
+12,
+{
+"A": "Normas",
+"B": "Confirmar textos vigentes antes do lançamento, especialmente NR por treinamento, NR-4/SESMT e requisitos estaduais de incêndio."
+}
+],
+[
+13,
+{
+"A": "Rastreabilidade",
+"B": "Atribuir códigos únicos aos serviços e guardar decisão, data, fundamento e responsável."
+}
+],
+[
+14,
+{
+"A": "Fonte da verdade",
+"B": "Essa matriz é instrumento de planejamento e não substitui avaliação jurídica, técnica ou do conselho/órgão competente."
+}
+]
+],
+"Matriz de Serviços": [
+[
+1,
+{
+"A": "AUDDOC004  |  MATRIZ OPERACIONAL DE SERVIÇOS"
+}
+],
+[
+3,
+{
+"A": "AUDDOC004 — Rev.00 | Matriz interna vigente. Classificações são preliminares e NENHUM serviço está autorizado comercialmente. Liberação ocorre por serviço após comprovação e registro."
+}
+],
+[
+4,
+{
+"A": "Código",
+"B": "Serviço",
+"C": "Família",
+"D": "Classe preliminar",
+"E": "Prioridade",
+"F": "Delimitação/alerta",
+"G": "O que comprovar",
+"H": "Referência",
+"I": "URL oficial",
+"J": "Documentos recebidos?",
+"K": "Responsável técnico confirmado?",
+"L": "Recursos confirmados?",
+"M": "Situação comercial",
+"N": "Observações da AUDITA"
+}
+],
+[
+5,
+{
+"A": "SST-001",
+"B": "Consultoria recorrente de SST para pequenas empresas",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Visitas, orientação, registros e acompanhamento; não substitui automaticamente SESMT dimensionado",
+"G": "Registro TST, escopo contratual, regime de prestação e NR-4",
+"H": "Portaria MTE 3.275/1989; NR-4",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+6,
+{
+"A": "SST-002",
+"B": "Inspeções periódicas de SST",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Inspeção, apontamentos e relatório; não equivale a laudo privativo",
+"G": "Registro TST, checklist, competência e metodologia",
+"H": "Portaria MTE 3.275/1989",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+7,
+{
+"A": "SST-003",
+"B": "DDS, campanhas e conscientização de SST",
+"C": "Treinamento",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Palestras e orientações; não substituir treinamentos obrigatórios quando exigidos",
+"G": "Registro TST, experiência temática e material adequado",
+"H": "Portaria MTE 3.275/1989",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+8,
+{
+"A": "SST-004",
+"B": "Apoio ao controle e entrega de EPIs",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Gestão e registros de entrega, conservação e substituição; decisões conforme riscos",
+"G": "NR-6, métodos de registro e instruções do fabricante",
+"H": "NR-6",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+9,
+{
+"A": "SST-005",
+"B": "Ordens de serviço e procedimentos operacionais de SST",
+"C": "Documentos",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Redação e acompanhamento de OS/procedimentos; excluir projetos/laudos especializados",
+"G": "Registro TST, escopo, riscos dos processos e validação do empregador",
+"H": "NR-1; Portaria MTE 3.275/1989",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-1",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+10,
+{
+"A": "SST-006",
+"B": "Organização administrativa das rotinas da CIPA",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Agenda, atas, ações e acompanhamento; competências da comissão preservadas",
+"G": "NR-5, processo eleitoral e treinamento conforme caso",
+"H": "NR-5",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+11,
+{
+"A": "SST-007",
+"B": "Apoio à organização da brigada de emergência",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Controle de reuniões, documentos e exercícios; não emitir certificação de instrutor sem requisitos",
+"G": "IT do Corpo de Bombeiros/SP, características da edificação e requisitos locais",
+"H": "NR-23 e instruções técnicas estaduais",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+12,
+{
+"A": "SST-008",
+"B": "Apoio ao acompanhamento de planos de emergência",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Organização, registros e simulados; projetos/assinaturas exigidos em casos específicos",
+"G": "Norma local, escopo e profissional exigido por tipo de instalação",
+"H": "NR-23 e legislação estadual/local",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+13,
+{
+"A": "SST-009",
+"B": "Relatório técnico de inspeções e registro fotográfico",
+"C": "Documentos",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Relatório de constatações, sem se apresentar como laudo de engenharia",
+"G": "Registro TST, metodologia e limitações da avaliação",
+"H": "Portaria MTE 3.275/1989",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+14,
+{
+"A": "SST-010",
+"B": "Acompanhamento de indicadores e planos de ação",
+"C": "Consultoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Consolidação e monitoramento dos controles e decisões da empresa",
+"G": "Método, acesso autorizado a dados, LGPD",
+"H": "NR-1; Portaria MTE 3.275/1989",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-1",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+15,
+{
+"A": "DOC-001",
+"B": "Apoio à estruturação e manutenção do PGR/GRO",
+"C": "Documentos",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Inventário + plano de ação; responsabilidade da organização e exigências específicas",
+"G": "Registro TST, definição de escopo, recursos e necessidades de avaliações especializadas",
+"H": "NR-1/GRO/PGR",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/pgr/principal",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+16,
+{
+"A": "DOC-002",
+"B": "APR — Análise Preliminar de Riscos",
+"C": "Documentos",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Documento de análise de tarefa/atividade; responsabilidade específica quando exigida",
+"G": "Metodologia, riscos, atividades e requisitos da tarefa",
+"H": "NR-1 + requisitos setoriais",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-1",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+17,
+{
+"A": "DOC-003",
+"B": "Avaliação ergonômica preliminar — triagem",
+"C": "Documentos",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Distinguir levantamento preliminar de AET aprofundada",
+"G": "Competência em ergonomia, escopo, método, requisitos NR-17",
+"H": "NR-17",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-17-atualizada-2023.pdf",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+18,
+{
+"A": "TRN-001",
+"B": "Integração e orientações introdutórias de SST",
+"C": "Treinamento",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Treinamento de integração; comprovar conteúdos e requisitos do contexto",
+"G": "Qualificação instrutor, plano de aula, carga horária, modalidade",
+"H": "NR-1 e NR da atividade",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-1",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+19,
+{
+"A": "TRN-002",
+"B": "Orientação e treinamento sobre uso de EPI (NR-6)",
+"C": "Treinamento",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Conteúdo, público e duração compatíveis com riscos/EPIs; sem promessa genérica de certificado NR",
+"G": "Qualificação do instrutor, conteúdo, registros e instruções do fabricante",
+"H": "NR-6; NR-1",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+20,
+{
+"A": "TRN-003",
+"B": "Treinamento de CIPA (NR-5)",
+"C": "Treinamento",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Verificar conteúdo, modalidade e requisitos da empresa",
+"G": "NR-5, material, qualificação e carga horária aplicável",
+"H": "NR-5; NR-1",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+21,
+{
+"A": "TRN-004",
+"B": "Treinamentos de brigada e combate a incêndios",
+"C": "Treinamento",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Verificar regras estaduais, credenciamento e treinamento prático",
+"G": "Requisitos CB/SP, instalações, instrutores e recursos práticos",
+"H": "NR-23; IT estaduais",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+22,
+{
+"A": "TRN-005",
+"B": "Treinamentos por NR — portfólio específico de 12 ofertas (aba Treinamentos por NR)",
+"C": "Treinamento",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Criar uma ficha separada para cada NR e tópico",
+"G": "Verificar requisitos por treinamento; 12 linhas específicas, com NR-11 empilhadeira e ponte rolante; NR-20 Básico; NR-17 unificado; NR-26 em dois temas.",
+"H": "NR-1 Anexo II + NR específica",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/NR01atualizada2024I.pdf",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "INTERESSE CONFIRMADO nas 12 ofertas; proficiência do instrutor declarada pelo responsável, comprovação/recursos e liberação por curso pendentes."
+}
+],
+[
+23,
+{
+"A": "AUD-001",
+"B": "Auditoria interna de SST / conformidade de NR",
+"C": "Auditoria",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Auditoria independente do processo auditado; não é certificação acreditada",
+"G": "Competência no critério, checklists, independência e escopo",
+"H": "NRs aplicáveis; Portaria MTE 3.275/1989",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO | Certificado Bureau Veritas 24 h de interpretação e implementação ISO 9001/14001/45001 recebido; certificado de auditoria interna pendente."
+}
+],
+[
+24,
+{
+"A": "AUD-002",
+"B": "Auditoria interna de SGI (ISO 9001/14001/45001)",
+"C": "Auditoria",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Verificar competência técnica, critérios e independência da auditoria",
+"G": "Comprovação de curso de auditoria interna e experiência; certificado de interpretação/implementação das 3 ISO apresentado; competência e independência verificadas por escopo.",
+"H": "Normas de SGI + competência do auditor",
+"I": "https://www.gov.br/inmetro/pt-br/assuntos/acreditacao-reconhecimento-bpl/cgcre/acreditacao",
+"J": "Parcial",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO | Certificado Bureau Veritas 24 h de interpretação e implementação ISO 9001/14001/45001 recebido; certificado de auditoria interna pendente."
+}
+],
+[
+25,
+{
+"A": "AUD-003",
+"B": "Auditorias de fornecedores (segunda parte)",
+"C": "Auditoria",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Serviço a terceiros; não declarar certificação de terceira parte",
+"G": "Contrato, escopo, competência e imparcialidade adequada",
+"H": "Critérios contratuais / sistema de gestão",
+"I": "https://www.gov.br/inmetro/pt-br/assuntos/acreditacao-reconhecimento-bpl/cgcre/acreditacao",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO | Certificado Bureau Veritas 24 h de interpretação e implementação ISO 9001/14001/45001 recebido; certificado de auditoria interna pendente."
+}
+],
+[
+26,
+{
+"A": "AUD-004",
+"B": "Diagnóstico preparatório para certificação SGI",
+"C": "Auditoria",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Diagnóstico/consultoria, não certificação acreditada",
+"G": "Competência e normas aplicáveis; delimitar linguagem comercial",
+"H": "Normas de SGI aplicáveis",
+"I": "https://www.gov.br/inmetro/pt-br/assuntos/acreditacao-reconhecimento-bpl/cgcre/acreditacao",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO | Certificado Bureau Veritas 24 h de interpretação e implementação ISO 9001/14001/45001 recebido; certificado de auditoria interna pendente."
+}
+],
+[
+27,
+{
+"A": "AMB-001",
+"B": "Controle documental ambiental e gestão de vencimentos",
+"C": "Meio Ambiente",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Gestão administrativa; análises/assinaturas especializadas quando cabíveis",
+"G": "Escopo, autorizações, legislação e competências",
+"H": "Portaria MTE 3.275/1989 + legislação ambiental aplicável",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+28,
+{
+"A": "AMB-002",
+"B": "Apoio a registros de resíduos e rotinas ambientais",
+"C": "Meio Ambiente",
+"D": "B — Em verificação",
+"E": "Média",
+"F": "Apoio administrativo/operacional, sem substituir responsável técnico especializado",
+"G": "Regras estaduais, tipos de resíduos e atribuições profissionais",
+"H": "Legislação federal/estadual conforme serviço",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+29,
+{
+"A": "SIS-001",
+"B": "Assinatura do Audita HUB",
+"C": "Software",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Licenciamento da plataforma; não equivale a prestação de responsabilidade técnica",
+"G": "Produto homologado, LGPD, suporte, termos e contratos",
+"H": "Requisitos contratuais, LGPD e escopo técnico",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/pgr/principal",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+30,
+{
+"A": "SIS-002",
+"B": "Audita PRO — uso na prestação de serviços",
+"C": "Software",
+"D": "B — Em verificação",
+"E": "Alta",
+"F": "Plataforma de operação; certificação não é presumida pelo sistema",
+"G": "Produto homologado, RLS, segurança, rastreabilidade e contratos",
+"H": "Controle documental e requisitos de auditoria",
+"I": "https://www.gov.br/inmetro/pt-br/assuntos/acreditacao-reconhecimento-bpl/cgcre/acreditacao",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+31,
+{
+"A": "ESP-001",
+"B": "LTCAT — emissão do laudo",
+"C": "Laudo especializado",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Exigência legal de médico do trabalho ou engenheiro de segurança do trabalho",
+"G": "Parceiro legalmente habilitado; assinatura/responsabilidade técnica",
+"H": "Lei 8.213/1991, art. 58",
+"I": "https://www.planalto.gov.br/ccivil_03/leis/l8213compilado.htm",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+32,
+{
+"A": "ESP-002",
+"B": "Laudo de insalubridade",
+"C": "Laudo especializado",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Exige profissional competente segundo legislação",
+"G": "Médico/engenheiro habilitado conforme enquadramento e documentação",
+"H": "CLT art. 195; NR-15",
+"I": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+33,
+{
+"A": "ESP-003",
+"B": "Laudo de periculosidade",
+"C": "Laudo especializado",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Exige profissional competente segundo legislação",
+"G": "Médico/engenheiro habilitado conforme enquadramento e documentação",
+"H": "CLT art. 195; NR-16",
+"I": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+34,
+{
+"A": "ESP-004",
+"B": "PCMSO e avaliações médicas ocupacionais",
+"C": "Saúde ocupacional",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Requer médico responsável nos termos aplicáveis",
+"G": "Parceria médica; procedimentos e responsabilidade próprios",
+"H": "NR-7",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+35,
+{
+"A": "ESP-005",
+"B": "AET aprofundada e laudos ergonômicos especializados",
+"C": "Laudo especializado",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Diferenciar da triagem; requer expertise suficiente e escopo técnico próprio",
+"G": "Profissional competente, método e meios técnicos",
+"H": "NR-17",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-17-atualizada-2023.pdf",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+36,
+{
+"A": "ESP-006",
+"B": "Laudos e projetos de engenharia (ex.: máquinas/NR-12)",
+"C": "Laudo especializado",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Projeto/laudo técnico de engenharia ou ART quando cabível",
+"G": "Engenheiro habilitado, CREA/ART e recursos",
+"H": "NR-12 + atribuições de engenharia",
+"I": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+],
+[
+37,
+{
+"A": "ESP-007",
+"B": "Certificação acreditada de sistemas de gestão (terceira parte)",
+"C": "Certificação",
+"D": "C — Expansão futura",
+"E": "Futura",
+"F": "Estrutura organizacional, competência, imparcialidade e acreditação próprias",
+"G": "Requisitos organismo certificador, ABNT NBR ISO/IEC 17021-1 e Cgcre",
+"H": "Inmetro Cgcre; ISO/IEC 17021-1",
+"I": "https://www.gov.br/inmetro/pt-br/assuntos/acreditacao-reconhecimento-bpl/cgcre/acreditacao",
+"J": "Não",
+"K": "Não",
+"L": "Não",
+"M": "Não liberado",
+"N": "PRETENDO OFERECER ESTE SERVIÇO"
+}
+]
+],
+"Habilitações": [
+[
+1,
+{
+"A": "AUDDOC004  |  EVIDÊNCIAS E REQUISITOS PARA LIBERAÇÃO"
+}
+],
+[
+4,
+{
+"A": "Documento / condição",
+"B": "Detalhamento",
+"C": "Status",
+"D": "O que enviar",
+"E": "Data de conferência",
+"F": "Observações"
+}
+],
+[
+5,
+{
+"A": "Registro profissional TST",
+"B": "Número/órgão/validade",
+"C": "Em análise",
+"D": "Informe o número e comprovação do registro profissional",
+"E": "08/10/2026",
+"F": "Cartão profissional apresentado e lido; comprova registro na data de emissão (2023). Confirmar situação cadastral atual antes da liberação. Evitar divulgar dados pessoais do cartão."
+}
+],
+[
+6,
+{
+"A": "Diploma/Certificado técnico",
+"B": "Instituição/curso/conclusão",
+"C": "Comprovado",
+"D": "Anexe o documento correspondente",
+"E": "08/10/2026",
+"F": "Diploma SENAI/SC (Técnico em Segurança do Trabalho, conclusão 2022; 1.200 h) apresentado e analisado."
+}
+],
+[
+7,
+{
+"A": "Capacitações e cursos de instrutor",
+"B": "NR, instituição, datas e cargas horárias",
+"C": "Em análise",
+"D": "Relacionar cada NR/treinamento separadamente",
+"F": "Proficiência para todos os cursos declarada pelo responsável (08/10/2026). Experiência como instrutor informada; fotos disponíveis e podem compor histórico quando autorizadas. Não foram enviados certificados de instrutor específicos, planos de aula ou avaliações próprias. Comprovação exigida conforme cada NR."
+}
+],
+[
+8,
+{
+"A": "Capacitações em auditorias ISO/SGI",
+"B": "Norma, certificado e experiência",
+"C": "Parcial",
+"D": "Discriminar auditor interno e treinamentos concluídos",
+"E": "08/10/2026",
+"F": "Certificado Bureau Veritas analisado: “Sistema de Gestão Integrada | ISO 9001, ISO 14001 e ISO 45001 | Interpretação e Implementação”, 24 horas, 31/03 a 07/04/2026, online ao vivo. NÃO comprova formação como auditor interno/líder. Curso de auditoria interna concluído segundo declaração, mas certificado ainda não enviado."
+}
+],
+[
+9,
+{
+"A": "Equipamentos e recursos disponíveis",
+"B": "Instrumentos / aferições / calibrações",
+"C": "Em análise",
+"D": "Detalhar medidores e condições de manutenção",
+"F": "Previsão de aluguel de dosímetro, decibelímetro, medidor de vibração e IBUTG conforme demanda. Confirmar calibração, competência, custos e disponibilidade em cada serviço."
+}
+],
+[
+10,
+{
+"A": "Estrutura prática de treinamento",
+"B": "Sala, materiais, equipamentos, prática",
+"C": "Em análise",
+"D": "Informar infraestrutura própria e contratável",
+"F": "Treinamentos presenciais no cliente ou on-line; sem infraestrutura própria de prática. Confirmar locais, equipamentos, simulações e modalidade permitida antes da oferta."
+}
+],
+[
+11,
+{
+"A": "Experiência por tipo de serviço",
+"B": "Setor e atividades comprovadas",
+"C": "Em análise",
+"D": "Descrever atividades já executadas e evidências",
+"F": "Atuação como instrutor declarada com registros fotográficos disponíveis. Utilizar somente fotografias autorizadas/anonimizadas para evidenciar experiência. Produzir materiais, planos de aula, atividades práticas e avaliações próprios da AUDITA, sem reprodução indevida de material de antigos empregadores."
+}
+],
+[
+12,
+{
+"A": "Disponibilidade operacional",
+"B": "Visitas, horários, regiões, capacidade mensal",
+"C": "Em análise",
+"D": "Descrever a capacidade real da operação inicial",
+"F": "Disponibilidade integral declarada. Confirmar capacidade real, logística, agenda e limite de serviços simultâneos no lançamento."
+}
+],
+[
+13,
+{
+"A": "Cadastro e formalização da empresa",
+"B": "CNPJ, atividades, emissão fiscal e contratos",
+"C": "Pendente",
+"D": "Definir antes do início comercial",
+"F": "Sem CNPJ, contrato social, enquadramento tributário, inscrição municipal ou emissão fiscal. NÃO BLOQUEIA preparação da matriz, MAS bloqueia o lançamento formal da AUDITA como PJ até regularização."
+}
+],
+[
+14,
+{
+"A": "Termos e documentos de proteção de dados",
+"B": "Contratos, LGPD, confidencialidade",
+"C": "Pendente",
+"D": "Definir antes de clientes e SaaS",
+"F": "Termos, contratos, política de privacidade, LGPD, confidencialidade e retenção: ainda não definidos. Requisitos a concluir antes de atender clientes e operar as plataformas."
+}
+]
+],
+"Fontes Oficiais": [
+[
+1,
+{
+"A": "FONTES NORMATIVAS PARA CONFERÊNCIA"
+}
+],
+[
+4,
+{
+"A": "Referência",
+"B": "URL oficial"
+}
+],
+[
+5,
+{
+"A": "Portaria MTE 3.275/1989 — atividades do TST",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/1989/portaria_3-275_atividades_do_tec-_seg.pdf/%40%40download/file"
+}
+],
+[
+6,
+{
+"A": "Decreto 92.530/1986 — profissão de TST",
+"B": "https://www.planalto.gov.br/ccivil_03/decreto/1980-1989/1985-1987/d92530.htm"
+}
+],
+[
+7,
+{
+"A": "NR-1 — GRO, PGR e capacitação",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-1"
+}
+],
+[
+8,
+{
+"A": "MTE — página oficial PGR",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/pgr/principal"
+}
+],
+[
+9,
+{
+"A": "Lista oficial de NRs",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs"
+}
+],
+[
+10,
+{
+"A": "NR-4 — SESMT",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-4-nr-4"
+}
+],
+[
+11,
+{
+"A": "NR-17 — Ergonomia",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-17-atualizada-2023.pdf"
+}
+],
+[
+12,
+{
+"A": "Lei 8.213/1991, art. 58 — LTCAT",
+"B": "https://www.planalto.gov.br/ccivil_03/leis/l8213compilado.htm"
+}
+],
+[
+13,
+{
+"A": "CLT, art. 195 — Insalubridade e periculosidade",
+"B": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm"
+}
+],
+[
+14,
+{
+"A": "Inmetro Cgcre — Acreditação certificação de gestão",
+"B": "https://www.gov.br/inmetro/pt-br/assuntos/acreditacao-reconhecimento-bpl/cgcre/acreditacao"
+}
+],
+[
+17,
+{
+"A": "Evidência interna — Certificado SGI Bureau Veritas (anexado pelo responsável)",
+"B": "Documento interno apresentado: ISO 9001/14001/45001 Interpretação e Implementação, 24h, mar-abr/2026; não divulgar dados do certificado."
+}
+],
+[
+18,
+{
+"A": "NR-35 — Orientação oficial MTE 2026",
+"B": "https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2026/setembro/trabalho-em-altura-veja-o-que-muda-nos-treinamentos-e-nas-escadas-fixas-verticais"
+}
+]
+],
+"Treinamentos por NR": [
+[
+1,
+{
+"A": "AUDDOC004  |  CAPACITAÇÕES E ORIENTAÇÕES POR NORMA"
+}
+],
+[
+3,
+{
+"A": "AUDDOC004 — Rev.00 | 12 ofertas planejadas; NR-17 unificada, NR-11 por equipamento, NR-20 Curso Básico; proficiência DECLARADA, comprovação e requisitos de cada curso ainda pendentes."
+}
+],
+[
+4,
+{
+"A": "Código preliminar",
+"B": "Norma",
+"C": "Treinamento / Escopo proposto",
+"D": "Agrupamento",
+"E": "Interesse declarado",
+"F": "Situação preliminar",
+"G": "Possibilidade de atuação do TST",
+"H": "Exigência / limite a conferir",
+"I": "Modalidade / prática",
+"J": "Documentação ou evidência pendente",
+"K": "Responsável técnico / ART",
+"L": "Referência oficial",
+"M": "URL",
+"N": "Observações de validação"
+}
+],
+[
+5,
+{
+"A": "TRN-NR01",
+"B": "NR-01",
+"C": "Integração de SST e orientação sobre riscos específicos do cliente",
+"D": "Integração e orientação",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Compatibilidade inicial com atribuições TST; escopo deve ser delimitado",
+"H": "Não vender certificado 'NR-01' genérico como substituto de capacitação de NR específica",
+"I": "In loco ou EAD apenas se permitido para conteúdos aplicáveis",
+"J": "Proficiência como instrutor declarada; organizar comprovação, programa, objetivos, avaliação e recursos exigidos.",
+"K": "Verificar NR-01/caso; ART não presumida",
+"L": "NR-01",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"N": "Classificar como integração/orientação, não curso universal obrigatório | Declaração de proficiência registrada; documentação própria ainda será produzida."
+}
+],
+[
+6,
+{
+"A": "TRN-NR06",
+"B": "NR-06",
+"C": "Uso, ajuste, guarda e conservação de EPIs",
+"D": "EPI",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Compatibilidade inicial com atuação em SST; demonstrar domínio do EPI específico",
+"H": "Instruções do fabricante, CA, riscos, atividades e treinamento específico quando requerido",
+"I": "Priorizar presencial quando houver demonstração prática",
+"J": "Proficiência como instrutor declarada; organizar comprovação, programa, objetivos, avaliação e recursos exigidos.",
+"K": "Verificar requisitos; ART não presumida",
+"L": "NR-06; NR-01",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"N": "Escopo por tipos de EPI | Declaração de proficiência registrada; documentação própria ainda será produzida."
+}
+],
+[
+7,
+{
+"A": "TRN-NR05",
+"B": "NR-05",
+"C": "Capacitação de CIPA e representante nomeado",
+"D": "CIPA",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Potencialmente compatível, desde que requisitos normativos cumpridos",
+"H": "Conteúdo, carga horária, grau de risco, prevenção de assédio e particularidades",
+"I": "Presencial/EAD/híbrido conforme NR-01, NR-05 e projeto pedagógico",
+"J": "Proficiência como instrutor declarada; organizar comprovação, programa, objetivos, avaliação e recursos exigidos.",
+"K": "Verificar responsável técnico conforme NR-01; ART não presumida",
+"L": "NR-05; NR-01",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-5-nr-5",
+"N": "Confirmar enquadramento do estabelecimento | Declaração de proficiência registrada; documentação própria ainda será produzida."
+}
+],
+[
+8,
+{
+"A": "TRN-NR11-E",
+"B": "NR-11",
+"C": "NR-11 — Operação segura de empilhadeira",
+"D": "Operação de empilhadeira",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Proficiência como instrutor DECLARADA; demonstrar experiência específica com empilhadeira",
+"H": "Capacitação específica, operador, tipo/modelo, fabricante e riscos locais; confirmar requisitos NR-11 e outras NRs aplicáveis",
+"I": "Preferencialmente presencial, com uso seguro de empilhadeira, prática e avaliação no equipamento correspondente",
+"J": "Evidências de experiência e proficiência no equipamento + plano, avaliação prática e disponibilização de empilhadeira e área segura",
+"K": "ART não presumida; conferir obrigações do cliente, do equipamento e eventual responsável",
+"L": "NR-11",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-11-nr-11",
+"N": "Desdobramento solicitado; não equiparar conhecimento geral de SST à habilidade operacional. Experiência/proficiência declaradas, comprovação a organizar."
+}
+],
+[
+9,
+{
+"A": "TRN-NR11-P",
+"B": "NR-11",
+"C": "NR-11 — Operação segura de ponte rolante",
+"D": "Operação de ponte rolante",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Proficiência como instrutor DECLARADA; demonstrar experiência específica com ponte rolante",
+"H": "Capacitação específica, tipos de carga, sinalização, içamento, acessórios e riscos locais; confirmar requisitos aplicáveis",
+"I": "Presencial com atividades e avaliação práticas no equipamento/instalação compatíveis",
+"J": "Experiência e proficiência no equipamento + recursos de prática e avaliação no local",
+"K": "ART não presumida; conferir obrigações do cliente, do equipamento e eventual responsável",
+"L": "NR-11",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-11-nr-11",
+"N": "Curso distinto do treinamento de empilhadeira; verificar interface com demais NRs e procedimentos do empregador."
+}
+],
+[
+10,
+{
+"A": "TRN-NR17",
+"B": "NR-17",
+"C": "NR-17 — Ergonomia e prevenção de riscos ergonômicos",
+"D": "Orientações e capacitação por processo/função",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Orientação preventiva inicial compatível; conteúdo especializado depende de competência",
+"H": "Exigências de anexos e atividades; não se confunde com laudo AET",
+"I": "Presencial ou EAD quando pertinente e permitido",
+"J": "Programa por atividade, materiais, experiência",
+"K": "Verificar NR/caso; ART não presumida",
+"L": "NR-17",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-17-nr-17",
+"N": "ÚNICO curso de NR-17 na matriz, conforme solicitação; não implica emissão de AET/laudo especializado."
+}
+],
+[
+11,
+{
+"A": "TRN-NR20",
+"B": "NR-20",
+"C": "NR-20 — Curso Básico: segurança com inflamáveis e combustíveis",
+"D": "Curso Básico — atividade e classe da instalação",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Instrutor com proficiência DECLARADA; NR-20 exige proficiência e responsável pela organização técnica, um dos instrutores",
+"H": "Verificar enquadramento de instalação e função na Tabela 1 do Anexo I e respectiva carga horária; não é curso genérico para todos produtos químicos",
+"I": "Parte teórica e prática sobre sistemas de segurança contra incêndio com inflamáveis existentes na instalação; EAD só para parte autorizada",
+"J": "Proficiência declarada (evidências a organizar), programa e carga horária conforme enquadramento, estrutura prática e responsável pela organização técnica",
+"K": "Para Curso Básico, responsável pela organização técnica deve ser um dos instrutores; ART não é exigência genérica do curso.",
+"L": "NR-20 20.12.3/20.12.3.1/20.12.10/20.12.11; Anexo I",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/arquivos/normas-regulamentadoras/nr-20-atualizada-2022-1.pdf/%40%40download/file",
+"N": "Oferta limitada ao Curso Básico. A marcação “produtos químicos” exige verificar se há inflamáveis/combustíveis na NR-20. NR-26/FDS é uma oferta distinta."
+}
+],
+[
+12,
+{
+"A": "TRN-NR26A",
+"B": "NR-26",
+"C": "Sinalização de segurança",
+"D": "Sinalização",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Orientações preventivas potencialmente compatíveis",
+"H": "Determinar se capacitação específica é requerida ou é orientação de apoio",
+"I": "Presencial ou EAD quando adequado",
+"J": "Proficiência como instrutor declarada; organizar comprovação, programa, objetivos, avaliação e recursos exigidos.",
+"K": "Verificar caso; ART não presumida",
+"L": "NR-26",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"N": "Não declarar certificado obrigatório genérico | Declaração de proficiência registrada; documentação própria ainda será produzida."
+}
+],
+[
+13,
+{
+"A": "TRN-NR26B",
+"B": "NR-26",
+"C": "Produtos químicos: rotulagem preventiva e FDS",
+"D": "Produtos químicos",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Orientação preventiva potencialmente compatível, com proficiência química específica",
+"H": "Reconhecimento de perigos, FDS vigente, GHS e riscos reais",
+"I": "Preferir in loco com exemplos dos produtos do cliente",
+"J": "Proficiência como instrutor declarada; organizar comprovação, programa, objetivos, avaliação e recursos exigidos.",
+"K": "Verificar caso; ART não presumida",
+"L": "NR-26",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"N": "Possível ofertar separadamente do TRN-NR26A | Declaração de proficiência registrada; documentação própria ainda será produzida."
+}
+],
+[
+14,
+{
+"A": "TRN-NR23",
+"B": "NR-23",
+"C": "Orientações de prevenção de incêndios e evacuação",
+"D": "Prevenção de incêndios",
+"E": "Sim",
+"F": "B — Em verificação",
+"G": "Orientações teóricas possíveis com competência; não equivalem a curso de brigadista",
+"H": "Requisitos de SP para brigada e orientações legais conforme edificação",
+"I": "Presencial recomendável para rotas e exercícios",
+"J": "Proficiência como instrutor declarada; organizar comprovação, programa, objetivos, avaliação e recursos exigidos.",
+"K": "Brigada formal exige checagem estadual; ART não presumida",
+"L": "NR-23; CBPMESP",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/ctpp-nrs/normas-regulamentadoras-nrs",
+"N": "Separar orientação NR-23 de formação de brigadista | Declaração de proficiência registrada; documentação própria ainda será produzida."
+}
+],
+[
+15,
+{
+"A": "TRN-NR33",
+"B": "NR-33",
+"C": "Segurança e saúde em espaços confinados — por público e função",
+"D": "Espaço confinado",
+"E": "Sim",
+"F": "B — Condicionado (RT, estrutura e prática)",
+"G": "Proficiência como instrutor DECLARADA; exige designação por responsável técnico",
+"H": "RT formal, programa específico, treinamento presencial, avaliação teórica/prática, emergência",
+"I": "Presencial obrigatória para capacitações referidas na NR-33",
+"J": "Comprovação de proficiência + designação por RT + estrutura para avaliação prática + equipamentos e procedimentos",
+"K": "Exige RT de espaços confinados; não equiparar TST ao RT sem avaliação",
+"L": "NR-33, 33.5.2–33.5.4",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-33-nr-33",
+"N": "Proficiência declarada não substitui RT, instrutor designado nem os requisitos operacionais e presenciais da capacitação."
+}
+],
+[
+16,
+{
+"A": "TRN-NR35",
+"B": "NR-35",
+"C": "Trabalho em altura — capacitação inicial, periódica ou eventual",
+"D": "Trabalho em altura",
+"E": "Sim",
+"F": "B — Condicionado (presencial e estrutura)",
+"G": "Proficiência como instrutor DECLARADA; deverá ser sustentada por experiência/evidências",
+"H": "Verificar se TST pode assumir responsabilidade no escopo concreto, infraestrutura, emergências e avaliação",
+"I": "Presencial obrigatória após atualização de 2026",
+"J": "Proficiência, estrutura presencial, prática e simulado compatível, controle de resgate/segurança e registros",
+"K": "A ART não é requisito universal do curso; análise contextual",
+"L": "NR-35, Portaria MTE 1.259/2026",
+"M": "https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2026/setembro/trabalho-em-altura-veja-o-que-muda-nos-treinamentos-e-nas-escadas-fixas-verticais",
+"N": "NR-35 presencial conforme mudança 2026; ART não presumida. Declaração de proficiência registrada, com documentação adicional pendente."
+}
+]
+],
+"Pendências e Liberação": [
+[
+1,
+{
+"A": "AUDDOC004  |  PLANO DE REGULARIZAÇÃO E LIBERAÇÃO"
+}
+],
+[
+3,
+{
+"A": "AUDDOC004 — Rev.00 | Pendências operacionais mantidas. Aprovação documental da matriz NÃO equivale a liberação comercial de serviços."
+}
+],
+[
+4,
+{
+"A": "Ordem",
+"B": "Etapa / exigência",
+"C": "Prioridade",
+"D": "Situação",
+"E": "Evidência exigida",
+"F": "Dependência",
+"G": "Resultado esperado",
+"H": "Prazo de referência",
+"I": "Notas"
+}
+],
+[
+5,
+{
+"A": "1",
+"B": "Verificação atual do registro profissional TST",
+"C": "Alta",
+"D": "Pendente",
+"E": "Consulta/atualização junto ao órgão competente",
+"F": "Titular",
+"G": "Situação profissional conferida",
+"H": "Antes da venda",
+"I": "Cartão de 2023 apresentado; verificar situação cadastral atual."
+}
+],
+[
+6,
+{
+"A": "2",
+"B": "Guardar diploma e comprovação profissional no arquivo interno",
+"C": "Alta",
+"D": "Parcial",
+"E": "Diploma e cartão anexados; controle de acesso",
+"F": "AUDITA",
+"G": "Pasta segura de habilitações",
+"H": "Nesta etapa",
+"I": "Evitar exposição de CPF e número em portfólio público."
+}
+],
+[
+7,
+{
+"A": "3",
+"B": "Comprovar proficiência em treinamentos de NR-01,05,06,17,23,26",
+"C": "Alta",
+"D": "Em análise",
+"E": "Proficiência declarada; apresentar histórico de turmas, certificados pertinentes, programas próprios e qualificação por assunto; fotos autorizadas quando adequadas.",
+"F": "Instrutor",
+"G": "Cursos com ficha própria e escopo definido",
+"H": "Antes do lançamento",
+"I": "Todas as NRs listadas possuem proficiência DECLARADA. Registro como TST não é autorização automática para todos os treinamentos."
+}
+],
+[
+8,
+{
+"A": "4",
+"B": "Estruturar dois treinamentos de NR-11: empilhadeira e ponte rolante",
+"C": "Alta",
+"D": "Pendente",
+"E": "Proficiência por equipamento declarada; descrever experiência, conteúdo por máquina, infraestrutura, prática e avaliação.",
+"F": "Infraestrutura do cliente",
+"G": "Curso por equipamento validado",
+"H": "Antes de ofertar NR-11",
+"I": "Duas ofertas independentes: TRN-NR11-E e TRN-NR11-P. Não substituir curso por orientação geral."
+}
+],
+[
+9,
+{
+"A": "5",
+"B": "Delimitar NR-20 exclusivamente ao Curso Básico",
+"C": "Alta",
+"D": "Pendente",
+"E": "Enquadramento do trabalhador e classe da instalação, conteúdo teórico/prático, proficiência e responsável pela organização técnica.",
+"F": "Profissional habilitado para cursos avançados",
+"G": "Níveis com liberação independente",
+"H": "Antes de ofertar NR-20",
+"I": "Curso Básico não é treinamento genérico para todo produto químico. Cursos avançados não fazem parte da oferta inicial."
+}
+],
+[
+10,
+{
+"A": "6",
+"B": "Formalizar supervisão e estrutura prática para NR-33",
+"C": "Alta",
+"D": "Em análise",
+"E": "Responsável técnico, instrutores, equipamentos e treinamento presencial",
+"F": "RT + infraestrutura",
+"G": "Curso completo apto ou mantido bloqueado",
+"H": "Antes de ofertar NR-33",
+"I": "Proficiência declarada; ainda falta responsável técnico, designação, estrutura presencial/prática e condições exigidas pela NR-33."
+}
+],
+[
+11,
+{
+"A": "7",
+"B": "Comprovar proficiência e recursos presenciais para NR-35",
+"C": "Alta",
+"D": "Em análise",
+"E": "Experiência, instrutor, prática, plano de resgate e avaliação",
+"F": "Infraestrutura",
+"G": "Curso inicial/periódico/eventual apto ou bloqueado",
+"H": "Antes de ofertar NR-35",
+"I": "Proficiência declarada; falta organizar as evidências, prática e infraestrutura presencial; mudança NR-35 de 2026."
+}
+],
+[
+12,
+{
+"A": "8",
+"B": "Separar orientações NR-23 de formação de brigada",
+"C": "Alta",
+"D": "Pendente",
+"E": "IT/CBPMESP, instrutor e recursos de prática, quando cabíveis",
+"F": "Legislação SP",
+"G": "Duas ofertas com escopo correto",
+"H": "Antes da divulgação",
+"I": "Orientações não equivalem ao curso de brigadistas."
+}
+],
+[
+13,
+{
+"A": "9",
+"B": "Conferir credenciais de auditor interno ISO e experiência",
+"C": "Média",
+"D": "Parcial",
+"E": "Certificado Bureau Veritas de interpretação e implementação das ISO 9001/14001/45001 (24 h) apresentado; certificado de curso de auditor interno e histórico de auditorias pendentes.",
+"F": "Titular",
+"G": "Auditorias classificadas por competência",
+"H": "Antes de ofertar auditorias",
+"I": "Não confundir interpretação de normas com formação formal em auditoria; não anunciar auditoria certificadora."
+}
+],
+[
+14,
+{
+"A": "10",
+"B": "Validar modelo de serviços de PGR e avaliações especializadas",
+"C": "Alta",
+"D": "Pendente",
+"E": "Procedimentos, escopo, métodos, limites e parceiros quando necessários",
+"F": "NR-1; riscos existentes",
+"G": "Oferta delimitada e segura",
+"H": "Antes da comercialização",
+"I": "Responsabilidade da organização e necessidade de especialistas."
+}
+],
+[
+15,
+{
+"A": "11",
+"B": "Confirmar modalidade, projeto pedagógico e certificação EAD",
+"C": "Alta",
+"D": "Em desenvolvimento",
+"E": "Requisitos por NR, projeto pedagógico, avaliação e certificado",
+"F": "Audita PRO",
+"G": "EAD somente onde permitido e implementado",
+"H": "Antes de lançar cursos online",
+"I": "Cursos presenciais/online pretendidos; produzir projeto pedagógico e avaliar restrições específicas. NR-35 presencial; NR-33 requer presencialidade."
+}
+],
+[
+16,
+{
+"A": "12",
+"B": "Cadastrar empresa e definir atividade econômica/tributação",
+"C": "Alta",
+"D": "Não iniciado",
+"E": "Viabilidade, razão social, CNPJ, CNAE, inscrições e NFS-e",
+"F": "Contador/órgãos de registro",
+"G": "Habilitar contratação e faturamento PJ",
+"H": "Antes de faturar/atender como AUDITA PJ",
+"I": "CNPJ não impede o planejamento atual, mas será necessário regularizar a operação PJ antes de comercializar/faturar serviços."
+}
+],
+[
+17,
+{
+"A": "13",
+"B": "Definir contratos e limites de responsabilidade",
+"C": "Alta",
+"D": "Não iniciado",
+"E": "Proposta, contrato, escopo, termos de uso, privacidade e LGPD",
+"F": "Jurídico/contábil quando aplicável",
+"G": "Documentos comerciais regulares",
+"H": "Antes de clientes reais",
+"I": "SaaS requer termos específicos e privacidade."
+}
+],
+[
+18,
+{
+"A": "14",
+"B": "Formalizar recursos e terceirização de equipamentos",
+"C": "Média",
+"D": "Pendente",
+"E": "Fornecedores, certificados de calibração, treinamentos e transporte",
+"F": "Fornecedores",
+"G": "Disponibilidade técnica comprovada",
+"H": "Antes dos serviços que usam medidores",
+"I": "Aluguel por demanda aceito no planejamento."
+}
+],
+[
+19,
+{
+"A": "15",
+"B": "Validar situação fiscal, marca e assinatura de relatórios",
+"C": "Alta",
+"D": "Pendente",
+"E": "Requisitos municipais, registro e contrato",
+"F": "Constituição empresa",
+"G": "Liberação comercial formal",
+"H": "Pré-lançamento",
+"I": "ART não é requisito genérico para qualquer curso."
+}
+],
+[
+20,
+{
+"A": "16",
+"B": "Revisar requisitos legais em cada emissão/atualização de curso",
+"C": "Contínuo",
+"D": "Pendente",
+"E": "Checklist por NR e legislação local",
+"F": "AUDITA",
+"G": "Conteúdos sempre atualizados",
+"H": "Contínuo",
+"I": "Especial atenção a revisões de 2026."
+}
+]
+],
+"Controle de Revisões": [
+[
+1,
+{
+"A": "AUDDOC004  |  CONTROLE INTERNO DO DOCUMENTO"
+}
+],
+[
+4,
+{
+"A": "Documento",
+"B": "AUDDOC004 — Matriz de Serviços e Responsabilidade Técnica"
+}
+],
+[
+5,
+{
+"A": "Situação documental",
+"B": "VIGENTE — documento interno (serviços não liberados)"
+}
+],
+[
+6,
+{
+"A": "Revisão atual",
+"B": "Rev.00"
+}
+],
+[
+7,
+{
+"A": "Data de aprovação e emissão",
+"B": "08/10/2026"
+}
+],
+[
+8,
+{
+"A": "Aprovado por",
+"B": "Vinicius Rocha Pereira — Diretor"
+}
+],
+[
+9,
+{
+"A": "Evidência da aprovação",
+"B": "Aprovação expressa em conversa, 08/10/2026; não constitui assinatura eletrônica."
+}
+],
+[
+10,
+{
+"A": "Versão",
+"B": "Data",
+"C": "Descrição da alteração",
+"D": "Status"
+}
+],
+[
+11,
+{
+"A": "v0.1",
+"B": "—",
+"C": "Triagem inicial com 33 serviços; lista-base para levantamento",
+"D": "Histórico preservado"
+}
+],
+[
+12,
+{
+"A": "v0.2",
+"B": "08/10/2026",
+"C": "Análise da planilha preenchida, do registro e diploma; 12 linhas de treinamento; plano de pendências e controles de liberação.",
+"D": "Histórico preservado"
+}
+],
+[
+13,
+{
+"A": "v0.3",
+"B": "08/10/2026",
+"C": "Certificado SGI Bureau Veritas verificado; proficiência declarada; NR-17 unificada; NR-11 dividida por equipamento; NR-20 Curso Básico; novos controles didáticos.",
+"D": "Histórico preservado"
+}
+],
+[
+14,
+{
+"A": "Rev.00"
+}
+],
+[
+16,
+{
+"A": "ORIENTAÇÃO DE CONFIDENCIALIDADE"
+}
+],
+[
+17,
+{
+"A": "Documento interno; documentos profissionais e dados pessoais não devem ser expostos no catálogo comercial nem divulgados sem finalidade e autorização aplicáveis."
+}
+]
+],
+"Materiais dos Cursos": [
+[
+1,
+{
+"A": "AUDDOC004 | PLANO DE MATERIAIS DIDÁTICOS AUDITA"
+}
+],
+[
+3,
+{
+"A": "AUDDOC004 — Rev.00 | Planejamento de materiais; cada curso terá escopo, modalidade, avaliações e requisitos comprovados antes de comercialização."
+}
+],
+[
+4,
+{
+"A": "Código",
+"B": "Curso",
+"C": "Plano de aula",
+"D": "Apresentação",
+"E": "Material do aluno",
+"F": "Avaliação",
+"G": "Prática/estrutura",
+"H": "Certificado",
+"I": "Projeto EAD (se aplicável)",
+"J": "Status de liberação"
+}
+],
+[
+5,
+{
+"A": "TRN-NR01",
+"B": "Integração de SST e orientação sobre riscos específicos do cliente",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+6,
+{
+"A": "TRN-NR06",
+"B": "Uso, ajuste, guarda e conservação de EPIs",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+7,
+{
+"A": "TRN-NR05",
+"B": "Capacitação de CIPA e representante nomeado",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+8,
+{
+"A": "TRN-NR11-E",
+"B": "NR-11 — Operação segura de empilhadeira",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "EAD só para parte eventualmente permitida; prática presencial",
+"J": "Não liberado"
+}
+],
+[
+9,
+{
+"A": "TRN-NR11-P",
+"B": "NR-11 — Operação segura de ponte rolante",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "EAD só para parte eventualmente permitida; prática presencial",
+"J": "Não liberado"
+}
+],
+[
+10,
+{
+"A": "TRN-NR17",
+"B": "NR-17 — Ergonomia e prevenção de riscos ergonômicos",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+11,
+{
+"A": "TRN-NR20",
+"B": "NR-20 — Curso Básico: segurança com inflamáveis e combustíveis",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Verificar NR-1/NR-20; parte prática conforme NR",
+"J": "Não liberado"
+}
+],
+[
+12,
+{
+"A": "TRN-NR26A",
+"B": "Sinalização de segurança",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+13,
+{
+"A": "TRN-NR26B",
+"B": "Produtos químicos: rotulagem preventiva e FDS",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+14,
+{
+"A": "TRN-NR23",
+"B": "Orientações de prevenção de incêndios e evacuação",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Avaliar pertinência e requisitos NR-1",
+"J": "Não liberado"
+}
+],
+[
+15,
+{
+"A": "TRN-NR33",
+"B": "Segurança e saúde em espaços confinados — por público e função",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Não presumir EAD; observar exigência presencial",
+"J": "Não liberado"
+}
+],
+[
+16,
+{
+"A": "TRN-NR35",
+"B": "Trabalho em altura — capacitação inicial, periódica ou eventual",
+"C": "A elaborar",
+"D": "A elaborar",
+"E": "A elaborar",
+"F": "A elaborar",
+"G": "A verificar",
+"H": "A elaborar",
+"I": "Não presumir EAD; observar exigência presencial",
+"J": "Não liberado"
+}
+]
+]
+}
