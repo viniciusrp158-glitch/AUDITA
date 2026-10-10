@@ -203,7 +203,6 @@ create policy audit_log_operador_select on audita.audit_log for select to authen
     'clients', 'client_units', 'client_contacts', 'client_invites', 'client_registration_requests',
     'demands', 'demand_events', 'quotes', 'quote_items', 'quote_revisions', 'generated_documents']));
 
-
 -- ---------------------------------------------------------------------------------------------------------------
 -- 5) Biblioteca: operador e marketing consultam e baixam revisões publicadas (vigente ou substituída)
 -- ---------------------------------------------------------------------------------------------------------------
