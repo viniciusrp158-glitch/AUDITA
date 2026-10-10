@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import {
   clientSchema,
   contactSchema,
@@ -43,7 +44,7 @@ function assertId(id: string) {
 // ---------------------------------------------------------------------------
 
 export async function createClientAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const values = formToObject(formData);
   const parsed = clientSchema.safeParse(values);
   if (!parsed.success) return { values, fieldErrors: fieldErrors(parsed.error), error: "Revise os campos destacados." };
@@ -76,7 +77,7 @@ export async function createClientAction(_prev: ActionState, formData: FormData)
 }
 
 export async function updateClientAction(id: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   assertId(id);
   const values = formToObject(formData);
   const parsed = clientSchema.safeParse(values);
@@ -92,7 +93,7 @@ export async function updateClientAction(id: string, _prev: ActionState, formDat
 }
 
 export async function setClientStatusAction(id: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   assertId(id);
   const target = formData.get("target");
   const supabase = await createClient();
@@ -126,7 +127,7 @@ export async function saveUnitAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   assertId(clientId);
   if (unitId) assertId(unitId);
   const values = formToObject(formData);
@@ -144,7 +145,7 @@ export async function saveUnitAction(
 }
 
 export async function setUnitStatusAction(clientId: string, unitId: string, target: "ativo" | "inativo") {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   assertId(clientId);
   assertId(unitId);
   const supabase = await createClient();
@@ -162,7 +163,7 @@ export async function saveContactAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   assertId(clientId);
   if (contactId) assertId(contactId);
   const values = formToObject(formData);
@@ -188,7 +189,7 @@ export async function saveContactAction(
 }
 
 export async function setContactStatusAction(clientId: string, contactId: string, target: "ativo" | "inativo") {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   assertId(clientId);
   assertId(contactId);
   const supabase = await createClient();

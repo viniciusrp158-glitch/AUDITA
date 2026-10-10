@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { fieldErrors, formToObject } from "@/lib/clients/schema";
 import { demandSchema, eventSchema, statusChangeSchema } from "@/lib/demands/schema";
 import { isProduction } from "@/lib/env";
@@ -35,7 +36,7 @@ function dbMessage(error: { code?: string; message?: string } | null): string {
 
 /** Unidades e contatos ativos do cliente selecionado (para o formulário). */
 export async function loadClientLinksAction(clientId: string): Promise<ClientLinks> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(clientId)) return { units: [], contacts: [] };
   const supabase = await createClient();
   const [units, contacts] = await Promise.all([
@@ -58,7 +59,7 @@ export async function loadClientLinksAction(clientId: string): Promise<ClientLin
 }
 
 export async function createDemandAction(_prev: DemandActionState, formData: FormData): Promise<DemandActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const values = formToObject(formData);
   const parsed = demandSchema.safeParse(values);
   if (!parsed.success) return { values, fieldErrors: fieldErrors(parsed.error), error: "Revise os campos destacados." };
@@ -77,7 +78,7 @@ export async function createDemandAction(_prev: DemandActionState, formData: For
 }
 
 export async function updateDemandAction(id: string, _prev: DemandActionState, formData: FormData): Promise<DemandActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(id)) return { error: "Demanda inválida." };
   const values = formToObject(formData);
   const parsed = demandSchema.safeParse(values);
@@ -93,7 +94,7 @@ export async function updateDemandAction(id: string, _prev: DemandActionState, f
 }
 
 export async function changeStatusAction(id: string, _prev: DemandActionState, formData: FormData): Promise<DemandActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(id)) return { error: "Demanda inválida." };
   const values = formToObject(formData);
   const parsed = statusChangeSchema.safeParse(values);
@@ -119,7 +120,7 @@ export async function changeStatusAction(id: string, _prev: DemandActionState, f
 }
 
 export async function addEventAction(id: string, _prev: DemandActionState, formData: FormData): Promise<DemandActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(id)) return { error: "Demanda inválida." };
   const values = formToObject(formData);
   const parsed = eventSchema.safeParse(values);

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { clientSchema, fieldErrors, formToObject, inactivationSchema } from "@/lib/clients/schema";
 import { dbErrorMessage } from "@/lib/db-errors";
 import { isProduction } from "@/lib/env";
@@ -13,7 +14,7 @@ const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Aprova a solicitação: cria cliente (código CLI), unidades e contatos numa única transação. */
 export async function approveRequestAction(requestId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(requestId)) return { error: "Solicitação inválida." };
   const values = formToObject(formData);
   const parsed = clientSchema.safeParse(values);
@@ -50,7 +51,7 @@ export async function approveRequestAction(requestId: string, _prev: ActionState
 }
 
 export async function rejectRequestAction(requestId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(requestId)) return { error: "Solicitação inválida." };
   const parsed = inactivationSchema.safeParse({ reason: formData.get("reason") });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };

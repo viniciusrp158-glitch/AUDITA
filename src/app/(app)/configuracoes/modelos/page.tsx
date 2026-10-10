@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { Card, DefinitionList } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,7 +25,7 @@ type Template = {
 
 /** Versões técnicas dos modelos usados na emissão (AUDDOC017 RF-21): somente leitura; novas versões entram por migração revisada. */
 export default async function ModelosPage() {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const supabase = await createClient();
   const { data } = await supabase
     .from("document_templates")

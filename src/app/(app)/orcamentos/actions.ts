@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { fieldErrors, formToObject } from "@/lib/clients/schema";
 import { isProduction } from "@/lib/env";
 import { buildDocument } from "@/lib/documents/proposal";
@@ -38,7 +39,7 @@ function dbMessage(error: { code?: string; message?: string } | null): string {
 
 /** Cria a cotação da demanda (uma por demanda), já com a versão vigente dos parâmetros e um item do serviço da demanda. */
 export async function createQuoteAction(demandId: string): Promise<void> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(demandId)) redirect("/demandas");
   const supabase = await createClient();
   const existing = await supabase.from("quotes").select("id").eq("demand_id", demandId).maybeSingle();
@@ -83,7 +84,7 @@ export async function createQuoteAction(demandId: string): Promise<void> {
 }
 
 export async function updateQuoteHeaderAction(id: string, _prev: QuoteActionState, formData: FormData): Promise<QuoteActionState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(id)) return { error: "Cotação inválida." };
   const values = formToObject(formData);
   const parsed = quoteHeaderSchema.safeParse(values);
@@ -97,7 +98,7 @@ export async function updateQuoteHeaderAction(id: string, _prev: QuoteActionStat
 
 /** Passa a cotação (rascunho) para a versão vigente atual dos parâmetros. */
 export async function adoptVigenteAction(id: string): Promise<void> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(id)) redirect("/orcamentos");
   const vigente = await getVigenteParameterSet();
   if (vigente) {
@@ -114,7 +115,7 @@ export async function saveItemAction(
   _prev: QuoteActionState,
   formData: FormData,
 ): Promise<QuoteActionState> {
-  const user = await requireAppUser();
+  const user = await requireAppUser(OPERATE);
   if (!uuidRe.test(quoteId) || (itemId !== null && !uuidRe.test(itemId))) return { error: "Item inválido." };
   const values = formToObject(formData);
   const result = quoteItemSchema.safeParse(values);
@@ -149,7 +150,7 @@ export async function saveItemAction(
 }
 
 export async function removeItemAction(quoteId: string, itemId: string, formData: FormData): Promise<void> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(quoteId) || !uuidRe.test(itemId)) redirect("/orcamentos");
   if (formData.get("confirm") !== "on") redirect(`/orcamentos/${quoteId}/itens/${itemId}?confirmar=1`);
   const supabase = await createClient();
@@ -186,7 +187,7 @@ function flowError(error: { message?: string } | null, fallback: string): { erro
 }
 
 export async function reviewQuoteAction(quoteId: string, _prev: FlowState, formData: FormData): Promise<FlowState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const reason = String(formData.get("reason") ?? "").trim() || null;
   const { quote, items } = await getQuoteOr404(quoteId);
@@ -205,7 +206,7 @@ export async function reviewQuoteAction(quoteId: string, _prev: FlowState, formD
 /** Gera DOCX e PDF a partir do snapshot congelado, guarda no bucket privado e registra a emissão (RF-15, RF-16, RF-17, RF-24). */
 export async function emitRevisionAction(quoteId: string, prev: FlowState): Promise<FlowState> {
   void prev; // assinatura exigida pelo useActionState
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const supabase = await createClient();
   const { quote } = await getQuoteOr404(quoteId);
@@ -272,7 +273,7 @@ export async function emitRevisionAction(quoteId: string, prev: FlowState): Prom
 }
 
 export async function reopenQuoteAction(quoteId: string, _prev: FlowState, formData: FormData): Promise<FlowState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const values = formToObject(formData);
   const parsed = reasonSchema.safeParse(values);
@@ -291,7 +292,7 @@ export async function decideQuoteAction(
   _prev: FlowState,
   formData: FormData,
 ): Promise<FlowState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const values = formToObject(formData);
   let args: { p_date: string | null; p_name: string | null; p_reference: string | null; p_note: string | null };

@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { isProduction } from "@/lib/env";
 import { createClientAction } from "../actions";
 import { ClientForm } from "../client-form";
@@ -7,7 +8,7 @@ import { ClientForm } from "../client-form";
 export const metadata = { title: "Novo cliente" };
 
 export default async function NovoClientePage() {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   return (
     <>
       <PageHeader

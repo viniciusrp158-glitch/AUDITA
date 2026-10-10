@@ -5,6 +5,7 @@ import { Alert, CheckboxField, SubmitButton } from "@/components/form";
 import { PageHeader } from "@/components/page";
 import { Card } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { getQuoteOr404, getServiceOptions } from "@/lib/pricing/queries";
 import { removeItemAction, saveItemAction } from "../../../actions";
 import { ItemForm } from "../../../item-form";
@@ -18,7 +19,7 @@ export default async function EditarItemPage({
   params: Promise<{ id: string; itemId: string }>;
   searchParams: Promise<{ confirmar?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id, itemId } = await params;
   const sp = await searchParams;
   const [{ quote, items }, services] = await Promise.all([getQuoteOr404(id), getServiceOptions()]);

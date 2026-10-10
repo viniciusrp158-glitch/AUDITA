@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/format";
 import { ACTION_LABELS as ACOES, ENTITY_LABELS as ENTIDADES } from "@/lib/clients/labels";
@@ -10,7 +11,7 @@ export const metadata = { title: "Registro de atividades" };
 const PAGE_SIZE = 50;
 
 export default async function AtividadesPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const page = Math.max(1, Number((await searchParams).p) || 1);
   const from = (page - 1) * PAGE_SIZE;
 

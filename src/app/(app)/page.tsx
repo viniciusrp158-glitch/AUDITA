@@ -3,6 +3,7 @@ import { AlertTriangle, BellRing, CheckCircle2, Circle, CircleDot } from "lucide
 import { ChartCard, HBars, MonthlyColumns, SplitBar, type MonthPoint } from "@/components/charts";
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { isProduction } from "@/lib/env";
 import { todaySaoPaulo } from "@/lib/format";
 import { PRESETS, resolvePeriod, type PresetKey } from "@/lib/indicators/period";
@@ -25,7 +26,7 @@ const INCREMENTOS: { id: string; titulo: string; status: Status }[] = [
   { id: "I6", titulo: "Revisões e emissão de propostas (DOCX/PDF)", status: "concluido" },
   { id: "I7", titulo: "Biblioteca documental", status: "concluido" },
   { id: "I8", titulo: "Indicadores gerenciais", status: "concluido" },
-  { id: "I9", titulo: "Homologação do MVP", status: "em_validacao" },
+  { id: "I9", titulo: "Homologação do MVP", status: "concluido" },
   { id: "I9.1", titulo: "Minha conta, usuários e tema claro/escuro (pedido do Diretor)", status: "previsto" },
   { id: "I10", titulo: "Comunicação / marketing (V1.2)", status: "previsto" },
 ];
@@ -74,7 +75,7 @@ export default async function InicioPage({
 }: {
   searchParams: Promise<{ periodo?: string; de?: string; ate?: string; teste?: string }>;
 }) {
-  const user = await requireAppUser();
+  const user = await requireAppUser(OPERATE);
   const sp = await searchParams;
   const primeiroNome = user.fullName.split(" ")[0];
   const today = todaySaoPaulo();
@@ -162,7 +163,7 @@ export default async function InicioPage({
               key={a.text}
               href={a.href}
               data-testid="alert"
-              className={`flex items-start gap-2 rounded-md border border-danger/30 bg-[#fdeceb] px-3 py-2.5 text-sm font-medium text-[#8f2a23] hover:underline ${
+              className={`flex items-start gap-2 rounded-md border border-danger/30 bg-alert-bg px-3 py-2.5 text-sm font-medium text-alert-ink hover:underline ${
                 a.kind === "warning" ? "border-l-4 border-l-danger" : ""
               }`}
             >
@@ -297,8 +298,8 @@ export default async function InicioPage({
                   testid="split-decisions"
                   emptyText="Nenhuma resposta de cliente no período"
                   parts={[
-                    { label: "Aceitas", value: ind.decisions.accepted, color: "#277b43" },
-                    { label: "Recusadas", value: ind.decisions.refused, color: "#b63d35" },
+                    { label: "Aceitas", value: ind.decisions.accepted, color: "var(--color-ok)" },
+                    { label: "Recusadas", value: ind.decisions.refused, color: "var(--color-danger)" },
                   ]}
                 />
               </ChartCard>
@@ -312,8 +313,8 @@ export default async function InicioPage({
                   testid="split-demands"
                   emptyText="Nenhuma demanda em aberto"
                   parts={[
-                    { label: "No prazo", value: Math.max(0, ind.demands.pending - ind.demands.overdue), color: "#277b43" },
-                    { label: "Prazo vencido", value: ind.demands.overdue, color: "#b63d35" },
+                    { label: "No prazo", value: Math.max(0, ind.demands.pending - ind.demands.overdue), color: "var(--color-ok)" },
+                    { label: "Prazo vencido", value: ind.demands.overdue, color: "var(--color-danger)" },
                   ]}
                 />
               </ChartCard>

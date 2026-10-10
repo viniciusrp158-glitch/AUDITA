@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page";
 import { ParamStatusPill } from "@/components/pricing-status";
 import { TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime, formatDay } from "@/lib/format";
 import { costPerHour, formatBRL, formatPercent } from "@/lib/pricing/engine";
 import { PARAM_FIELDS } from "@/lib/pricing/labels";
@@ -15,7 +16,7 @@ import { createParameterDraftAction } from "./actions";
 export const metadata = { title: "Parâmetros financeiros" };
 
 export default async function ParametrosPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const sp = await searchParams;
   const sets = await listParameterSets();
   const vigente = sets.find((s) => s.status === "vigente");

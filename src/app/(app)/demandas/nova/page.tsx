@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { getDemandFormOptions } from "@/lib/demands/queries";
 import { isProduction } from "@/lib/env";
 import { createDemandAction } from "../actions";
@@ -8,7 +9,7 @@ import { DemandForm } from "../demand-form";
 export const metadata = { title: "Nova demanda" };
 
 export default async function NovaDemandaPage({ searchParams }: { searchParams: Promise<{ cliente?: string }> }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { cliente } = await searchParams;
   const options = await getDemandFormOptions();
   const preselected = options.clients.some((c) => c.id === cliente) ? cliente : undefined;

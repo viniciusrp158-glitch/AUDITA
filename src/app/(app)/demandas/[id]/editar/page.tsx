@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/page";
 import { CodeBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { getDemandFormOptions, getDemandOr404 } from "@/lib/demands/queries";
 import { loadClientLinksAction, updateDemandAction } from "../../actions";
 import { DemandForm } from "../../demand-form";
@@ -8,7 +9,7 @@ import { DemandForm } from "../../demand-form";
 export const metadata = { title: "Editar demanda" };
 
 export default async function EditarDemandaPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id } = await params;
   const d = await getDemandOr404(id);
   const [options, links] = await Promise.all([getDemandFormOptions(d.client_id), loadClientLinksAction(d.client_id)]);

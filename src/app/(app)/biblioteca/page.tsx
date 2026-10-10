@@ -9,7 +9,7 @@ import { LibraryList } from "./library-list";
 export const metadata = { title: "Biblioteca" };
 
 export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<{ q?: string; fase?: string; familia?: string }> }) {
-  await requireAppUser();
+  const me = await requireAppUser();
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const fase = Object.keys(PHASES).includes(sp.fase ?? "") ? (sp.fase as Phase) : "";
@@ -24,9 +24,11 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
           title="Biblioteca"
           description="Documentos oficiais AUDDOC e anexos aprovados, com revisões preservadas. Arquivos privados, baixados por link temporário."
         />
-        <ButtonLink href="/biblioteca/novo">
-          <Plus size={16} /> Novo documento
-        </ButtonLink>
+        {me.role === "admin" && (
+          <ButtonLink href="/biblioteca/novo">
+            <Plus size={16} /> Novo documento
+          </ButtonLink>
+        )}
       </div>
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">

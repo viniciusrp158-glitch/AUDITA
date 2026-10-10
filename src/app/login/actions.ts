@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { homeFor, type Role } from "@/lib/permissions";
+import { setThemeCookie } from "@/lib/theme";
 
 export type FormState = { error?: string; message?: string };
 
@@ -20,21 +22,29 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data: auth, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
     // Mensagem genérica: não revela se o e-mail existe.
     return { error: "E-mail ou senha inválidos." };
   }
 
+  // Qualquer nível ativo do AUDITA entra; quem não está cadastrado (ou está inativo) é recusado.
   const { data: role } = await supabase.rpc("current_app_role");
-  if (role !== "admin") {
+  if (!role) {
     await supabase.rpc("log_access_event", { event: "access_denied" });
     await supabase.auth.signOut();
     redirect("/sem-acesso");
   }
 
   await supabase.rpc("log_access_event", { event: "login" });
-  redirect("/");
+  const { data: me } = await supabase
+    .from("app_users")
+    .select("theme, must_change_password")
+    .eq("user_id", auth.user.id)
+    .maybeSingle();
+  if (me?.theme) await setThemeCookie(me.theme);
+  if (me?.must_change_password) redirect("/atualizar-senha?primeiro=1");
+  redirect(homeFor(role as Role));
 }
 
 export async function signOut() {
@@ -82,6 +92,16 @@ export async function updatePassword(_prev: FormState, formData: FormData): Prom
 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
-  if (error) return { error: "Não foi possível alterar a senha. Solicite um novo link." };
-  redirect("/");
+  if (error) {
+    return {
+      error: /different from the old|same/i.test(error.message)
+        ? "A nova senha precisa ser diferente da atual."
+        : "Não foi possível alterar a senha. Solicite um novo link.",
+    };
+  }
+  // Senha provisória concluída: o próprio usuário só pode desligar a exigência (verdadeiro → falso).
+  const uid = (await supabase.auth.getUser()).data.user?.id;
+  if (uid) await supabase.from("app_users").update({ must_change_password: false }).eq("user_id", uid).eq("must_change_password", true);
+  const { data: role } = await supabase.rpc("current_app_role");
+  redirect(role ? homeFor(role as Role) : "/");
 }

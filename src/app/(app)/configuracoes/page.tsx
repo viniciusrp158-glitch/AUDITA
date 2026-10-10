@@ -1,3 +1,5 @@
+import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/page";
@@ -13,7 +15,8 @@ const ITENS = [
   { href: null, titulo: "Usuários", desc: "No MVP, somente o administrador.", pronto: false, inc: "futuro" },
 ] as const;
 
-export default function ConfiguracoesPage() {
+export default async function ConfiguracoesPage() {
+  await requireAppUser(ADMIN_ONLY);
   return (
     <>
       <PageHeader title="Configurações" description="Parâmetros, cadastros de apoio e registros administrativos." />

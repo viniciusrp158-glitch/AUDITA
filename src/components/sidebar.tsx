@@ -8,16 +8,19 @@ import {
   Building2,
   Calculator,
   ClipboardList,
-  KeyRound,
+  Crown,
   LayoutDashboard,
   LogOut,
   Megaphone,
   Menu,
   Settings,
+  UserRound,
   X,
 } from "lucide-react";
 import { Logo, Signature } from "@/components/brand";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/app/login/actions";
+import { NAV_ROLES, ROLE_LABEL, type Role } from "@/lib/permissions";
 
 export const NAV = [
   { href: "/", label: "Início", icon: LayoutDashboard },
@@ -36,14 +39,21 @@ function isActive(pathname: string, href: string) {
 export function Sidebar({
   userName,
   userEmail,
+  role,
+  isMaster,
+  theme,
   badges = {},
 }: {
   userName: string;
   userEmail: string;
+  role: Role;
+  isMaster: boolean;
+  theme: "claro" | "escuro";
   badges?: Record<string, number>;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const items = NAV.filter((n) => NAV_ROLES[n.href]?.includes(role));
 
   return (
     <>
@@ -84,8 +94,8 @@ export function Sidebar({
           </button>
         </div>
 
-        <nav className="flex-1 space-y-0.5 px-3">
-          {NAV.map(({ href, label, icon: Icon }) => {
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
+          {items.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <Link
@@ -112,19 +122,25 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="border-t border-line px-5 py-4">
-          <p className="truncate text-sm font-medium text-ink" title={userName}>
+        <div className="border-t border-line px-5 py-4" data-testid="user-box">
+          <p className="truncate text-sm font-semibold text-ink" title={userName}>
             {userName}
           </p>
           <p className="truncate text-xs text-muted" title={userEmail}>
             {userEmail}
           </p>
+          <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-muted">
+            {isMaster && <Crown size={12} className="text-green-dark" aria-hidden />}
+            {isMaster ? "Usuário mestre" : ROLE_LABEL[role]}
+          </p>
           <div className="mt-3 flex items-center gap-1">
             <Link
-              href="/atualizar-senha"
+              href="/conta"
+              onClick={() => setOpen(false)}
+              aria-current={isActive(pathname, "/conta") ? "page" : undefined}
               className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted hover:bg-surface hover:text-navy"
             >
-              <KeyRound size={16} /> Alterar senha
+              <UserRound size={16} /> Minha conta
             </Link>
             <form action={signOut}>
               <button
@@ -136,6 +152,7 @@ export function Sidebar({
             </form>
           </div>
         </div>
+        <ThemeToggle initial={theme} />
       </aside>
     </>
   );

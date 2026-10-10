@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { fieldErrors } from "@/lib/clients/schema";
 import { dbErrorMessage } from "@/lib/db-errors";
 import { isProduction } from "@/lib/env";
@@ -27,7 +28,7 @@ const schema = z.object({
 
 /** Gera link individual (uso único, 24 h). O token aparece só nesta resposta; o banco guarda o hash. */
 export async function createInviteAction(_prev: InviteState, formData: FormData): Promise<InviteState> {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const parsed = schema.safeParse({ recipient: formData.get("recipient"), note: formData.get("note") ?? undefined });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
 
@@ -47,7 +48,7 @@ export async function createInviteAction(_prev: InviteState, formData: FormData)
 }
 
 export async function cancelInviteAction(id: string) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   if (!/^[0-9a-f-]{36}$/i.test(id)) return;
   const supabase = await createClient();
   await supabase.from("client_invites").update({ cancelled_at: new Date().toISOString() }).eq("id", id).is("used_at", null);

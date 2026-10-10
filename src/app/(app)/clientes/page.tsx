@@ -3,6 +3,7 @@ import { Inbox, Link2, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, CodeBadge, StatusBadge, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { formatTaxId } from "@/lib/br";
 import { countPendingRequests, listClients, PAGE_SIZE } from "@/lib/clients/queries";
 
@@ -19,7 +20,7 @@ export default async function ClientesPage({
 }: {
   searchParams: Promise<{ q?: string; situacao?: string; p?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const situacao = SITUACOES.some((s) => s.value === sp.situacao) ? sp.situacao! : "ativos";

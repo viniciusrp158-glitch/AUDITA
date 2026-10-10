@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { fieldErrors, formToObject } from "@/lib/clients/schema";
 import { COMMERCIAL_STATUS_KEYS } from "@/lib/services/labels";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +32,7 @@ const decisionSchema = z.object({
 
 /** Registra decisão de situação comercial (AUDDOC005 §14). Fundamento obrigatório; histórico gravado pelo banco. */
 export async function decideStatusAction(id: string, _prev: ServiceActionState, formData: FormData): Promise<ServiceActionState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(id)) return { error: "Serviço inválido." };
   const values = formToObject(formData);
   const parsed = decisionSchema.safeParse(values);
@@ -77,7 +78,7 @@ const verificationSchema = z.object({
 
 /** Verificação operacional (colunas J–L e observações da AUDDOC004). Não altera a situação comercial. */
 export async function saveVerificationAction(id: string, _prev: ServiceActionState, formData: FormData): Promise<ServiceActionState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(id)) return { error: "Serviço inválido." };
   const values = formToObject(formData);
   const parsed = verificationSchema.safeParse(values);

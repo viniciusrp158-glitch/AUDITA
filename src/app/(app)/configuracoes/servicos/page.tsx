@@ -3,6 +3,7 @@ import { ArrowLeft, Search } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { StatusPill } from "@/components/service-status";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { normalizeSearch } from "@/lib/clients/queries";
 import { COMMERCIAL_STATUS, COMMERCIAL_STATUS_KEYS, type CommercialStatus } from "@/lib/services/labels";
 import { catalogOrder, listServices } from "@/lib/services/queries";
@@ -18,7 +19,7 @@ export default async function CatalogoPage({
 }: {
   searchParams: Promise<{ q?: string; familia?: string; situacao?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const { rows: all, error } = await listServices();

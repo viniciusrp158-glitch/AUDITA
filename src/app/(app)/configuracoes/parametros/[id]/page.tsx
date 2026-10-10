@@ -4,6 +4,7 @@ import { Alert } from "@/components/form";
 import { ParamStatusPill } from "@/components/pricing-status";
 import { Card, DefinitionList, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime, formatDay } from "@/lib/format";
 import { costPerHour, formatBRL, formatHours, formatPercent } from "@/lib/pricing/engine";
 import { PARAM_FIELDS } from "@/lib/pricing/labels";
@@ -25,7 +26,7 @@ export default async function ParametroPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ publicada?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const { id } = await params;
   const sp = await searchParams;
   const s = await getParameterSetOr404(id);

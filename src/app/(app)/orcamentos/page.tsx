@@ -4,13 +4,14 @@ import { PageHeader } from "@/components/page";
 import { QuoteStatusPill } from "@/components/pricing-status";
 import { TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { formatDateTime } from "@/lib/format";
 import { listQuotes, QUOTES_PAGE_SIZE } from "@/lib/pricing/queries";
 
 export const metadata = { title: "Orçamentos" };
 
 export default async function OrcamentosPage({ searchParams }: { searchParams: Promise<{ q?: string; p?: string }> }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const page = Math.max(1, Number(sp.p) || 1);

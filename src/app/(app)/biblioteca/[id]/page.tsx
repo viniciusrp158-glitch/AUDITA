@@ -40,7 +40,8 @@ export default async function BibliotecaDocPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ criado?: string; publicada?: string; cancelada?: string }>;
 }) {
-  await requireAppUser();
+  const me = await requireAppUser();
+  const isAdmin = me.role === "admin";
   const { id } = await params;
   const sp = await searchParams;
   const { doc, parent, annexes } = await getLibDocumentOr404(id);
@@ -108,7 +109,7 @@ export default async function BibliotecaDocPage({
             )}
           </Card>
 
-          {drafts.map((r) => (
+          {isAdmin && drafts.map((r) => (
             <Card key={r.id} title={`Rascunho ${r.revision} — aguardando aprovação`}>
               <div className="space-y-4" data-testid="draft">
                 <p className="text-sm text-ink">
@@ -154,13 +155,15 @@ export default async function BibliotecaDocPage({
         </div>
 
         <aside className="min-w-0 space-y-6 lg:sticky lg:top-4 lg:self-start">
-          <Card title="Enviar nova revisão">
-            {doc.status === "ativo" ? (
-              <UploadRevisionForm documentId={doc.id} nextRevision={nextRevision(revs)} />
-            ) : (
-              <p className="text-sm text-muted">Documento inativo.</p>
-            )}
-          </Card>
+          {isAdmin && (
+            <Card title="Enviar nova revisão">
+              {doc.status === "ativo" ? (
+                <UploadRevisionForm documentId={doc.id} nextRevision={nextRevision(revs)} />
+              ) : (
+                <p className="text-sm text-muted">Documento inativo.</p>
+              )}
+            </Card>
+          )}
           <Card title="Identificação">
             <DefinitionList
               items={[

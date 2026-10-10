@@ -4,6 +4,7 @@ import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge } from "@/com
 import { PageHeader } from "@/components/page";
 import { ButtonLink, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { DEMAND_STATUS, DEMAND_STATUS_KEYS } from "@/lib/demands/labels";
 import { listDemands, PAGE_SIZE } from "@/lib/demands/queries";
 import { formatDay, todaySaoPaulo } from "@/lib/format";
@@ -21,7 +22,7 @@ export default async function DemandasPage({
 }: {
   searchParams: Promise<{ q?: string; grupo?: string; situacao?: string; p?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const grupo = (GRUPOS.find((g) => g.value === sp.grupo)?.value ?? "abertas") as "abertas" | "encerradas" | "todas";

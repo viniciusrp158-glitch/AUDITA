@@ -8,6 +8,7 @@ import { createQuoteAction } from "@/app/(app)/orcamentos/actions";
 import { StatusPill } from "@/components/service-status";
 import { ButtonLink, Card, CodeBadge, DefinitionList, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { formatPhone } from "@/lib/br";
 import { DEMAND_STATUS, EVENT_TYPES, ORIGINS } from "@/lib/demands/labels";
 import { getDemandEvents, getDemandOr404 } from "@/lib/demands/queries";
@@ -28,7 +29,7 @@ export default async function DemandaPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ criada?: string; salva?: string; erro_cotacao?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id } = await params;
   const sp = await searchParams;
   const d = await getDemandOr404(id);

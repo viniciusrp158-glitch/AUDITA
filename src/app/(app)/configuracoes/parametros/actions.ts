@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { fieldErrors, formToObject } from "@/lib/clients/schema";
 import { isProduction } from "@/lib/env";
 import { PARAM_FIELDS } from "@/lib/pricing/labels";
@@ -22,7 +23,7 @@ const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Nova versão em rascunho, copiando a vigente (ou vazia, se ainda não houver). */
 export async function createParameterDraftAction(): Promise<void> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const supabase = await createClient();
   const vigente = await getVigenteParameterSet();
   const copy = Object.fromEntries(PARAM_FIELDS.map((f) => [f.key, vigente?.[f.key] ?? null]));
@@ -42,7 +43,7 @@ export async function createParameterDraftAction(): Promise<void> {
 }
 
 export async function updateParameterSetAction(id: string, _prev: ParamActionState, formData: FormData): Promise<ParamActionState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(id)) return { error: "Versão inválida." };
   const values = formToObject(formData);
   const parsed = parameterSetSchema.safeParse(values);
@@ -61,7 +62,7 @@ export async function updateParameterSetAction(id: string, _prev: ParamActionSta
 }
 
 export async function publishParameterSetAction(id: string, _prev: ParamActionState, formData: FormData): Promise<ParamActionState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(id)) return { error: "Versão inválida." };
   if (formData.get("confirm") !== "on") {
     return { fieldErrors: { confirm: "Confirme a validação dos valores." }, error: "Confirme antes de publicar." };

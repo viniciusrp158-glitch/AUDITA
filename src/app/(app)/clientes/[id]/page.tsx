@@ -3,6 +3,7 @@ import { ArrowLeft, Pencil, Plus } from "lucide-react";
 import { Alert } from "@/components/form";
 import { ButtonLink, Card, CodeBadge, DefinitionList, StatusBadge, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { formatCep, formatCnae, formatCnpj, formatPhone, formatTaxId } from "@/lib/br";
 import { ACTION_LABELS, describeChange, ENTITY_LABELS } from "@/lib/clients/labels";
 import { getClientChildren, getClientHistory, getClientOr404 } from "@/lib/clients/queries";
@@ -57,7 +58,7 @@ export default async function ClientePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ aba?: string; criado?: string; salvo?: string; editar?: string; novo?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id } = await params;
   const sp = await searchParams;
   const tab = TABS.some((t) => t.id === sp.aba) ? sp.aba! : "dados";

@@ -1,8 +1,11 @@
+import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { PageHeader, UnderConstruction } from "@/components/page";
 
 export const metadata = { title: "Comunicação" };
 
-export default function Page() {
+export default async function Page() {
+  await requireAppUser(ADMIN_ONLY);
   return (
     <>
       <PageHeader title="Comunicação" description="Identidade visual e materiais institucionais." />

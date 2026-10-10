@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Alert } from "@/components/form";
 import { Card, DefinitionList, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { formatCep, formatCnpj, formatPhone } from "@/lib/br";
 import { REQUEST_STATUS } from "@/lib/clients/labels";
 import { isProduction } from "@/lib/env";
@@ -55,7 +56,7 @@ export default async function SolicitacaoPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ recusada?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id } = await params;
   const sp = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();

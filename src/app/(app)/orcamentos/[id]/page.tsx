@@ -7,6 +7,7 @@ import { contractSummary } from "@/lib/documents/proposal";
 import { revisionLabel } from "@/lib/documents/snapshot";
 import { isProduction } from "@/lib/env";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { formatDateTime, formatDay, todaySaoPaulo } from "@/lib/format";
 import { formatBRL, formatHours, formatPercent } from "@/lib/pricing/engine";
 import { CONTENT_FIELDS, DOCUMENT_MODELS, PERIODICITY } from "@/lib/pricing/labels";
@@ -84,7 +85,7 @@ export default async function OrcamentoPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ criada?: string; item?: string; fluxo?: string }>;
 }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id } = await params;
   const sp = await searchParams;
   const [{ quote, items }, vigente, revisions] = await Promise.all([getQuoteOr404(id), getVigenteParameterSet(), listRevisions(id)]);

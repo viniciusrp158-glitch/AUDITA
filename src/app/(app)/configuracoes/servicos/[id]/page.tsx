@@ -3,6 +3,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Alert } from "@/components/form";
 import { Card, DefinitionList } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime } from "@/lib/format";
 import { checkLabel, COMMERCIAL_STATUS, PRICING_MODEL } from "@/lib/services/labels";
 import { getServiceOr404, getStatusHistory } from "@/lib/services/queries";
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function ServicoPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const { id } = await params;
   const { service: s, parentCode, offers } = await getServiceOr404(id);
   const history = await getStatusHistory(id);

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAppUser } from "@/lib/auth";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { fieldErrors, formToObject } from "@/lib/clients/schema";
 import { extOf, LIBRARY_BUCKET, MAX_FILE_BYTES, MIME_BY_EXT, safeFileName } from "@/lib/library/labels";
 import { createClient } from "@/lib/supabase/server";
@@ -44,7 +45,7 @@ const documentSchema = z
   });
 
 export async function createDocumentAction(_prev: LibState, formData: FormData): Promise<LibState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   const values = formToObject(formData);
   const parsed = documentSchema.safeParse(values);
   if (!parsed.success) return { values, fieldErrors: fieldErrors(parsed.error), error: "Revise os campos destacados." };
@@ -76,7 +77,7 @@ export async function prepareUploadAction(
   documentId: string,
   input: { revision: string; fileName: string; size: number; approved_by?: string; approved_on?: string; issued_on?: string; notes?: string },
 ): Promise<PrepareResult> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(documentId)) return { error: "Documento inválido." };
   const meta = revisionMeta.safeParse(input);
   if (!meta.success) return { fieldErrors: fieldErrors(meta.error), error: "Revise os campos destacados." };
@@ -107,7 +108,7 @@ export async function registerRevisionAction(
   documentId: string,
   input: { path: string; fileName: string; revision: string; approved_by?: string; approved_on?: string; issued_on?: string; notes?: string },
 ): Promise<{ error?: string; duplicateOf?: string }> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(documentId)) return { error: "Documento inválido." };
   const meta = revisionMeta.safeParse(input);
   if (!meta.success) return { error: "Dados da revisão inválidos." };
@@ -150,7 +151,7 @@ const approvalSchema = z.object({
 
 /** Completa a aprovação de um rascunho e publica como vigente (a anterior vira substituída — CA-09). */
 export async function publishRevisionAction(documentId: string, revisionId: string, _prev: LibState, formData: FormData): Promise<LibState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(documentId) || !uuidRe.test(revisionId)) return { error: "Revisão inválida." };
   const values = formToObject(formData);
   if (values.confirm !== "on") return { values, fieldErrors: { confirm: "Confirme que o arquivo é a versão aprovada." }, error: "Confirme antes de publicar." };
@@ -171,7 +172,7 @@ export async function publishRevisionAction(documentId: string, revisionId: stri
 }
 
 export async function cancelRevisionAction(documentId: string, revisionId: string, _prev: LibState, formData: FormData): Promise<LibState> {
-  await requireAppUser();
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(documentId) || !uuidRe.test(revisionId)) return { error: "Revisão inválida." };
   const reason = String(formData.get("reason") ?? "").trim();
   if (reason.length < 5) return { fieldErrors: { reason: "Informe o motivo (mín. 5 caracteres)." }, error: "Informe o motivo." };

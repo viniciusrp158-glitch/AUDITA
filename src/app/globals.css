@@ -15,12 +15,41 @@
   --color-ok: #277b43;
   --color-warn: #a76613;
   --color-danger: #b63d35;
+  --color-white: #ffffff;
+
+  /* Alertas do Início (vermelho-claro — pedido do Diretor no I8) */
+  --color-alert-bg: #fdeceb;
+  --color-alert-ink: #8f2a23;
 
   --font-sans: "Inter Variable", Inter, Arial, Helvetica, sans-serif;
 }
 
 html {
   color-scheme: light;
+}
+
+/*
+ * Tema escuro (I9.1 — pedido do Diretor). Mesmos tokens, valores para fundo escuro: superfícies em azul-marinho
+ * profundo (cor institucional), texto claro e acentos da paleta clareados para manter contraste (WCAG AA).
+ * "white" é a cor dos cartões e "navy" a cor de destaque (títulos, botões, menu ativo) — por isso trocam de papel.
+ * Documentos emitidos (PDF/DOCX) não mudam: o tema é só da tela.
+ */
+html[data-theme="escuro"] {
+  color-scheme: dark;
+  --color-white: #0f2238;
+  --color-surface: #08172a;
+  --color-ink: #e6edf5;
+  --color-navy: #dbe8f7;
+  --color-navy-700: #bcd2ea;
+  --color-muted: #9aa9bc;
+  --color-line: #253a52;
+  --color-green-dark: #74c447;
+  --color-blue: #4cb4fd;
+  --color-ok: #5cc584;
+  --color-warn: #e3a857;
+  --color-danger: #f2857b;
+  --color-alert-bg: #3a1716;
+  --color-alert-ink: #ffc9c4;
 }
 
 body {
@@ -33,4 +62,15 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-blue);
   outline-offset: 2px;
+}
+
+/* Logotipo sobre fundo escuro: marca original sobre área branca de proteção (AUDDOC003 — não é versão negativa) */
+.logo-plate {
+  display: inline-block;
+  line-height: 0;
+}
+html[data-theme="escuro"] .logo-plate {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 10px;
 }

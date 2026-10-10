@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
+import { OPERATE } from "@/lib/permissions";
 import { getQuoteOr404, getServiceOptions } from "@/lib/pricing/queries";
 import { saveItemAction } from "../../../actions";
 import { ItemForm } from "../../../item-form";
@@ -10,7 +11,7 @@ import { ItemForm } from "../../../item-form";
 export const metadata = { title: "Novo item" };
 
 export default async function NovoItemPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAppUser();
+  await requireAppUser(OPERATE);
   const { id } = await params;
   const [{ quote }, services] = await Promise.all([getQuoteOr404(id), getServiceOptions()]);
   if (quote.status !== "rascunho") redirect(`/orcamentos/${id}`);

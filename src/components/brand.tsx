@@ -10,6 +10,7 @@ const CROP = { x: 190, y: 215, w: 1520, h: 530 };
 export function Logo({ width = 132 }: { width?: number }) {
   const s = width / CROP.w;
   return (
+    <span className="logo-plate shrink-0">
     <span
       className="relative inline-block shrink-0 overflow-hidden"
       style={{ width, height: Math.round(CROP.h * s) }}
@@ -29,6 +30,7 @@ export function Logo({ width = 132 }: { width?: number }) {
           top: -Math.round(CROP.y * s),
         }}
       />
+    </span>
     </span>
   );
 }
