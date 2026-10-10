@@ -196,7 +196,8 @@ describe.skipIf(!ready)("I7 — biblioteca documental", () => {
       .select("doc_code, library_revisions(status, sha256)")
       .in("doc_code", ["AUDDOC001", "AUDDOC010-ANX01", "AUDDOC010-ANX02"]);
     if (!docs || docs.length < 3) return; // importação ainda não executada neste banco
-    const by = Object.fromEntries(docs.map((d) => [d.doc_code, d.library_revisions as { status: string; sha256: string }[]]));
+    type Rev = { status: string; sha256: string };
+    const by: Record<string, Rev[]> = Object.fromEntries(docs.map((d) => [d.doc_code as string, d.library_revisions as Rev[]]));
     expect(by.AUDDOC001.some((r) => r.status === "vigente")).toBe(false);
     const tpl = (await admin.from("document_templates").select("template_code, source_sha256")).data!;
     for (const t of tpl) {
