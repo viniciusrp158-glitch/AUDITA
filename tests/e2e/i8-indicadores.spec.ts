@@ -42,7 +42,7 @@ test("painel: indicadores do mês com dados de teste, troca de período, exclus�
 
   // Mês anterior pelo seletor
   await page.goto("/");
-  await page.getByLabel("Período").selectOption("mes_anterior");
+  await page.locator('select[name="periodo"]').selectOption("mes_anterior");
   await page.getByRole("button", { name: "Aplicar" }).click();
   await expect(page).toHaveURL(/periodo=mes_anterior/);
   await expect(page.getByTestId("period-label")).toContainText("01/09/2026 a 30/09/2026");
