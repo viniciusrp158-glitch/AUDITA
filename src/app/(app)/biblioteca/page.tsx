@@ -1,26 +1,12 @@
-import Link from "next/link";
 import { Plus, Search } from "lucide-react";
-import { LibStatusPill } from "@/components/library-status";
 import { PageHeader } from "@/components/page";
 import { ButtonLink } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
-import { formatDay } from "@/lib/format";
 import { PHASES, type Phase } from "@/lib/library/labels";
-import { currentRevision, listLibrary, type LibDocument } from "@/lib/library/queries";
+import { currentRevision, listLibrary } from "@/lib/library/queries";
+import { LibraryList } from "./library-list";
 
 export const metadata = { title: "Biblioteca" };
-
-function Situation({ d }: { d: LibDocument }) {
-  const r = currentRevision(d);
-  if (!r) return <span className="text-xs text-muted">Sem arquivo</span>;
-  return (
-    <span className="flex flex-wrap items-center gap-1">
-      <span className="font-mono text-xs text-ink">{r.revision}</span>
-      <LibStatusPill status={r.status} />
-      {d.status === "inativo" && <span className="text-xs text-muted">(inativo)</span>}
-    </span>
-  );
-}
 
 export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<{ q?: string; fase?: string; familia?: string }> }) {
   await requireAppUser();
@@ -29,9 +15,6 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
   const fase = Object.keys(PHASES).includes(sp.fase ?? "") ? (sp.fase as Phase) : "";
   const familia = (sp.familia ?? "").slice(0, 80);
   const { rows, families, error } = await listLibrary({ q, fase, familia });
-  // Anexos logo abaixo do documento principal
-  const ordered = rows.filter((d) => !d.parent_id || !rows.some((p) => p.id === d.parent_id));
-  const withAnnexes = ordered.flatMap((d) => [d, ...rows.filter((a) => a.parent_id === d.id)]);
   const vigentes = rows.filter((d) => d.library_revisions.some((r) => r.status === "vigente")).length;
 
   return (
@@ -92,54 +75,23 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
         </p>
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-xl border border-line bg-white md:block">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-navy text-xs uppercase tracking-wide text-white">
-                <tr>
-                  <th className="px-4 py-2.5 font-semibold">Código</th>
-                  <th className="px-4 py-2.5 font-semibold">Título</th>
-                  <th className="px-4 py-2.5 font-semibold">Família</th>
-                  <th className="px-4 py-2.5 font-semibold">Aprovação</th>
-                  <th className="px-4 py-2.5 font-semibold">Situação</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {withAnnexes.map((d) => {
-                  const r = currentRevision(d);
-                  return (
-                    <tr key={d.id} className="align-top hover:bg-surface/60">
-                      <td className={`whitespace-nowrap px-4 py-2.5 font-mono text-xs font-semibold text-navy ${d.parent_id ? "pl-8" : ""}`}>{d.doc_code}</td>
-                      <td className="px-4 py-2.5">
-                        <Link href={`/biblioteca/${d.id}`} className="font-medium text-ink hover:text-navy hover:underline">
-                          {d.title}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted">{d.family}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-muted">{formatDay(r?.approved_on) || "—"}</td>
-                      <td className="px-4 py-2.5">
-                        <Situation d={d} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <ul className="space-y-2 md:hidden">
-            {withAnnexes.map((d) => (
-              <li key={d.id} className={d.parent_id ? "pl-4" : ""}>
-                <Link href={`/biblioteca/${d.id}`} className="block rounded-xl border border-line bg-white p-3 active:bg-surface">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs font-semibold text-navy">{d.doc_code}</span>
-                    <Situation d={d} />
-                  </div>
-                  <p className="mt-1 break-words text-sm font-medium text-ink">{d.title}</p>
-                  <p className="mt-0.5 text-xs text-muted">{d.family}</p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <LibraryList
+            expandAll={Boolean(q)}
+            rows={rows.map((d) => {
+              const r = currentRevision(d);
+              return {
+                id: d.id,
+                doc_code: d.doc_code,
+                title: d.title,
+                family: d.family,
+                parent_id: d.parent_id,
+                approved_on: r?.approved_on ?? null,
+                revision: r?.revision ?? null,
+                status: r?.status ?? null,
+                inactive: d.status === "inativo",
+              };
+            })}
+          />
 
           {rows.length === 0 && (
             <p className="rounded-xl border border-line bg-white px-4 py-10 text-center text-sm text-muted">

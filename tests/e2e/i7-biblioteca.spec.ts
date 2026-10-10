@@ -56,6 +56,21 @@ test("acervo oficial: AUDDOC010-ANX01 vigente, ligado ao modelo técnico; AUDDOC
   await expect(page.getByText(/ARQUIVO DO DOSSIÊ É MINUTA/).first()).toBeVisible();
 });
 
+test("anexos recolhidos sob o documento principal; seta exibe e recolhe (pedido do Diretor)", async ({ page }) => {
+  await login(page);
+  await page.goto("/biblioteca?fase=fase2");
+  await expect(page.getByRole("link", { name: "Modelos Comerciais e Contratuais da AUDITA" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /M01 — Proposta comercial integrada/ })).toHaveCount(0);
+  const toggle = page.getByTestId("toggle-AUDDOC010").first();
+  await expect(toggle).toHaveText(/6 anexos/);
+  await toggle.click();
+  await expect(page.getByTestId("annex-row")).toHaveCount(6);
+  await expect(page.getByRole("link", { name: /M01 — Proposta comercial integrada/ }).first()).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/75-anexos-expandidos.png`, fullPage: true });
+  await toggle.click();
+  await expect(page.getByTestId("annex-row")).toHaveCount(0);
+});
+
 test("FL-03 / CA-09: novo documento, Rev.00 → vigente, Rev.01 substitui e a anterior continua acessível", async ({ page }) => {
   test.setTimeout(120_000);
   await login(page);
