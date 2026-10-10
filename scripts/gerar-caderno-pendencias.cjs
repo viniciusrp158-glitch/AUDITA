@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+// Gera docs/Caderno_Pendencias_Sistema_AUDITA_v1.0.docx (uso: node scripts/gerar-caderno-pendencias.cjs [saída.docx]).
 // Caderno de pendências do Sistema AUDITA real — gerador do .docx
 const fs = require("fs");
 const path = require("path");
