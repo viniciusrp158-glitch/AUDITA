@@ -3,7 +3,7 @@ import { AlertTriangle, BellRing, CheckCircle2, Circle, CircleDot } from "lucide
 import { ChartCard, HBars, MonthlyColumns, SplitBar, type MonthPoint } from "@/components/charts";
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
-import { OPERATE } from "@/lib/permissions";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { isProduction } from "@/lib/env";
 import { todaySaoPaulo } from "@/lib/format";
 import { PRESETS, resolvePeriod, type PresetKey } from "@/lib/indicators/period";
@@ -75,7 +75,7 @@ export default async function InicioPage({
 }: {
   searchParams: Promise<{ periodo?: string; de?: string; ate?: string; teste?: string }>;
 }) {
-  const user = await requireAppUser(OPERATE);
+  const user = await requireAppUser(ADMIN_ONLY);
   const sp = await searchParams;
   const primeiroNome = user.fullName.split(" ")[0];
   const today = todaySaoPaulo();

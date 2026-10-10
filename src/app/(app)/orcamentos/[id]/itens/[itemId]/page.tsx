@@ -19,7 +19,7 @@ export default async function EditarItemPage({
   params: Promise<{ id: string; itemId: string }>;
   searchParams: Promise<{ confirmar?: string }>;
 }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
   const { id, itemId } = await params;
   const sp = await searchParams;
   const [{ quote, items }, services] = await Promise.all([getQuoteOr404(id), getServiceOptions()]);
@@ -38,6 +38,7 @@ export default async function EditarItemPage({
         services={services}
         initial={item}
         cancelHref={`/orcamentos/${id}`}
+        canPrice={user.role === "admin"}
         submitLabel="Salvar item"
       />
       <div className="mt-8">

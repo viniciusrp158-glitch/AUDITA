@@ -1,6 +1,7 @@
 /**
- * Níveis de acesso (AUDDOC017 §10; decisões do Diretor de 10/10/2026). Só orienta telas e menus:
- * a proteção efetiva está nas políticas do banco (RLS) e nas funções do fluxo.
+ * Níveis de acesso (AUDDOC017 §10). Decisão do Diretor (10/10/2026): modo MAIS RESTRITIVO — entra só o que o
+ * AUDDOC017 já define; os pontos em aberto da matriz D7 do caderno de pendências ficam sem acesso até a resposta.
+ * Este arquivo só orienta telas e menus: a proteção efetiva está no banco (RLS, gatilhos e funções do fluxo).
  */
 export type Role = "admin" | "operador" | "marketing";
 
@@ -11,25 +12,27 @@ export const ROLE_LABEL: Record<Role, string> = {
 };
 
 export const ROLE_HINT: Record<Role, string> = {
-  admin: "Acesso completo, inclusive parâmetros, catálogo, biblioteca e registro de atividades. Não cria usuários (só o mestre).",
+  admin: "Acesso completo: parâmetros, catálogo, orçamentos, emissão, biblioteca, indicadores e registro de atividades. Criar usuários é só do mestre.",
   operador:
-    "Clientes, demandas e orçamentos completos (preços, emissão, aceite e autorização de desconto); consulta a biblioteca e vê os indicadores. Não libera serviços, não altera parâmetros nem publica documentos.",
-  marketing: "Até o módulo de comunicação (I10): apenas consulta e baixa documentos publicados da biblioteca. Não vê preços nem clientes.",
+    "Clientes, unidades e contatos; demandas; prepara orçamentos (itens, horas, despesas e conteúdo) sem ver preços e margens. Não conclui revisão, não emite, não registra aceite, não libera serviços nem altera parâmetros (AUDDOC017 §10).",
+  marketing: "Rascunhos de comunicação quando o módulo existir (I10). Até lá, apenas a própria conta. Não vê preços nem clientes (AUDDOC017 §10).",
 };
 
 /** Menu principal por nível. */
 export const NAV_ROLES: Record<string, Role[]> = {
-  "/": ["admin", "operador"],
+  "/": ["admin"],
   "/clientes": ["admin", "operador"],
   "/demandas": ["admin", "operador"],
   "/orcamentos": ["admin", "operador"],
-  "/biblioteca": ["admin", "operador", "marketing"],
+  "/biblioteca": ["admin"],
   "/comunicacao": ["admin"],
   "/configuracoes": ["admin"],
 };
 
 export function homeFor(role: Role): string {
-  return role === "marketing" ? "/biblioteca" : "/";
+  if (role === "operador") return "/clientes";
+  if (role === "marketing") return "/conta";
+  return "/";
 }
 
 export const OPERATE: Role[] = ["admin", "operador"];

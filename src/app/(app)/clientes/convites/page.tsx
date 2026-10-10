@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { Card, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
-import { OPERATE } from "@/lib/permissions";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime } from "@/lib/format";
 import { inviteStatus, type InviteStatus } from "@/lib/invites";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +32,7 @@ type Row = {
 };
 
 export default async function ConvitesPage() {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   const supabase = await createClient();
   const { data } = await supabase
     .from("client_invites")

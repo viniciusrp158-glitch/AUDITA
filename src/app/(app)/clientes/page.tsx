@@ -20,7 +20,8 @@ export default async function ClientesPage({
 }: {
   searchParams: Promise<{ q?: string; situacao?: string; p?: string }>;
 }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
+  const isAdmin = user.role === "admin";
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const situacao = SITUACOES.some((s) => s.value === sp.situacao) ? sp.situacao! : "ativos";
@@ -34,6 +35,8 @@ export default async function ClientesPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader title="Clientes" description="Cadastro mestre de empresas, unidades e contatos. O código CLI é permanente." />
         <div className="flex flex-wrap gap-2">
+          {isAdmin && (
+          <>
           <ButtonLink href="/clientes/solicitacoes" variant="secondary">
             <Inbox size={16} /> Solicitações
             {pending > 0 && <span className="rounded-full bg-warn px-1.5 text-xs font-bold text-white">{pending}</span>}
@@ -41,6 +44,8 @@ export default async function ClientesPage({
           <ButtonLink href="/clientes/convites" variant="secondary">
             <Link2 size={16} /> Link de cadastro
           </ButtonLink>
+          </>
+          )}
           <ButtonLink href="/clientes/novo">
             <Plus size={16} /> Novo cliente
           </ButtonLink>

@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAppUser();
   const [pending, cookieTheme] = await Promise.all([
-    user.role === "marketing" ? Promise.resolve(0) : countPendingRequests(),
+    user.role === "admin" ? countPendingRequests() : Promise.resolve(0),
     getThemeCookie(),
   ]);
   return (

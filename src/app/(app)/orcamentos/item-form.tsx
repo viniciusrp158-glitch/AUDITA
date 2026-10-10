@@ -76,6 +76,7 @@ export function ItemForm({
   initial,
   cancelHref,
   submitLabel,
+  canPrice = true,
 }: {
   action: (s: QuoteActionState, f: FormData) => Promise<QuoteActionState>;
   params: ParameterValues | null;
@@ -83,6 +84,8 @@ export function ItemForm({
   initial: Initial;
   cancelHref: string;
   submitLabel: string;
+  /** Operador administrativo prepara horas e despesas sem ver preços nem definir margem/desconto (AUDDOC017 §10). */
+  canPrice?: boolean;
 }) {
   const [state, formAction] = useActionState<QuoteActionState, FormData>(action, {});
   const e = state.fieldErrors ?? {};
@@ -190,6 +193,7 @@ export function ItemForm({
           <p className="text-xs text-muted">Vazio ≠ zero: se não houver custo direto, informe 0.</p>
         </fieldset>
 
+        {canPrice && (
         <fieldset className="space-y-4">
           <legend className="mb-2 text-sm font-semibold text-navy">Ajustes do item (%)</legend>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -230,12 +234,15 @@ export function ItemForm({
             </div>
           )}
         </fieldset>
+        )}
 
         {/* Celular/tablet: resumo fixo do cálculo enquanto preenche (a prévia completa fica ao final) */}
+        {canPrice && (
         <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-line bg-white/95 px-4 py-2 sm:-mx-8 sm:px-8 backdrop-blur lg:hidden">
           <ItemStatusPill status={calc.status} />
           <span className="text-sm font-semibold tabular-nums text-navy">{formatBRL(r.finalPrice)}</span>
         </div>
+        )}
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
           <Link href={cancelHref} className="text-center text-sm text-muted hover:text-navy">
@@ -247,6 +254,17 @@ export function ItemForm({
         </div>
       </div>
 
+      {!canPrice ? (
+        <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start" aria-label="Cálculo do preço">
+          <section className="rounded-xl border border-line bg-white p-4 text-sm" data-testid="price-restricted">
+            <p className="font-semibold text-ink">Preço calculado pelo administrador</p>
+            <p className="mt-1 text-xs text-muted">
+              Informe o escopo, as horas e os custos diretos. Preço, margem, contingência e desconto ficam com o administrador (AUDDOC017 §10).
+            </p>
+            <p className="mt-2 text-xs text-ink">Horas totais: <strong className="tabular-nums">{formatHours(r.hours)}</strong></p>
+          </section>
+        </aside>
+      ) : (
       <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start" aria-label="Prévia do cálculo">
         <section className="rounded-xl border border-line bg-white">
           <div className="border-b border-line bg-navy px-4 py-2.5 text-sm font-semibold text-white">Prévia AUDDOC011</div>
@@ -297,6 +315,7 @@ export function ItemForm({
           </div>
         </section>
       </aside>
+      )}
     </form>
   );
 }

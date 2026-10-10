@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
-import { OPERATE } from "@/lib/permissions";
+import { ADMIN_ONLY, OPERATE } from "@/lib/permissions";
 import { fieldErrors, formToObject } from "@/lib/clients/schema";
 import { isProduction } from "@/lib/env";
 import { buildDocument } from "@/lib/documents/proposal";
@@ -98,7 +98,7 @@ export async function updateQuoteHeaderAction(id: string, _prev: QuoteActionStat
 
 /** Passa a cotação (rascunho) para a versão vigente atual dos parâmetros. */
 export async function adoptVigenteAction(id: string): Promise<void> {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(id)) redirect("/orcamentos");
   const vigente = await getVigenteParameterSet();
   if (vigente) {
@@ -126,8 +126,14 @@ export async function saveItemAction(
       ...result.data,
       discount_authorized_at: result.data.discount_authorized ? new Date().toISOString() : null,
       discount_authorized_by: result.data.discount_authorized ? user.id : null,
-    },
+    } as Record<string, unknown>,
   };
+  // Operador prepara horas, despesas e escopo; contingência, margem e desconto são só do administrador
+  // (decisão de 10/10/2026 — a mesma regra é aplicada pelo banco).
+  if (user.role !== "admin") {
+    for (const k of ["contingency", "margin", "discount", "discount_reason", "discount_authorized", "discount_authorized_at", "discount_authorized_by"])
+      delete parsed.data[k];
+  }
 
   const supabase = await createClient();
   if (itemId) {
@@ -187,7 +193,7 @@ function flowError(error: { message?: string } | null, fallback: string): { erro
 }
 
 export async function reviewQuoteAction(quoteId: string, _prev: FlowState, formData: FormData): Promise<FlowState> {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const reason = String(formData.get("reason") ?? "").trim() || null;
   const { quote, items } = await getQuoteOr404(quoteId);
@@ -206,7 +212,7 @@ export async function reviewQuoteAction(quoteId: string, _prev: FlowState, formD
 /** Gera DOCX e PDF a partir do snapshot congelado, guarda no bucket privado e registra a emissão (RF-15, RF-16, RF-17, RF-24). */
 export async function emitRevisionAction(quoteId: string, prev: FlowState): Promise<FlowState> {
   void prev; // assinatura exigida pelo useActionState
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const supabase = await createClient();
   const { quote } = await getQuoteOr404(quoteId);
@@ -273,7 +279,7 @@ export async function emitRevisionAction(quoteId: string, prev: FlowState): Prom
 }
 
 export async function reopenQuoteAction(quoteId: string, _prev: FlowState, formData: FormData): Promise<FlowState> {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const values = formToObject(formData);
   const parsed = reasonSchema.safeParse(values);
@@ -292,7 +298,7 @@ export async function decideQuoteAction(
   _prev: FlowState,
   formData: FormData,
 ): Promise<FlowState> {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const values = formToObject(formData);
   let args: { p_date: string | null; p_name: string | null; p_reference: string | null; p_note: string | null };

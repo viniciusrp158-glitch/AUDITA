@@ -1,7 +1,8 @@
 // I9.1 — Gestão de usuários do AUDITA (AUDDOC017 §10).
 // A chave privilegiada existe SOMENTE dentro do Supabase (variável do próprio ambiente da função): nunca no navegador,
 // na Vercel ou no Git. Só o usuário mestre (verificado no banco com o token de quem chama) consegue usar.
-// Ações: "criar" (conta com senha provisória e troca obrigatória) e "redefinir_senha" (nova senha provisória).
+// Ações: "listar" (usuários do AUDITA com e-mail), "criar" (conta com senha provisória e troca obrigatória) e
+// "redefinir_senha" (nova senha provisória). Só os e-mails de quem está em audita.app_users são consultados.
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
 const URL = Deno.env.get("SUPABASE_URL")!;
@@ -37,6 +38,20 @@ Deno.serve(async (req) => {
     return json(400, { erro: "Requisição inválida." });
   }
   const admin = createClient(URL, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
+
+  if (body.acao === "listar") {
+    const rows = await user
+      .from("app_users")
+      .select("user_id, full_name, job_title, role, status, is_master, is_test, is_test_master, must_change_password, created_at")
+      .order("full_name");
+    if (rows.error) return json(400, { erro: "Não foi possível listar os usuários." });
+    const usuarios = [];
+    for (const r of rows.data ?? []) {
+      const u = await admin.auth.admin.getUserById(r.user_id);
+      usuarios.push({ ...r, email: u.data.user?.email ?? null, last_sign_in_at: u.data.user?.last_sign_in_at ?? null });
+    }
+    return json(200, { ok: true, usuarios });
+  }
 
   if (body.acao === "criar") {
     const email = String(body.email ?? "").trim().toLowerCase();

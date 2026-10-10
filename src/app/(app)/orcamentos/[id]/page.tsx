@@ -85,7 +85,8 @@ export default async function OrcamentoPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ criada?: string; item?: string; fluxo?: string }>;
 }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
+  const isAdmin = user.role === "admin";
   const { id } = await params;
   const sp = await searchParams;
   const [{ quote, items }, vigente, revisions] = await Promise.all([getQuoteOr404(id), getVigenteParameterSet(), listRevisions(id)]);
@@ -144,7 +145,13 @@ export default async function OrcamentoPage({
         {sp.item === "salvo" && <Alert kind="info">Item salvo.</Alert>}
         {sp.item === "removido" && <Alert kind="info">Item removido.</Alert>}
         {sp.fluxo && FLOW_MSG[sp.fluxo] && <Alert kind="info">{FLOW_MSG[sp.fluxo]}</Alert>}
-        {editable && !ps && (
+        {!isAdmin && (
+          <Alert kind="info">
+            Você prepara o escopo, as horas e os custos dos itens. Preços, margens, conclusão da revisão, emissão e registro da decisão do
+            cliente são feitos pelo administrador (AUDDOC017 §10).
+          </Alert>
+        )}
+        {isAdmin && editable && !ps && (
           <Alert kind="warning">
             Sem versão vigente de parâmetros financeiros: os itens ficam em <strong>PENDENTE</strong> e sem preço.{" "}
             <Link href="/configuracoes/parametros" className="underline">
@@ -188,30 +195,36 @@ export default async function OrcamentoPage({
                         </p>
                         <p className="break-words text-sm font-semibold text-ink">{it.description}</p>
                       </div>
-                      <span className="flex flex-wrap gap-1">
-                        <ItemStatusPill status={calc.status} />
-                        {calc.discountAuthorized && <DiscountAuthorizedBadge />}
-                      </span>
+                      {isAdmin && (
+                        <span className="flex flex-wrap gap-1">
+                          <ItemStatusPill status={calc.status} />
+                          {calc.discountAuthorized && <DiscountAuthorizedBadge />}
+                        </span>
+                      )}
                     </div>
                     <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
                       <div>
                         <dt className="text-muted">Horas</dt>
                         <dd className="tabular-nums text-ink">{formatHours(calc.result.hours)}</dd>
                       </div>
-                      <div>
-                        <dt className="text-muted">Custo c/ contingência</dt>
-                        <dd className="tabular-nums text-ink">{formatBRL(calc.result.costWithContingency)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted">Preço final</dt>
-                        <dd className="font-semibold tabular-nums text-navy">{formatBRL(calc.result.finalPrice)}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted">Margem efetiva</dt>
-                        <dd className="tabular-nums text-ink">{formatPercent(calc.result.effectiveMargin)}</dd>
-                      </div>
+                      {isAdmin && (
+                        <>
+                          <div>
+                            <dt className="text-muted">Custo c/ contingência</dt>
+                            <dd className="tabular-nums text-ink">{formatBRL(calc.result.costWithContingency)}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted">Preço final</dt>
+                            <dd className="font-semibold tabular-nums text-navy">{formatBRL(calc.result.finalPrice)}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted">Margem efetiva</dt>
+                            <dd className="tabular-nums text-ink">{formatPercent(calc.result.effectiveMargin)}</dd>
+                          </div>
+                        </>
+                      )}
                     </dl>
-                    {calc.result.reasons.length > 0 && !calc.accepted && (
+                    {isAdmin && calc.result.reasons.length > 0 && !calc.accepted && (
                       <ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-warn">
                         {calc.result.reasons.map((m) => (
                           <li key={m}>{m}</li>
@@ -259,6 +272,7 @@ export default async function OrcamentoPage({
             )}
           </Card>
 
+          {isAdmin && (
           <Card title={`Revisões (${revisions.length})`}>
             {revisions.length === 0 ? (
               <p className="text-sm text-muted">Nenhuma revisão concluída. A Rev.00 é criada ao concluir a revisão do rascunho.</p>
@@ -315,9 +329,20 @@ export default async function OrcamentoPage({
               </ol>
             )}
           </Card>
+          )}
         </div>
 
         <aside className="min-w-0 space-y-6 lg:sticky lg:top-4 lg:self-start">
+          {!isAdmin ? (
+            <section className="rounded-xl border border-line bg-white p-4 text-sm" aria-label="Situação" data-testid="operator-flow">
+              <p className="font-semibold text-ink">Situação: {quote.status === "rascunho" ? "em preparação" : "com o administrador"}</p>
+              <p className="mt-1 text-xs text-muted">
+                Quando os itens e o conteúdo estiverem prontos, avise o administrador para conferir os valores, concluir a revisão e emitir a
+                proposta.
+              </p>
+            </section>
+          ) : (
+          <>
           <section className="rounded-xl border border-line bg-white" aria-label="Totais">
             <div className="border-b border-line bg-navy px-4 py-2.5 text-sm font-semibold text-white">Totais</div>
             <div className="space-y-3 p-4 text-sm">
@@ -526,6 +551,8 @@ export default async function OrcamentoPage({
             )}
             {!editable && <p className="mt-2 text-xs text-muted">Revisões guardam a cópia dos parâmetros usados; mudanças futuras não as alteram (CA-08).</p>}
           </Card>
+          </>
+          )}
         </aside>
       </div>
     </>

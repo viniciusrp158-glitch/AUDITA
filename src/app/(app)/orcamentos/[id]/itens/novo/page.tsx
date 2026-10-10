@@ -11,7 +11,7 @@ import { ItemForm } from "../../../item-form";
 export const metadata = { title: "Novo item" };
 
 export default async function NovoItemPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
   const { id } = await params;
   const [{ quote }, services] = await Promise.all([getQuoteOr404(id), getServiceOptions()]);
   if (quote.status !== "rascunho") redirect(`/orcamentos/${id}`);
@@ -27,6 +27,7 @@ export default async function NovoItemPage({ params }: { params: Promise<{ id: s
         services={services}
         initial={{ periodicity: "unica" }}
         cancelHref={`/orcamentos/${id}`}
+        canPrice={user.role === "admin"}
         submitLabel="Adicionar item"
       />
     </>

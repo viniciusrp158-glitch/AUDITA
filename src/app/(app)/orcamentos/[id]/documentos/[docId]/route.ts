@@ -4,14 +4,14 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { requireAppUser } from "@/lib/auth";
-import { OPERATE } from "@/lib/permissions";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { DOCUMENTS_BUCKET } from "@/lib/documents/storage";
 import { createClient } from "@/lib/supabase/server";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string; docId: string }> }) {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   const { id, docId } = await params;
   if (!uuidRe.test(id) || !uuidRe.test(docId)) return new NextResponse("Documento não encontrado.", { status: 404 });
 

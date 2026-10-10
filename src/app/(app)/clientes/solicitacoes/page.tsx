@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
-import { OPERATE } from "@/lib/permissions";
+import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatTaxId } from "@/lib/br";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -25,7 +25,7 @@ type Row = {
 };
 
 export default async function SolicitacoesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  await requireAppUser(OPERATE);
+  await requireAppUser(ADMIN_ONLY);
   const sp = await searchParams;
   const status = FILTERS.some((f) => f.value === sp.status) ? sp.status! : "pendente";
   const supabase = await createClient();
