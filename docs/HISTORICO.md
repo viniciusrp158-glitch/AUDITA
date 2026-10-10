@@ -352,7 +352,7 @@ Solução:
 | Cópia e restauração | 21/21 tabelas idênticas (linhas e MD5 iguais na origem e na restaurada); 209 arquivos copiados (24 MB), 160 com SHA-256 conferido com o banco, 0 divergências, 0 registros sem arquivo |
 | Supabase advisors (segurança) | apenas "proteção contra senhas vazadas desligada" (configuração do painel — pendência 17); o aviso "RLS sem política" dos contadores foi eliminado |
 
-## I9.1 — Minha conta, usuários e tema claro/escuro (em validação)
+## I9.1 — Minha conta, usuários e tema claro/escuro (validado pelo Diretor em 10/10/2026)
 
 **Objetivo:** atender ao pedido do Diretor (10/10/2026): tema claro/escuro no canto inferior do menu; "Minha conta" no lugar de "Alterar senha" (nome, e-mail, cargo, senha); usuário mestre que cria contas de qualquer nível.
 **Requisitos:** AUDDOC017 §1 (operador inicial único; preparar permissões) e §10 (perfis, RLS testada no banco, chave privilegiada só no servidor); AUDDOC013 §8; AUDDOC003 (identidade visual).
