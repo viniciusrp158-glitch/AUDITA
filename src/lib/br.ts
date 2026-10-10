@@ -9,6 +9,17 @@ export function onlyDigits(value: string | null | undefined): string {
   return (value ?? "").replace(/\D/g, "");
 }
 
+/**
+ * Dígitos para pesquisar por CNPJ/CPF — só quando o termo é um documento (números e pontuação).
+ * Termos com letras (nome, código) não viram busca por CNPJ: "Jornada MV2X25" não pode achar um CNPJ com "225".
+ */
+export function taxIdSearchDigits(q: string | null | undefined): string | null {
+  const t = (q ?? "").trim();
+  if (!/^[\d.\-/\s]+$/.test(t)) return null;
+  const d = onlyDigits(t);
+  return d.length >= 3 ? d : null;
+}
+
 export function isValidCnpj(value: string): boolean {
   const d = onlyDigits(value);
   if (!/^\d{14}$/.test(d) || /^(\d)\1{13}$/.test(d)) return false;

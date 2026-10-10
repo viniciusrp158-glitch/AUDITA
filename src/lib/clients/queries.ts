@@ -1,6 +1,6 @@
 import "server-only";
 import { notFound } from "next/navigation";
-import { onlyDigits } from "@/lib/br";
+import { taxIdSearchDigits } from "@/lib/br";
 import { createClient } from "@/lib/supabase/server";
 
 export type Client = {
@@ -102,9 +102,9 @@ export async function listClients({
 
   const term = normalizeSearch(q ?? "");
   if (term) {
-    const digits = onlyDigits(q);
+    const digits = taxIdSearchDigits(q);
     const filters = [`search_text.ilike."%${term}%"`];
-    if (digits.length >= 3) filters.push(`tax_id.ilike."%${digits}%"`);
+    if (digits) filters.push(`tax_id.ilike."%${digits}%"`);
     query = query.or(filters.join(","));
   }
 

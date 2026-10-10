@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  taxIdSearchDigits,
   formatCep,
   formatCnae,
   formatCnpj,
@@ -30,5 +31,19 @@ describe("documentos brasileiros (mesmas regras do banco)", () => {
     expect(formatPhone("1533334444")).toBe("(15) 3333-4444");
     expect(formatCnae("7119703")).toBe("7119-7/03");
     expect(onlyDigits("(15) 3333-4444")).toBe("1533334444");
+  });
+});
+
+describe("taxIdSearchDigits (pesquisa de clientes — achado da homologação I9)", () => {
+  it("usa os dígitos só quando o termo é um documento", () => {
+    expect(taxIdSearchDigits("12.345.678/0001-90")).toBe("12345678000190");
+    expect(taxIdSearchDigits("123")).toBe("123");
+    expect(taxIdSearchDigits(" 529.982.247-25 ")).toBe("52998224725");
+  });
+  it("termos com letras ou curtos não pesquisam CNPJ/CPF", () => {
+    expect(taxIdSearchDigits("Jornada MV2MSIYW25M")).toBeNull();
+    expect(taxIdSearchDigits("CLI-0216")).toBeNull();
+    expect(taxIdSearchDigits("12")).toBeNull();
+    expect(taxIdSearchDigits("")).toBeNull();
   });
 });
