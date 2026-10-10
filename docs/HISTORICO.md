@@ -275,7 +275,7 @@ Observação: numa das rodadas, um passo do e2e do I2 ("inativo não aparece no 
 
 **Anexos recolhíveis na lista da biblioteca.** Documentos com anexos aparecem só com a linha do documento principal e um botão com seta para baixo ("N anexos"). Ao clicar, os anexos aparecem logo abaixo, recuados; um novo clique recolhe. Funciona na tabela (computador) e nos cartões (celular). Durante uma busca, os anexos encontrados aparecem já abertos, para que o resultado não fique escondido. Teste e2e acrescentado: AUDDOC010 mostra "6 anexos", abre as 6 linhas e recolhe.
 
-## I8 — Indicadores gerenciais (em validação)
+## I8 — Indicadores gerenciais (validado pelo Diretor em 10/10/2026)
 
 **Objetivo:** mostrar ao Diretor, na tela Início, os números do negócio calculados a partir dos registros do sistema, com período selecionável e sem misturar dados de teste com registros reais.
 **Requisitos:** AUDDOC017 §14 (indicadores gerenciais), RF-18 (caixa: previsto para V1.1, fora do MVP), CA-11 (indicador conferível com os registros de origem); AUDDOC011 §2 (valores únicos e mensais nunca somados).
@@ -312,3 +312,15 @@ Solução:
 
 Testes: e2e do painel ampliado (6 meses no gráfico, "Como ler" em cada gráfico, cor dos alertas, gráfico de conversão vazio sem dados de teste) e responsividade — aprovados; telas conferidas no computador e no celular.
 
+
+## Planejamento registrado em 10/10/2026 — I9.1 (após a homologação)
+
+Pedido do Diretor na validação do I8, registrado para **depois do I9**, sem desviar do plano:
+
+1. **Tema claro / escuro** — chave no canto inferior esquerdo (junto ao nome do usuário), lembrada por usuário; todas as telas, gráficos e documentos em tela conferidos nos dois temas (os PDFs/DOCX emitidos não mudam).
+2. **"Minha conta"** no lugar de "Alterar senha": nome, e-mail, cargo e alteração de senha.
+3. **Usuário mestre e criação de usuários** — só o Diretor (usuário mestre) vê e usa "Novo usuário".
+
+Ponto que dependerá de decisão do Diretor antes da implementação (AUDDOC017 §1 e §10): o MVP prevê **um único administrador** e manda "preparar permissões para expansão futura sem exibir papéis fictícios"; os perfis futuros são **Operador administrativo** (cadastra e prepara orçamentos, sem alterar permissões, liberar serviços nem aprovar preços) e **Marketing**. Criar usuários exige definir com qual perfil cada um entra — e as restrições de cada perfil precisam estar no banco (RLS), não só na tela. A criação de usuários usa a chave privilegiada **somente no servidor** (AUDDOC017 §10). Trocar e-mail exige confirmação pelo próprio e-mail.
+
+Como o I9.1 vem depois da homologação, ele terá sua própria regressão completa antes de ser considerado concluído.

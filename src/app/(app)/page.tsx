@@ -24,8 +24,10 @@ const INCREMENTOS: { id: string; titulo: string; status: Status }[] = [
   { id: "I5", titulo: "Parâmetros financeiros e motor de cálculo AUDDOC011", status: "concluido" },
   { id: "I6", titulo: "Revisões e emissão de propostas (DOCX/PDF)", status: "concluido" },
   { id: "I7", titulo: "Biblioteca documental", status: "concluido" },
-  { id: "I8", titulo: "Indicadores gerenciais", status: "em_validacao" },
-  { id: "I9", titulo: "Homologação do MVP", status: "previsto" },
+  { id: "I8", titulo: "Indicadores gerenciais", status: "concluido" },
+  { id: "I9", titulo: "Homologação do MVP", status: "em_validacao" },
+  { id: "I9.1", titulo: "Minha conta, usuários e tema claro/escuro (pedido do Diretor)", status: "previsto" },
+  { id: "I10", titulo: "Comunicação / marketing (V1.2)", status: "previsto" },
 ];
 
 const STATUS = {
@@ -328,7 +330,7 @@ export default async function InicioPage({
             const Icon = s.icon;
             return (
               <li key={inc.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                <span className="w-7 font-mono text-xs font-semibold text-muted">{inc.id}</span>
+                <span className="w-9 font-mono text-xs font-semibold text-muted">{inc.id}</span>
                 <span className="flex-1 text-ink">{inc.titulo}</span>
                 <span className={`flex items-center gap-1.5 text-xs font-medium ${s.cls}`}>
                   <Icon size={15} aria-hidden /> {s.label}
