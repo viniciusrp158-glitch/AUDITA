@@ -389,3 +389,29 @@ Solução:
 2. **Minha conta em blocos recolhíveis.** Ao abrir a página aparecem só os títulos — Informações da conta, Aparência, Segurança e Gerenciamento de usuários; cada bloco abre ao clicar. Dentro do gerenciamento, "Novo usuário" e "Gerenciar acesso e senha" (por usuário) também abrem ao clicar, e os usuários inativos ficam numa lista recolhida.
 
 Testes acrescentados: 1 de integração (mestre adicional: mesmas permissões, lista usuários, altera outros, não altera a si mesmo nem o titular, não redefine a senha do titular; quem não é mestre não concede a marca; titular retira a marca) e 1 e2e (mestre cria outro mestre → primeiro acesso → mesmo menu e gestão de usuários; blocos fechados ao abrir a página). Vitest 13/13 nos arquivos do I9.1 e de segurança; Playwright 5/5 no arquivo do I9.1.
+
+Regressão completa após os ajustes (10/10/2026, junto com o I9.2): Vitest 145/145 e Playwright 35/35 (inclui os testes do I9.1 e do I9.2). A falha intermitente conhecida de login (tempo de 5 s) apareceu uma vez no e2e do I6 e passou na repetição.
+
+## I9.2 — Dados institucionais da AUDITA (em validação)
+
+**Objetivo:** cadastrar razão social, CNPJ, endereço, contatos e responsáveis da AUDITA e ligá-los ao campo "Empresa proponente" das propostas, sem inventar nada: o que não estiver formalizado aparece como PENDENTE até as respostas C1 (contabilidade) e D6 (Diretor) do caderno de pendências.
+**Requisitos:** AUDDOC013 §3–§4 (cadastro e identificação); AUDDOC010-ANX01 (campo "Empresa proponente"); AUDDOC010 §7 (constituição, razão social, CNPJ, CNAEs, inscrições e regime pendentes); AUDDOC015 §2 (e-mail oficial); AUDDOC017 CA-08 (snapshot imutável da revisão); CLAUDE.md regra 6.
+
+Solução:
+- **Banco** — migração aditiva `20261010210514_i9_2_dados_institucionais` (MD5 `df4cbcc42090ad7f167be1b4c87b1e1b`, conferida antes no PGlite). Tabela `audita.institutional_profiles` em **versões** (rascunho → vigente → substituída), com as mesmas validações do formulário (CNPJ com dígitos verificadores, CEP, UF, e-mail, telefone). O banco define status e número da versão; versão publicada é **imutável** (nem o administrador altera; só a função de publicação muda o status). Publicação por `publish_institutional_profile` (somente administrador). RLS: somente o administrador lê e grava (operador e marketing sem acesso — modo mais restritivo). Trilha de auditoria em criação, edição e publicação. A migração **não carrega dados**.
+- **Congelamento nas propostas** — gatilho na criação de cada revisão grava em `snapshot.proponent` os dados da versão vigente (sem as observações internas), como já é feito com os parâmetros. Revisões antigas e revisões sem versão publicada saem com "AUDITA — razão social e CNPJ pendentes de formalização" (texto anterior, preservado).
+- **Documentos** — M01: campo "Empresa proponente" com nome, razão social, CNPJ, endereço (opcional), contato e responsável técnico (opcional, só com registro confirmado); o que faltar aparece como **PENDENTE**. M01 e M02: rodapé com nome, CNPJ e contatos quando preenchidos. Marca d'água de teste também quando os dados institucionais forem de teste.
+- **Tela** — Configurações → Dados institucionais (somente administrador): situação (o que falta), prévia de como sai na proposta e no rodapé, lista de versões; rascunho com formulário em grupos (identificação, endereço, contato oficial, responsáveis, exibição, observações internas), prévia e publicação com confirmação. Campos essenciais marcados; publicar com essenciais vazios é permitido, com aviso. O card "Usuários" das Configurações passou a levar a Minha conta.
+- Signatário e cargo do signatário ficam guardados para os modelos de contrato (M03–M06, V1.1); o M01 atual não tem campo de assinatura da AUDITA.
+
+### Evidências de teste (10/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| Migração | conferida no PGlite e aplicada com MD5 idêntico; funções SECURITY DEFINER com `search_path` vazio; anônimo sem execução; RLS ativa |
+| `tsc`, `eslint`, `next build` | sem erros |
+| Vitest — total | 145/145. I9.2: 4 unitários (proponente ausente → texto de pendência; vigente → campo do M01, rodapé do M01/M02, DOCX e PDF; dados parciais → PENDENTE e opções de exibição; validação do formulário igual à do banco) e 4 de integração — 3 num banco descartável com todas as migrações (rascunho, validações, publicação só pelo administrador, vigente anterior substituída, imutabilidade inclusive para superusuário, trilha de auditoria, congelamento no snapshot sem observações) e 1 no banco de desenvolvimento, somente leitura (operador, marketing, sem acesso e anônimo não leem, não gravam e não publicam). O teste de emissão do I6 passou a conferir o proponente no snapshot real |
+| Playwright — total | 35/35 (I9.2: Configurações → Dados institucionais, prévia com PENDENTE, erros de CNPJ/CEP/e-mail/telefone sem gravar; operador barrado; celular 390 px sem rolagem horizontal; a rota entrou no teste responsivo) |
+| Supabase advisors (segurança) | apenas "proteção contra senhas vazadas" (pendência 17) |
+
+Observação: a publicação **não** é feita nos testes do banco de desenvolvimento (deixaria uma versão de teste vigente); ela é verificada no banco descartável. O e2e deixa um rascunho vazio marcado TESTE (versão 1), reaproveitado nas execuções seguintes.
