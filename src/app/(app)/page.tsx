@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Circle, CircleDot, Info } from "lucide-react";
+import { AlertTriangle, BellRing, CheckCircle2, Circle, CircleDot } from "lucide-react";
+import { ChartCard, HBars, MonthlyColumns, SplitBar, type MonthPoint } from "@/components/charts";
 import { PageHeader } from "@/components/page";
 import { requireAppUser } from "@/lib/auth";
 import { isProduction } from "@/lib/env";
 import { todaySaoPaulo } from "@/lib/format";
 import { PRESETS, resolvePeriod, type PresetKey } from "@/lib/indicators/period";
-import { getAlerts, getIndicators } from "@/lib/indicators/queries";
+import { getAlerts, getIndicators, getMonthlySeries } from "@/lib/indicators/queries";
 import { formatBRL, formatPercent } from "@/lib/pricing/engine";
 import { QUOTE_STATUS, type QuoteStatus } from "@/lib/pricing/labels";
 
@@ -78,7 +79,29 @@ export default async function InicioPage({
   const period = resolvePeriod(sp, today);
   // Dados de teste: fora por padrão em produção; no desenvolvimento (só há dados fictícios) entram por padrão, com aviso.
   const includeTest = sp.teste === "1" ? true : sp.teste === "0" ? false : !isProduction;
-  const [ind, alerts] = await Promise.all([getIndicators(period.from, period.to, includeTest), getAlerts(today, includeTest)]);
+  const [ind, alerts, monthly] = await Promise.all([
+    getIndicators(period.from, period.to, includeTest),
+    getAlerts(today, includeTest),
+    getMonthlySeries(period.to < today ? period.to : today, includeTest),
+  ]);
+  const once: MonthPoint[] = monthly.map((r) => ({
+    key: r.key,
+    label: r.label,
+    quoted: Number(r.ind?.quoted.once ?? 0),
+    accepted: Number(r.ind?.accepted.once ?? 0),
+    quotedCount: r.ind?.quoted.count ?? 0,
+    acceptedCount: r.ind?.accepted.count ?? 0,
+  }));
+  const recurring: MonthPoint[] = monthly.map((r) => ({
+    key: r.key,
+    label: r.label,
+    quoted: Number(r.ind?.quoted.monthly ?? 0),
+    accepted: Number(r.ind?.accepted.monthly ?? 0),
+    quotedCount: r.ind?.quoted.count ?? 0,
+    acceptedCount: r.ind?.accepted.count ?? 0,
+  }));
+  const hasRecurring = recurring.some((m) => m.quoted > 0 || m.accepted > 0);
+  const monthsLabel = `${monthly[0]?.label} a ${monthly[monthly.length - 1]?.label}`;
   const qs = (extra: Record<string, string>) =>
     `?${new URLSearchParams({ periodo: period.key, ...(period.key === "personalizado" ? { de: period.from, ate: period.to } : {}), teste: includeTest ? "1" : "0", ...extra })}`;
 
@@ -126,6 +149,31 @@ export default async function InicioPage({
           <span className="ml-2 text-xs">Sem dados de teste</span>
         )}
       </p>
+
+      {alerts.length > 0 && (
+        <section className="mb-6 space-y-2" aria-label="Alertas" data-testid="alerts">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-danger">
+            <BellRing size={16} aria-hidden /> Alertas ({alerts.length})
+          </h2>
+          {alerts.map((a) => (
+            <Link
+              key={a.text}
+              href={a.href}
+              data-testid="alert"
+              className={`flex items-start gap-2 rounded-md border border-danger/30 bg-[#fdeceb] px-3 py-2.5 text-sm font-medium text-[#8f2a23] hover:underline ${
+                a.kind === "warning" ? "border-l-4 border-l-danger" : ""
+              }`}
+            >
+              {a.kind === "warning" ? (
+                <AlertTriangle size={16} className="mt-0.5 shrink-0 text-danger" aria-label="Atenção" />
+              ) : (
+                <BellRing size={16} className="mt-0.5 shrink-0 text-danger" aria-label="Aviso" />
+              )}
+              {a.text}
+            </Link>
+          ))}
+        </section>
+      )}
 
       {!ind ? (
         <p role="alert" className="mb-6 rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
@@ -191,38 +239,85 @@ export default async function InicioPage({
             O caixa (entradas e saídas efetivas) está previsto para a versão 1.1 (AUDDOC017 RF-18).
           </p>
 
-          <section className="mt-6 rounded-xl border border-line bg-white" aria-label="Cotações por estágio">
-            <h2 className="border-b border-line px-5 py-3 text-sm font-semibold text-ink">Cotações criadas no período, por situação atual</h2>
-            <ul className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3 lg:grid-cols-6" data-testid="stages">
-              {STAGES.map((s) => (
-                <li key={s} className="bg-white px-4 py-3">
-                  <p className="text-xs text-muted">{QUOTE_STATUS[s].label}</p>
-                  <p className="text-xl font-semibold tabular-nums text-ink" data-testid={`stage-${s}`}>
-                    {ind.quotes_by_stage[s] ?? 0}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </>
-      )}
-
-      {alerts.length > 0 && (
-        <section className="mt-6 space-y-2" aria-label="Alertas" data-testid="alerts">
-          <h2 className="text-sm font-semibold text-ink">Alertas</h2>
-          {alerts.map((a) => (
-            <Link
-              key={a.text}
-              href={a.href}
-              className={`flex items-start gap-2 rounded-md border px-3 py-2 text-sm hover:underline ${
-                a.kind === "warning" ? "border-warn/40 bg-warn/5 text-warn" : "border-line bg-white text-ink"
-              }`}
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <ChartCard
+              className="lg:col-span-2"
+              testid="chart-monthly"
+              title={`Quanto cotamos e quanto foi aceito por mês (${monthsLabel})`}
+              how={
+                <>
+                  cada mês tem duas colunas. A <strong>azul</strong> é o total das propostas emitidas no mês; a <strong>verde</strong>, o total das
+                  aceitas no mês. Quanto mais a verde se aproxima da azul, melhor. São valores únicos (pagos uma vez); passe o mouse sobre a
+                  coluna para ver o valor exato.
+                </>
+              }
             >
-              {a.kind === "warning" ? <AlertTriangle size={16} className="mt-0.5 shrink-0" /> : <Info size={16} className="mt-0.5 shrink-0 text-navy" />}
-              {a.text}
-            </Link>
-          ))}
-        </section>
+              <MonthlyColumns data={once} />
+            </ChartCard>
+
+            {hasRecurring && (
+              <ChartCard
+                className="lg:col-span-2"
+                testid="chart-recurring"
+                title={`Contratos mensais: valor por mês cotado e aceito (${monthsLabel})`}
+                how="mesma leitura do gráfico acima, mas só com os serviços cobrados todo mês. Fica separado porque valor mensal não se soma com valor único."
+              >
+                <MonthlyColumns data={recurring} unit=" (por mês)" />
+              </ChartCard>
+            )}
+
+            <ChartCard
+              testid="stages"
+              title="Em que etapa estão as cotações do período?"
+              how="cada barra conta as cotações criadas no período conforme a situação em que estão hoje. Barras longas em Rascunho ou Revisada indicam propostas paradas antes de chegar ao cliente."
+            >
+              <HBars
+                rows={STAGES.map((s) => ({
+                  key: s,
+                  label: QUOTE_STATUS[s].label,
+                  value: ind.quotes_by_stage[s] ?? 0,
+                  hint: `${QUOTE_STATUS[s].label}: ${ind.quotes_by_stage[s] ?? 0} cotação(ões)`,
+                }))}
+              />
+            </ChartCard>
+
+            <div className="grid gap-4">
+              <ChartCard
+                testid="chart-conversion"
+                title="Das propostas respondidas, quantas foram aceitas?"
+                how="considera só as propostas em que o cliente respondeu no período. Ex.: 2 aceitas e 1 recusada = 67% de conversão."
+              >
+                <p className="mb-3 text-3xl font-semibold tabular-nums text-navy">
+                  {ind.conversion === null ? "—" : formatPercent(ind.conversion)}
+                  <span className="ml-2 text-xs font-normal text-muted">de conversão</span>
+                </p>
+                <SplitBar
+                  testid="split-decisions"
+                  emptyText="Nenhuma resposta de cliente no período"
+                  parts={[
+                    { label: "Aceitas", value: ind.decisions.accepted, color: "#277b43" },
+                    { label: "Recusadas", value: ind.decisions.refused, color: "#b63d35" },
+                  ]}
+                />
+              </ChartCard>
+
+              <ChartCard
+                testid="chart-demands"
+                title="As demandas em aberto estão no prazo?"
+                how="mostra todas as demandas ainda em andamento hoje. A parte vermelha são as que já passaram do prazo e precisam de atenção."
+              >
+                <SplitBar
+                  testid="split-demands"
+                  emptyText="Nenhuma demanda em aberto"
+                  parts={[
+                    { label: "No prazo", value: Math.max(0, ind.demands.pending - ind.demands.overdue), color: "#277b43" },
+                    { label: "Prazo vencido", value: ind.demands.overdue, color: "#b63d35" },
+                  ]}
+                />
+              </ChartCard>
+            </div>
+          </div>
+        </>
       )}
 
       <details className="mt-6 rounded-xl border border-line bg-white">

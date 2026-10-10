@@ -24,6 +24,15 @@ test("painel: indicadores do mês com dados de teste, troca de período, exclus�
   await expect(page.getByTestId("kpi-quoted")).toContainText("R$");
   await expect(page.getByText(/não dinheiro recebido/)).toBeVisible();
   await expect(page.getByTestId("stages")).toBeVisible();
+  // Gráficos (pedido do Diretor): evolução de 6 meses, etapas, conversão e prazos, cada um com "Como ler"
+  await expect(page.getByTestId("chart-monthly").getByTestId("month-group")).toHaveCount(6);
+  for (const id of ["chart-monthly", "stages", "chart-conversion", "chart-demands"])
+    await expect(page.getByTestId(id).getByText("Como ler:")).toBeVisible();
+  await expect(page.getByTestId("split-decisions")).toContainText("Aceitas:");
+  // Alertas em vermelho-claro, acima dos indicadores
+  const alert = page.getByTestId("alert").first();
+  await expect(alert).toBeVisible();
+  expect(await alert.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(253, 236, 235)");
   await page.screenshot({ path: `${SHOTS}/80-painel.png`, fullPage: true });
 
   // Sem dados de teste: no desenvolvimento tudo é fictício, então os números zeram e a conversão fica "sem dados"
@@ -32,6 +41,7 @@ test("painel: indicadores do mês com dados de teste, troca de período, exclus�
   await expect(page.getByTestId("kpi-clients")).toHaveText("0");
   await expect(page.getByTestId("kpi-quoted")).toHaveText("R$ 0,00");
   await expect(page.getByTestId("kpi-conversion")).toHaveText("sem dados");
+  await expect(page.getByTestId("split-decisions")).toContainText("Nenhuma resposta de cliente no período");
 
   // Período personalizado sem movimento
   await page.goto("/?periodo=personalizado&de=2000-01-01&ate=2000-01-31&teste=1");

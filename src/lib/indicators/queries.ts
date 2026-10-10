@@ -74,3 +74,28 @@ export async function getAlerts(today: string, includeTest: boolean): Promise<Al
   if (drafts.count) out.push({ kind: "info", text: `${drafts.count} documento(s) da biblioteca em rascunho, aguardando aprovação.`, href: "/biblioteca" });
   return out;
 }
+
+export type MonthlyRow = { key: string; label: string; from: string; to: string; ind: Indicators | null };
+
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+/**
+ * Evolução mensal para os gráficos: os `months` meses que terminam no mês de `endDate`.
+ * Reaproveita a mesma função do banco de cada mês, para que gráfico e indicadores usem a mesma regra (CA-11).
+ */
+export async function getMonthlySeries(endDate: string, includeTest: boolean, months = 6): Promise<MonthlyRow[]> {
+  const [y, m] = endDate.split("-").map(Number);
+  const list = Array.from({ length: months }, (_, i) => {
+    const first = new Date(Date.UTC(y, m - 1 - (months - 1 - i), 1));
+    const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0));
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    return {
+      key: iso(first).slice(0, 7),
+      label: `${MESES[first.getUTCMonth()]}/${String(first.getUTCFullYear()).slice(2)}`,
+      from: iso(first),
+      to: iso(last),
+    };
+  });
+  const inds = await Promise.all(list.map((p) => getIndicators(p.from, p.to, includeTest)));
+  return list.map((p, i) => ({ ...p, ind: inds[i] }));
+}
