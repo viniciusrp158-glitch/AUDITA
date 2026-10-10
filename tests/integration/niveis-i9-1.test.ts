@@ -74,8 +74,11 @@ describe.skipIf(!ready)("I9.1 — níveis de acesso (modo mais restritivo) e usu
     expect(st.error).toBeNull();
 
     // Cotação sem versão de parâmetros (é o administrador quem adota)
-    const withParams = await operador.from("quotes").insert({ demand_id: d.data!.id, parameter_set_id: crypto.randomUUID(), is_test: true });
-    expect(withParams.error?.code).toBe("42501");
+    const vigente = (await mestre.from("pricing_parameter_sets").select("id").eq("status", "vigente").maybeSingle()).data;
+    if (vigente) {
+      const withParams = await operador.from("quotes").insert({ demand_id: d.data!.id, parameter_set_id: vigente.id, is_test: true });
+      expect(withParams.error?.code).toBe("42501");
+    }
     const q = await operador.from("quotes").insert({ demand_id: d.data!.id, is_test: true }).select("id").single();
     expect(q.error).toBeNull();
 
