@@ -199,7 +199,7 @@ Observações:
 
 I5 validado pelo Diretor em 09/10/2026.
 
-## I6 — Revisões, emissão de propostas (DOCX/PDF) e decisão do cliente (em validação)
+## I6 — Revisões, emissão de propostas (DOCX/PDF) e decisão do cliente
 
 **Objetivo:** transformar a cotação calculada em proposta ao cliente — revisão congelada, emissão em Word e PDF pelos modelos aprovados, registro de aceite/recusa — sem nunca alterar o que já foi emitido.
 **Requisitos:** AUDDOC017 RF-14, RF-15, RF-16, RF-17, RF-21, RF-22, RF-23, RF-24, CA-04, CA-08, CA-10; AUDDOC010 §§4–7 e anexos M01 (ANX01) e M02 (ANX02); AUDDOC011 §2.
@@ -233,4 +233,28 @@ Solução:
 Correções durante o incremento: variável ambígua na reabertura (migração aditiva); exemplo de serviço "não liberado" do teste do I3 passou a ser o TRN-NR35 (o SST-001 recebeu liberação fictícia); botão do I5 renomeado para "Salvar conteúdo".
 
 Pendências do sistema real geradas por este incremento: ver `docs/PENDENCIAS_SISTEMA_REAL.md` (formalização e dados institucionais, liberação real dos serviços, condições comerciais padrão, revisão jurídica dos modelos, assinatura eletrônica).
+
+### Ajustes do I6 pedidos na validação (10/10/2026)
+
+O Diretor validou o I6 e pediu três ajustes:
+
+1. **Desconto sempre bloqueava.** Conferido na fórmula oficial do ANX01 (célula B45): o preço sugerido já dá exatamente a margem-alvo, então **qualquer** desconto deixa a margem efetiva abaixo da meta (REVER MARGEM), e a margem específica não resolve, porque passa a ser a própria meta. O AUDDOC011 §4.6 diz que descontos "exigem nova verificação" e o §5 que o preço após desconto é "valor a ser autorizado". **Decisão do Diretor:** desconto até o máximo dos parâmetros segue com **autorização expressa registrada** no item (justificativa, responsável e data, gravados também no snapshot da revisão); a situação continua "REVER MARGEM", fiel à planilha, com o selo "Desconto autorizado"; acima do máximo continua bloqueado. Migração `20261010040656_i6_desconto_autorizado` (MD5 `de4f9a2aa9a777061b3a4db35bb14d26`). Fórmulas do motor inalteradas.
+2. **Cabeçalho "CAMPO / PREENCHIMENTO" repetido no PDF** quando a tabela começava no fim da página. Corrigido no PDF e no Word: o cabeçalho de tabela nunca fica sozinho no fim da página.
+3. **Tempo de contrato para serviços mensais.** Novos campos "Início previsto do contrato" e "Tempo de contrato (meses)", exigidos quando há item mensal. A proposta mostra a vigência ("12 meses — de 01/11/2026 a 31/10/2027") e, por decisão do Diretor, o **valor total do contrato** (mensal × meses), sem somar com valores únicos. Migração `20261010034458_i6_tempo_contrato` (MD5 `4ded046391d6053e8561edfa7d14df67`).
+
+Testes acrescentados: 7 unitários (desconto autorizado e regras de bloqueio; data final do contrato, inclusive meses curtos e ano bissexto; conteúdo do documento com vigência e valor total) e 2 de integração (autorização exigida, justificativa obrigatória, bloqueio acima do máximo mesmo com resultado forjado, contrato obrigatório para item mensal e gravado no snapshot). Compilação na Vercel concluída; a execução completa dos testes ficou pendente porque o computador do Diretor desconectou durante a rodada — será feita antes da validação do I7.
+
+## I7 — Biblioteca documental (em desenvolvimento)
+
+**Objetivo:** guardar os documentos oficiais da AUDITA com código, revisão, aprovação e SHA-256, sem nunca sobrescrever versões, com acesso privado e download rastreado.
+**Requisitos:** AUDDOC017 RF-19, RF-20, RF-21, RF-22, RF-24, FL-03, CA-09, CA-10, §18 (minutas nunca vigentes); AUDDOC001; AUDDOC013.
+
+Solução (implementada; testes pendentes do computador):
+- Migração `20261010041535_i7_biblioteca` (MD5 `5b41e4aa2dd5f5b42cd1c4ad16f980d5`): documentos (código AUDDOC/ANX permanente, título, família, fase, visibilidade, anexo vinculado ao principal) e revisões (Rev.NN com arquivo próprio no bucket privado `audita-biblioteca`, SHA-256, aprovação). Rascunho → **Vigente** só com aprovador e data registrados; a vigente anterior vira **Substituída** e continua acessível (CA-09); rascunho pode ser cancelado com motivo; nada é excluído; arquivo de uma revisão nunca muda.
+- Envio pela tela: o arquivo vai do navegador direto ao bucket privado por **link de envio assinado** (o servidor define o caminho; nenhuma chave no navegador); o servidor baixa o arquivo, **calcula ele mesmo o SHA-256** e só então registra. Download por link assinado de 60 s, registrado na trilha.
+- Tela do documento mostra quando o arquivo vigente é a base de um modelo técnico do sistema (mesmo SHA-256 — RF-21).
+- **Acervo oficial:** manifesto dos 25 arquivos (AUDDOC001–015, anexos e AUDDOC017) conferido com os índices LEIA-ME do dossiê: 23 idênticos byte a byte; AUDDOC017 sem índice (aprovação própria). Roteiro `scripts/importar-dossie.mjs` confere tudo antes de enviar e é reexecutável.
+- **Achados da conferência (levados ao Diretor):**
+  - **AUDDOC001:** o arquivo do dossiê (nome antigo AUDPRO001) é a **minuta** — declara "Status: Rascunho", data e responsável "[Inserir…]" e tem tamanho diferente do índice. Importado como **rascunho**, sem vigente, até o envio da Rev.00 aprovada.
+  - **AUDDOC014 e AUDDOC015:** conteúdo e SHA-256 são da Rev.00 aprovada; apenas a propriedade interna de título do Word ainda diz "Minuta v0.1". Importados como vigentes, com observação.
 

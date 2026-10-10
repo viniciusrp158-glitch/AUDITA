@@ -18,6 +18,9 @@
 | 10 | Ambiente de produção: aplicar as migrações validadas no projeto Supabase corporativo, publicar na Vercel e apontar o subdomínio do audita.seg.br | AUDDOC017 §18; CLAUDE.md | D, S | Infraestrutura (sob autorização do Diretor) | I1, I2.1 |
 | 11 | Segurança da conta: ativar MFA do administrador e a proteção contra senhas vazadas | AUDDOC017 (RNF segurança) | D | Painel do Supabase | I1 |
 | 12 | Provedor de e-mail para avisos (novas solicitações de cadastro, recuperação de senha com domínio próprio) | AUDDOC017 | D | Autenticação e autocadastro | I2.1 |
+| 13 | Enviar o arquivo **aprovado** da Rev.00 do AUDDOC001 (PDA): o arquivo do dossiê ainda é a minuta (status "Rascunho", data e responsável "[Inserir…]", tamanho diferente do índice da Fase 1) | AUDDOC001; AUDDOC017 §18 | D | Biblioteca → AUDDOC001 → enviar revisão e publicar | I7 |
+| 14 | Harmonizar a propriedade interna de título dos arquivos Word do AUDDOC014 e AUDDOC015 (ainda dizem "Minuta v0.1"; conteúdo e SHA-256 já são da Rev.00 aprovada) — em revisão controlada | AUDDOC001; AUDDOC014; AUDDOC015 | D | Biblioteca (nova revisão, se o Diretor optar) | I7 |
+| 15 | Definir a política de desconto por família de serviços (hoje: desconto até o máximo dos parâmetros, com autorização expressa registrada) | AUDDOC011 §§4.6, 5 e 7 | D, C | Parâmetros financeiros e autorização no item | I6 |
 
 ## Observações
 - No ambiente de **desenvolvimento** há dados e decisões fictícias, sempre marcadas TESTE: parâmetros "[TESTE] Parâmetros fictícios…", liberação fictícia de SST-001, SST-009, DOC-002, TRN-001 e TRN-NR06 (decisão do Diretor de 09/10/2026) e propostas emitidas com marca d'água. **Nada disso vai para a produção**: as migrações não carregam dados de teste.
