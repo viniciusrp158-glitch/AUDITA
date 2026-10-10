@@ -236,7 +236,7 @@ export async function emitRevisionAction(quoteId: string, prev: FlowState): Prom
   if (!template) return { error: "Modelo técnico vigente não encontrado." };
 
   // RF-17: ambiente ou dados de teste ⇒ marca d'água obrigatória
-  const watermark = !isProduction || Boolean(rev.is_test) || snap.client.is_test || snap.parameters.is_test;
+  const watermark = !isProduction || Boolean(rev.is_test) || snap.client.is_test || snap.parameters.is_test || Boolean(snap.proponent?.is_test);
   const model = buildDocument(snap, {
     issuedOn: todaySaoPaulo(),
     watermark,

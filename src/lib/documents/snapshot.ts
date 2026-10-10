@@ -4,6 +4,7 @@
  */
 import Decimal from "decimal.js";
 import type { Periodicity } from "@/lib/pricing/labels";
+import type { ProponentSnapshot } from "@/lib/institutional";
 import { calculateItem, type ItemValues, type ParameterValues, type ServiceInfo } from "@/lib/pricing/quote";
 
 type N = string | number | null;
@@ -84,6 +85,11 @@ export type QuoteSnapshot = {
   parameters: ParameterValues & { id: string; version: number; label: string; is_test: boolean; status: string };
   items: SnapshotItem[];
   results: RevisionResults;
+  /**
+   * Dados institucionais vigentes congelados pelo banco na criação da revisão (I9.2). `null` = nenhuma versão publicada;
+   * ausente = revisão anterior ao I9.2. Nos dois casos o documento mostra o proponente como pendente.
+   */
+  proponent?: ProponentSnapshot | null;
 };
 
 export const ENGINE_VERSION = "AUDDOC011-ANX01/motor-v1";

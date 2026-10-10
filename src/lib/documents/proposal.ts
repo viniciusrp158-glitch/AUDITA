@@ -3,10 +3,12 @@
  *  - AUDDOC010-ANX01 (M01) — Proposta comercial integrada (orçamento + aceite)
  *  - AUDDOC010-ANX02 (M02) — Orçamento simplificado
  * Um único modelo de conteúdo alimenta o DOCX e o PDF. Nunca inclui horas, custos, parâmetros ou margens.
- * Dados institucionais da AUDITA ainda não formalizados aparecem como pendentes (não são inventados).
+ * Dados institucionais da AUDITA vêm da versão vigente congelada na revisão (I9.2); o que não estiver formalizado
+ * aparece como PENDENTE (não é inventado).
  */
 import Decimal from "decimal.js";
 import { formatCnpj, formatCpf, formatPhone } from "@/lib/br";
+import { issuerLine, PROPONENT_PENDING, proponentText } from "@/lib/institutional";
 import { formatBRL } from "@/lib/pricing/engine";
 import { revisionLabel, type QuoteSnapshot } from "./snapshot";
 
@@ -31,7 +33,8 @@ export type DocModel = {
 };
 
 export const TEST_WATERMARK = "DOCUMENTO DE TESTE — SEM VALIDADE COMERCIAL";
-export const PROPONENT = "AUDITA — razão social e CNPJ pendentes de formalização";
+/** Texto usado quando não há dados institucionais publicados (mantido para revisões anteriores ao I9.2). */
+export const PROPONENT = PROPONENT_PENDING;
 
 export type EmissionContext = {
   /** Data da emissão (AAAA-MM-DD, fuso de São Paulo). */
@@ -140,7 +143,7 @@ function commonHeader(s: QuoteSnapshot, ctx: EmissionContext, title: string, tem
     ref,
     validity,
     headerRight: `${title} · ${ref}`,
-    footer: `AUDITA · Gerado pelo sistema AUDITA a partir do modelo ${templateCode} ${ctx.templateRevision} (versão técnica ${ctx.technicalVersion}) · Emissão ${day(ctx.issuedOn)}`,
+    footer: `${issuerLine(s.proponent)} · Gerado pelo sistema AUDITA a partir do modelo ${templateCode} ${ctx.templateRevision} (versão técnica ${ctx.technicalVersion}) · Emissão ${day(ctx.issuedOn)}`,
     fileBase: `${ctx.watermark ? "TESTE_" : ""}${s.quote.code}_${rev.replace(".", "")}_${kind}`,
   };
 }
@@ -176,7 +179,7 @@ export function buildProposalM01(s: QuoteSnapshot, ctx: EmissionContext): DocMod
           ["Identificação", `${h.ref} | Emissão: ${day(ctx.issuedOn)} | Validade: ${h.validity}`],
           ["Empresa contratante", contractor],
           ["Representante / contato", contactLine(s)],
-          ["Empresa proponente", PROPONENT],
+          ["Empresa proponente", proponentText(s.proponent)],
           ["Referência interna", `Cliente ${s.client.code} · Demanda ${s.demand.code} · Serviço AUDDOC005 ${serviceCodes(s)}`],
         ],
       },

@@ -9,6 +9,7 @@ import { buildDocument, documentTotalsMatch, TEST_WATERMARK } from "@/lib/docume
 import { renderDocx } from "@/lib/documents/render-docx";
 import { renderPdf } from "@/lib/documents/render-pdf";
 import { buildResults, verifySnapshot, type QuoteSnapshot } from "@/lib/documents/snapshot";
+import { institutionalSchema, issuerLine, pendingEssentials, proponentText, type ProponentSnapshot } from "@/lib/institutional";
 
 const PARAMS = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -199,3 +200,100 @@ describe("documentos da proposta (M01/M02)", () => {
     writeFileSync(`test-results/documentos/${model.fileBase}.pdf`, pdf);
   });
 });
+
+// I9.2 — Dados institucionais (proponente). Dados FICTÍCIOS de teste; nenhum dado real da AUDITA.
+const PROPONENTE_TESTE: ProponentSnapshot = {
+  id: "00000000-0000-4000-8000-00000000c001",
+  version: 3,
+  is_test: true,
+  published_at: "2026-10-10T12:00:00Z",
+  legal_name: "[TESTE] Empresa Proponente Fictícia LTDA",
+  trade_name: "AUDITA",
+  cnpj: "11444777000161",
+  legal_nature: null,
+  cnae_main: null,
+  cnae_secondary: null,
+  municipal_registration: null,
+  state_registration: null,
+  tax_regime: null,
+  address_street: "Rua de Teste",
+  address_number: "10",
+  address_complement: "Sala 1",
+  address_district: "Centro",
+  address_zip: "18000000",
+  address_city: "Sorocaba",
+  address_state: "SP",
+  email: "contato@exemplo.test",
+  phone: "15999990000",
+  website: null,
+  technical_lead_name: "Responsável Técnico Fictício",
+  technical_lead_registration: "Registro TESTE-000",
+  show_technical_lead: true,
+  signatory_name: null,
+  signatory_role: null,
+  full_address_on_proposal: true,
+};
+
+describe("I9.2 — empresa proponente nos documentos", () => {
+  it("sem dados publicados (ou revisão anterior ao I9.2): texto de pendência, sem nada inventado", () => {
+    const s = snapshot("ANX01");
+    expect(proponentText(undefined)).toBe("AUDITA — razão social e CNPJ pendentes de formalização");
+    expect(proponentText(null)).toBe("AUDITA — razão social e CNPJ pendentes de formalização");
+    const model = buildDocument({ ...s, proponent: null }, CTX);
+    const row = model.blocks.flatMap((b) => (b.kind === "fields" ? b.rows : [])).find((r) => r[0] === "Empresa proponente");
+    expect(row?.[1]).toBe("AUDITA — razão social e CNPJ pendentes de formalização");
+    expect(model.footer.startsWith("AUDITA · Gerado pelo sistema AUDITA")).toBe(true);
+  });
+
+  it("com versão vigente congelada: razão social, CNPJ, endereço, contato e responsável técnico no M01 e no rodapé", async () => {
+    const s = { ...snapshot("ANX01"), proponent: PROPONENTE_TESTE };
+    const model = buildDocument(s, CTX);
+    const { body } = await docxText(await renderDocx(model));
+    for (const expected of [
+      "AUDITA — [TESTE] Empresa Proponente Fictícia LTDA — CNPJ 11.444.777/0001-61",
+      "Endereço: Rua de Teste, 10 — Sala 1, Centro, Sorocaba/SP, CEP 18000-000",
+      "Contato: contato@exemplo.test · (15) 99999-0000",
+      "Responsável técnico: Responsável Técnico Fictício (Registro TESTE-000)",
+    ])
+      expect(body, expected).toContain(expected);
+    expect(body).not.toContain("pendentes de formalização");
+    expect(model.footer).toContain("AUDITA · CNPJ 11.444.777/0001-61 · contato@exemplo.test · (15) 99999-0000 · Gerado pelo sistema AUDITA");
+    const m02 = buildDocument({ ...s, quote: { ...s.quote, model: "ANX02" } }, CTX);
+    expect(m02.footer).toContain("CNPJ 11.444.777/0001-61");
+    const pdf = await renderPdf(model);
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+  });
+
+  it("dados parciais: o que falta aparece como PENDENTE; endereço e responsável técnico respeitam as opções", () => {
+    const partial = { ...PROPONENTE_TESTE, cnpj: null, email: null, phone: null, show_technical_lead: false, full_address_on_proposal: false };
+    const txt = proponentText(partial);
+    expect(txt).toContain("CNPJ PENDENTE");
+    expect(txt).toContain("Contato: PENDENTE");
+    expect(txt).not.toContain("Endereço:");
+    expect(txt).not.toContain("Responsável técnico");
+    expect(issuerLine(partial)).toBe("AUDITA");
+    expect(pendingEssentials(partial).map((f) => f.key)).toEqual(["cnpj", "email", "phone"]);
+    expect(proponentText({ ...PROPONENTE_TESTE, legal_name: null, trade_name: null })).toContain("AUDITA — razão social PENDENTE — CNPJ");
+  });
+
+  it("validação do formulário espelha o banco (CNPJ, CEP, UF, e-mail, telefone, site)", () => {
+    const blank = Object.fromEntries(Object.keys(institutionalSchema.shape).map((k) => [k, ""]));
+    const ok = institutionalSchema.safeParse({
+      ...blank,
+      cnpj: "11.444.777/0001-61",
+      address_zip: "18000-000",
+      address_state: "sp",
+      email: "Contato@Exemplo.test",
+      phone: "(15) 99999-0000",
+      website: "www.exemplo.test",
+      full_address_on_proposal: "on",
+    });
+    expect(ok.success).toBe(true);
+    expect(ok.data).toMatchObject({ cnpj: "11444777000161", address_zip: "18000000", address_state: "SP", email: "contato@exemplo.test", phone: "15999990000", legal_name: null, full_address_on_proposal: true, show_technical_lead: false });
+    const bad = institutionalSchema.safeParse({ ...blank, cnpj: "11.444.777/0001-62", address_zip: "123", address_state: "XX", email: "x@", phone: "123", website: "não é site" });
+    expect(bad.success).toBe(false);
+    const paths = new Set(bad.error!.issues.map((i) => String(i.path[0])));
+    for (const k of ["cnpj", "address_zip", "address_state", "email", "phone", "website"]) expect(paths.has(k), k).toBe(true);
+  });
+});
+

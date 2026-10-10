@@ -8,11 +8,11 @@ export const metadata = { title: "Configurações" };
 
 const ITENS = [
   { href: "/configuracoes/atividades", titulo: "Registro de atividades", desc: "Trilha de alterações e acessos ao sistema.", pronto: true },
-  { href: null, titulo: "Dados institucionais", desc: "Razão social, CNPJ e contatos da AUDITA (pendentes de formalização).", pronto: false, inc: "I2" },
+  { href: "/configuracoes/institucional", titulo: "Dados institucionais", desc: "Razão social, CNPJ, endereço e contatos da AUDITA (proponente das propostas).", pronto: true },
   { href: "/configuracoes/servicos", titulo: "Catálogo de serviços", desc: "Serviços AUDDOC004/005 e situação de liberação.", pronto: true },
   { href: "/configuracoes/parametros", titulo: "Parâmetros financeiros", desc: "Conjuntos versionados de parâmetros AUDDOC011.", pronto: true },
   { href: "/configuracoes/modelos", titulo: "Modelos de documentos", desc: "Versões técnicas dos modelos AUDDOC010.", pronto: true },
-  { href: null, titulo: "Usuários", desc: "No MVP, somente o administrador.", pronto: false, inc: "futuro" },
+  { href: "/conta", titulo: "Usuários", desc: "Criação e níveis de acesso em “Minha conta” (somente usuário mestre).", pronto: true },
 ] as const;
 
 export default async function ConfiguracoesPage() {

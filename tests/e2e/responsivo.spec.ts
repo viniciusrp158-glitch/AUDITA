@@ -24,6 +24,7 @@ const PAGES = [
   "/configuracoes/parametros",
   "/configuracoes/modelos",
   "/conta",
+  "/configuracoes/institucional",
 ];
 
 async function login(page: Page) {
