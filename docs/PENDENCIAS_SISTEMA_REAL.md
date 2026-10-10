@@ -35,7 +35,7 @@
 | 13 | **Tela de dados institucionais** (razão social, CNPJ, endereço, contatos da AUDITA) usada nas propostas — recebe os dados do item 1 | AUDDOC013; AUDDOC010 M01 | S | Configurações → Dados institucionais | Sim |
 | 14 | **Matriz de permissões (D7 do caderno)** — o I9.1 já está implementado no modo mais restritivo: o mestre cria contas de qualquer nível; Operador administrativo só faz o que o AUDDOC017 §10 define (clientes, demandas, preparar orçamentos sem preços); Marketing sem módulos até o I10. Cada "?" respondido no D7 será liberado por nova migração, com testes. Consolidar as políticas duplicadas (aviso de desempenho do Supabase) nessa mesma migração | AUDDOC017 §1 e §10; AUDDOC013 §8 | D, S | Minha conta → usuários; políticas do banco | Não |
 | 15 | **Provedor de e-mail** com domínio próprio (recuperação de senha, avisos de novas solicitações de cadastro) | AUDDOC017 §10 | D, S | Autenticação e autocadastro | Sim |
-| 16 | Aviso de sucesso que permanece na tela após ações seguintes (achado H-02 da homologação) | AUDDOC017 §15 | S | Telas de demanda/cliente | Não |
+| 16 | ~~Aviso de sucesso que permanece na tela após ações seguintes (achado H-02)~~ — **resolvido no I9.1** | AUDDOC017 §15 | S | Telas de demanda/cliente | Não |
 
 ## Etapa D — Implantação em produção (somente com autorização expressa do Diretor)
 
