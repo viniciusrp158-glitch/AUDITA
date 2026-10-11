@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page";
-import { Card, TestBadge } from "@/components/ui";
+import { TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
 import { listCampaigns, listPieces } from "@/lib/comunicacao/queries";
 import { formatDay } from "@/lib/format";

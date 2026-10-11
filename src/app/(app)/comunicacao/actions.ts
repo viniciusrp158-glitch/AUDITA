@@ -85,7 +85,7 @@ export async function updatePieceAction(id: string, _prev: CommState, formData: 
   return { ok: "Rascunho salvo. A prévia foi atualizada.", seq: Date.now() };
 }
 
-export async function submitPieceAction(id: string, _prev: CommState): Promise<CommState> {
+export async function submitPieceAction(id: string): Promise<CommState> {
   await requireAppUser(COMMUNICATE);
   if (!uuidRe.test(id)) return { error: "Peça inválida." };
   const supabase = await createClient();
