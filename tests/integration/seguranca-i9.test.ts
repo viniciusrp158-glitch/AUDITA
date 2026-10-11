@@ -103,8 +103,8 @@ describe.skipIf(!ready)("I9 — varredura de segurança (RLS, permissões, Stora
   }, 120_000);
 
   it("arquivos: anônimo e não autorizado não listam nem baixam; ninguém sobrescreve ou apaga", async () => {
-    for (const bucket of ["audita-documentos", "audita-biblioteca"]) {
-      const prefix = bucket === "audita-documentos" ? "quotes" : "library";
+    for (const bucket of ["audita-documentos", "audita-biblioteca", "audita-marca"]) {
+      const prefix = bucket === "audita-documentos" ? "quotes" : bucket === "audita-marca" ? "marca" : "library";
       const top = await admin.storage.from(bucket).list(prefix, { limit: 1 });
       expect(top.error).toBeNull();
       // desce até o primeiro arquivo
