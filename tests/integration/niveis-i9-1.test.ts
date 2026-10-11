@@ -140,12 +140,17 @@ describe.skipIf(!ready)("I9.1 — níveis de acesso (modo mais restritivo) e usu
     }
   });
 
-  it("marketing: nenhum módulo até o I10 (somente a própria conta)", async () => {
+  it("marketing: somente a própria conta e o módulo de Comunicação (I10)", async () => {
     const tables = ((await mestre.rpc("security_self_check")).data as { tables: { name: string }[] }).tables.map((t) => t.name);
+    // I10: o marketing lê as tabelas de comunicação; dos arquivos de marca, só versões aprovadas
+    const COMM = ["brand_assets", "brand_asset_versions", "comm_campaigns", "comm_pieces", "comm_piece_versions", "comm_exports"];
     for (const t of tables) {
       const r = await marketing.from(t).select("*").limit(3);
       if (t === "app_users") {
         expect(r.data ?? []).toHaveLength(1); // só a própria linha
+      } else if (COMM.includes(t)) {
+        expect(r.error, t).toBeNull();
+        if (t === "brand_asset_versions") for (const v of r.data ?? []) expect(v.status).toBe("aprovado");
       } else {
         expect(r.data ?? [], t).toEqual([]);
       }
