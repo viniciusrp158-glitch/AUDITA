@@ -37,11 +37,12 @@ describe("V1.1 — execução e caixa (PGlite)", () => {
       insert into audita.app_users (user_id, full_name, role) values ('${ADMIN}', '[TESTE] Admin', 'admin'), ('${OPER}', '[TESTE] Operador', 'operador');
       set session_replication_role = replica;
       insert into audita.clients (id, client_code, legal_name, is_test) values ('${CLIENT}', 'CLI-9001', '[TESTE] Cliente Fictício LTDA', true);
-      insert into audita.demands (id, demand_code, client_id, summary, status, is_test) values ('${DEMAND}', 'DEM-2026-9001', '${CLIENT}', '[TESTE] Consultoria mensal', 'aceita', true);
+      insert into audita.demands (id, demand_code, client_id, summary, status, is_test) values ('${DEMAND}', 'DEM-2026-9001', '${CLIENT}', '[TESTE] Consultoria mensal', 'aceita', true),
+        ('00000000-0000-4000-8000-00000000d222', 'DEM-2026-9002', '${CLIENT}', '[TESTE] Outra demanda', 'recebida', true);
       insert into audita.pricing_parameter_sets (id, version, label, status, published_at) values ('${PSET}', 99, '[TESTE]', 'vigente', now());
       insert into audita.quotes (id, quote_code, demand_id, client_id, status, current_revision_id, is_test, parameter_set_id)
         values ('${QUOTE}', 'PROP-2026-9001', '${DEMAND}', '${CLIENT}', 'aceita', '${REV}', true, '${PSET}'),
-               ('${QUOTE2}', 'PROP-2026-9002', '${DEMAND}', '${CLIENT}', 'emitida', null, true, '${PSET}');
+               ('${QUOTE2}', 'PROP-2026-9002', '00000000-0000-4000-8000-00000000d222', '${CLIENT}', 'emitida', null, true, '${PSET}');
       insert into audita.quote_revisions (id, quote_id, revision_number, status, snapshot, parameter_set_id, total_once, total_monthly, accepted_on, accepted_by_name, emitted_at, is_test)
         values ('${REV}', '${QUOTE}', 0, 'aceita',
           '{"quote":{"objective":"[TESTE] Rotinas de SST","deliverables":"Relatório mensal","contract_start_on":"2026-11-01","contract_months":12}}',
