@@ -169,7 +169,7 @@ export default async function PecaPage({ params, searchParams }: { params: Promi
               />
               <div className="space-y-4">
                 <p className="text-sm text-ink">
-                  Aprovada em {formatDateTime(approved.reviewed_at)}
+                  Aprovada em {approved.reviewed_at ? formatDateTime(approved.reviewed_at) : "—"}
                   {approved.review_note ? ` — “${approved.review_note}”` : ""}.
                 </p>
                 <div className="flex flex-wrap gap-3" data-testid="export-buttons">
