@@ -199,7 +199,7 @@ function coverLayout(p: PieceRenderInput, W: number, H: number) {
       },
       p.showSlogan ? text({ fontSize: Math.round(H * 0.04), fontWeight: 600, lineHeight: 1.3 }, SLOGAN) : null,
       text({ fontSize: Math.round(H * 0.026), fontWeight: 700, color: "#DCE3EA" }, BRANDS[p.brand].endorsement ?? SIGNATURE),
-      p.showContacts ? text({ fontSize: Math.round(H * 0.022), color: "#DCE3EA", lineHeight: 1.5 }, (contactsLine(p.contacts) ?? "Contatos oficiais PENDENTES").replace(/ {2}· {2}/g, "\n")) : null,
+      p.showContacts ? text({ fontSize: Math.round(H * 0.022), color: "#DCE3EA", lineHeight: 1.5, whiteSpace: "pre-wrap" }, (contactsLine(p.contacts) ?? "Contatos oficiais PENDENTES").replace(/ {2}· {2}/g, "\n")) : null,
     ),
     p.watermark ? watermarkBand(W) : null,
   );

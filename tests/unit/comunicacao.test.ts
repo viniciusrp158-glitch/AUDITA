@@ -53,7 +53,7 @@ describe("I10 — renderização das peças", () => {
   });
 
   it("avisos de tom de voz (AUDDOC003 §11) e de excesso de texto por modelo", () => {
-    expect(textWarnings("Com a AUDITA, zero multas e certificação garantida!")).toHaveLength(2);
+    expect(textWarnings("Com a AUDITA, zero multas e certificação garantida!")).toHaveLength(3); // zero multas, certificação garantida e "garantida"
     expect(textWarnings("Garantimos 100% de conformidade")).toHaveLength(2);
     expect(textWarnings("Acompanhamento contínuo das rotinas de SST.")).toEqual([]);
     expect(lengthWarnings("post_quadrado", { title: "x".repeat(71) })).toEqual([

@@ -167,16 +167,18 @@ test("operador de teste: item do orçamento sem preço, margem ou desconto", asy
   await expect(page.getByTestId("item-final-price")).toHaveCount(0);
 });
 
-test("marketing: só a própria conta até o I10; celular sem rolagem horizontal", async ({ browser }) => {
+test("marketing: só Comunicação (I10) e a própria conta; celular sem rolagem horizontal", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
   const page = await ctx.newPage();
-  await login(page, MARKETING, /\/conta/);
+  await login(page, MARKETING, /\/comunicacao/);
+  await page.goto("/conta");
   await expect(page.getByTestId("users-section")).toHaveCount(0);
   await page.goto("/clientes");
-  await expect(page).toHaveURL(/\/conta\?sem_permissao=1/);
+  await expect(page).toHaveURL(/\/comunicacao\?sem_permissao=1/);
   await page.getByRole("button", { name: "Abrir menu" }).click();
   const nav = page.locator('aside[aria-label="Menu principal"] nav');
-  await expect(nav.getByRole("link")).toHaveCount(0);
+  await expect(nav.getByRole("link")).toHaveCount(1);
+  await expect(nav.getByRole("link", { name: "Comunicação" })).toBeVisible();
   await expect(page.getByTestId("theme-toggle")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/97-conta-marketing-celular.png`, fullPage: true });
