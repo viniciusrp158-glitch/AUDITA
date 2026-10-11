@@ -10,6 +10,8 @@ import { PRESETS, resolvePeriod, type PresetKey } from "@/lib/indicators/period"
 import { getAlerts, getIndicators, getMonthlySeries } from "@/lib/indicators/queries";
 import { formatBRL, formatPercent } from "@/lib/pricing/engine";
 import { QUOTE_STATUS, type QuoteStatus } from "@/lib/pricing/labels";
+import { monthlyCash } from "@/lib/execucao/cash";
+import { listCashEntries } from "@/lib/execucao/queries";
 
 export const metadata = { title: "Início" };
 
@@ -82,11 +84,18 @@ export default async function InicioPage({
   const period = resolvePeriod(sp, today);
   // Dados de teste: fora por padrão em produção; no desenvolvimento (só há dados fictícios) entram por padrão, com aviso.
   const includeTest = sp.teste === "1" ? true : sp.teste === "0" ? false : !isProduction;
-  const [ind, alerts, monthly] = await Promise.all([
+  const cashYear = Number(today.slice(0, 4));
+  const [ind, alerts, monthly, cashEntries] = await Promise.all([
     getIndicators(period.from, period.to, includeTest),
     getAlerts(today, includeTest),
     getMonthlySeries(period.to < today ? period.to : today, includeTest),
+    listCashEntries(cashYear),
   ]);
+  // RF-30: entradas e saídas efetivas do caixa (mês corrente e acumulado do exercício)
+  const cash = monthlyCash(includeTest ? cashEntries : cashEntries.filter((e) => !e.is_test), cashYear);
+  const cashNow = cash.months[Number(today.slice(5, 7)) - 1];
+  const cashTotals = cash.year;
+  const cashMonthLabel = `${["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"][Number(today.slice(5, 7)) - 1]} de ${cashYear}`;
   const once: MonthPoint[] = monthly.map((r) => ({
     key: r.key,
     label: r.label,
@@ -235,6 +244,22 @@ export default async function InicioPage({
               testid="kpi-demands"
             />
             <Kpi label="Demandas recebidas" value={ind.demands.received} sub="No período" href="/demandas?grupo=todas" testid="kpi-received" />
+          </section>
+
+          <section className="mt-6" aria-label="Caixa efetivo" data-testid="cash-kpis">
+            <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-sm font-semibold text-ink">Caixa efetivo — {cashMonthLabel}</h2>
+              <Link href="/caixa" className="text-xs font-semibold text-navy underline">
+                Abrir caixa gerencial
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <Kpi label="Recebido no mês" value={formatBRL(cashNow.totals.recebimento)} sub="Dinheiro que entrou (não é valor cotado)" href="/caixa" testid="kpi-cash-in" />
+              <Kpi label="Pago no mês" value={formatBRL(cashNow.payments)} sub="Custos, fixos, pró-labore, tributos e outros" href="/caixa" testid="kpi-cash-out" />
+              <Kpi label="Resultado de caixa do mês" value={cashNow.balance === null ? "sem lançamentos" : formatBRL(cashNow.balance)} sub="Recebido − pago" href="/caixa" testid="kpi-cash-result" />
+              <Kpi label={`Saldo acumulado ${cashYear}`} value={formatBRL(cashTotals.balance)} sub="Soma dos meses do exercício" href="/caixa" testid="kpi-cash-balance" />
+            </div>
+            <p className="mt-2 text-xs text-muted">AUDDOC011 §7: o caixa mostra só movimentações efetivas; não demonstra lucro contábil nem DRE.</p>
           </section>
 
           <p className="mt-3 text-xs text-muted">

@@ -29,6 +29,8 @@ import {
   updateQuoteHeaderAction,
 } from "../actions";
 import { AcceptForm, EmitForm, ReasonForm, ReviewForm } from "./flow-forms";
+import { getContractByQuote } from "@/lib/execucao/queries";
+import { createContractAction } from "../../demandas/servicos/actions";
 import { QuoteContentForm } from "./quote-forms";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +44,7 @@ const FLOW_MSG: Record<string, string> = {
   emitida: "Proposta emitida: documentos DOCX e PDF gerados e arquivados.",
   reaberta: "Cotação reaberta para nova revisão. A revisão anterior continua preservada no histórico.",
   aceita: "Aceite registrado.",
+  servico_erro: "Não foi possível registrar o serviço contratado (já registrado ou proposta não aceita).",
   recusada: "Recusa registrada.",
   cancelada: "Cotação cancelada.",
 };
@@ -90,6 +93,7 @@ export default async function OrcamentoPage({
   const { id } = await params;
   const sp = await searchParams;
   const [{ quote, items }, vigente, revisions] = await Promise.all([getQuoteOr404(id), getVigenteParameterSet(), listRevisions(id)]);
+  const contract = quote.status === "aceita" && user.role === "admin" ? await getContractByQuote(quote.id) : null;
   const ps = quote.pricing_parameter_sets;
   const editable = quote.status === "rascunho";
   const clientActive = quote.clients.status !== "inativo";
@@ -499,6 +503,25 @@ export default async function OrcamentoPage({
                       : `Recusada: ${current.decision_note}`}
                   </p>
                   <DocLinks quoteId={quote.id} rev={current} />
+                  {quote.status === "aceita" && (
+                    <div className="rounded-lg border border-line p-3" data-testid="contract-link">
+                      {contract ? (
+                        <p className="text-sm text-ink">
+                          Serviço contratado:{" "}
+                          <Link href={`/demandas/servicos/${contract.id}`} className="font-semibold text-navy underline">
+                            {contract.contract_code}
+                          </Link>
+                        </p>
+                      ) : (
+                        <form action={createContractAction.bind(null, quote.id)} className="space-y-2">
+                          <p className="text-sm text-ink">Próximo passo (AUDDOC009 §6.3): registrar o serviço contratado para acompanhar execução, entregas e formalização.</p>
+                          <SubmitButton pendingText="Registrando…" full={false}>
+                            Registrar serviço contratado
+                          </SubmitButton>
+                        </form>
+                      )}
+                    </div>
+                  )}
                   <Details summary={quote.status === "aceita" ? "Nova revisão (alteração de escopo aceito)" : "Nova revisão (renegociar)"}>
                     <ReasonForm
                       action={reopenQuoteAction.bind(null, quote.id)}

@@ -8,6 +8,7 @@ import { OPERATE } from "@/lib/permissions";
 import { DEMAND_STATUS, DEMAND_STATUS_KEYS } from "@/lib/demands/labels";
 import { listDemands, PAGE_SIZE } from "@/lib/demands/queries";
 import { formatDay, todaySaoPaulo } from "@/lib/format";
+import { DemandTabs } from "./servicos/shared";
 
 export const metadata = { title: "Demandas" };
 
@@ -22,7 +23,7 @@ export default async function DemandasPage({
 }: {
   searchParams: Promise<{ q?: string; grupo?: string; situacao?: string; p?: string }>;
 }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const grupo = (GRUPOS.find((g) => g.value === sp.grupo)?.value ?? "abertas") as "abertas" | "encerradas" | "todas";
@@ -41,6 +42,7 @@ export default async function DemandasPage({
           <Plus size={16} /> Nova demanda
         </ButtonLink>
       </div>
+      <DemandTabs active="demandas" showServices={user.role === "admin"} />
 
       <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-line" aria-label="Filtro de situação">
         {GRUPOS.map((g) => (

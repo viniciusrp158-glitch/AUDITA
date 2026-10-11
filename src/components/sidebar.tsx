@@ -33,7 +33,7 @@ export const NAV = [
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  return href === "/" ? pathname === "/" || pathname.startsWith("/caixa") : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function Sidebar({
