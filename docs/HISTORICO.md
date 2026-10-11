@@ -439,3 +439,25 @@ Solução:
 | Playwright — total | 37/37 (I10: logo aprovado → peça do marketing → aviso “zero multas” → prévia → envio → revisão com checklist → aprovação → exportação PNG (administrador) e PDF (marketing) registradas → cancelamento da peça de teste; operador barrado; 4 telas no celular sem rolagem horizontal; rotas novas no teste responsivo) |
 
 Dados de teste deixados no desenvolvimento: ativo “[TESTE] Logo AUDITA (arquivo do sistema)” com uma versão aprovada (é o arquivo `public/brand/audita-logo.png` já usado no sistema) e peças COM-2026-0001 a 0004 canceladas.
+
+Logos oficiais (10/10/2026): o Diretor enviou os PNGs da AUDITA, do Audita PRO e do Audita HUB; cadastrados como “PNG original” e aprovados na biblioteca de marca (o da AUDITA é idêntico, byte a byte, ao arquivo já usado no sistema). O ativo de teste foi inativado. Cópias em `Documents\AUDITA\_logos_oficiais`.
+
+## V1.1 — Serviço contratado e execução, documentos M03–M06 e caixa gerencial (em validação)
+
+**Objetivo:** concluir os itens da V1.1 que não dependem do caderno de pendências: registrar o serviço contratado a partir da proposta aceita e acompanhar a execução; gerar as minutas M03–M06 a partir dos cadastros; controlar recebimentos e pagamentos efetivos.
+**Requisitos:** AUDDOC017 RF-07 (serviço contratado, início/fim, execução, entregáveis, histórico — sem replicar o PRO/HUB), RF-18 (recebimentos e pagamentos, sem substituir a contabilidade), RF-23 (preencher modelos com dados do cliente e evidenciar campos ausentes antes da emissão), RF-24 (histórico de documentos), RF-30 (entradas e saídas efetivas nos indicadores); AUDDOC009 §6.3–§6.5 e §8; AUDDOC010 §2–§4 e ANX03–ANX06; AUDDOC011 §7 e aba “Caixa Mensal” do ANX01. Menu mantido com 7 entradas (AUDDOC017 §4): serviços contratados ficam em Demandas (aba) e o caixa é aberto pelo Início.
+
+Solução:
+- **Banco** — migração aditiva `20261011020200_v1_1_execucao_caixa` (MD5 `ad979092c8c81d4183811dc4c595ec5d`, conferida no PGlite): `service_contracts` (CTR-AAAA-NNNN, só a partir de proposta aceita, dados vindos da revisão aceita), `service_contract_events` (linha do tempo somente inclusão), `service_orders` (M05, OS-COM-AAAA-NNNN), `scope_changes` (M06, ALT-AAAA-NNNN), `contract_documents` (arquivos gerados, imutáveis; bucket privado em `contratos/`) e `cash_entries` (caixa, imutável com estorno). Funções: registrar serviço, mudar situação (sincroniza a demanda: Em execução → Entregue → Encerrada), liberar/concluir/cancelar OS (liberação exige responsável, data, atividade e nenhuma condicionante), aprovar/cancelar alteração (aprovação exige aceite rastreável do cliente e validação AUDITA), estornar lançamento. Somente o administrador.
+- **Documentos** — M03, M04 (texto-base do ANX04, cláusulas 11 e 12 como PENDENTE de assessoria jurídica), M05 e M06 em DOCX e PDF; contratada a partir dos dados institucionais vigentes (I9.2); campos ausentes listados antes da geração e confirmação para gerar com “[PENDENTE: …]”; sempre “MINUTA — PENDENTE DE REVISÃO JURÍDICA” (e marca de teste fora da produção); SHA-256 registrado.
+- **Caixa** — quadro mensal igual à planilha (recebimentos, custos diretos, fixos, pró-labore, tributos, outros, saldo do mês e acumulado), aritmética decimal exata, data futura recusada; Início ganhou “Caixa efetivo” (recebido, pago, resultado do mês e saldo do exercício).
+- **Telas** — Demandas → Serviços contratados (lista, ficha com situação, linha do tempo, dados, OS, alterações e documentos); botão “Registrar serviço contratado” na proposta aceita; Caixa gerencial.
+
+### Evidências de teste (11/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| Migração | conferida no PGlite e aplicada com MD5 idêntico; advisors de segurança: só a pendência 17 |
+| `tsc`, `eslint`, `next build` | sem erros nem avisos |
+| Vitest — total | 162/162 (V1.1: 4 unitários — caixa mensal com decimal exato, atividades da OS, M03/M04 com PENDENTE e minuta, M05/M06 — e 5 de integração: 4 no banco descartável com o fluxo completo e as regras, 1 no banco real com as permissões por nível) |
+| Playwright — total | 40/40 (V1.1: proposta aceita → serviço → execução → M03 → OS-COM barrada por condicionante e liberada → M05 → alteração barrada sem aceite e aprovada → M06 → entregue/encerrado com a demanda encerrada; caixa com data futura recusada, lançamento e estorno; operador barrado; celular). Teste de demandas ajustado para a nova aba |
