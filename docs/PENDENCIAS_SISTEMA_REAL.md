@@ -54,8 +54,8 @@
 
 | # | Pendência | AUDDOC | Quem | Bloqueia? |
 |---|---|---|---|---|
-| 24 | **V1.1**: caixa gerencial (entradas e saídas efetivas), serviço contratado/execução, preenchimento automático dos anexos ANX03–ANX06 | AUDDOC017 §2, RF-07, RF-18, RF-23 | D, S | Não |
-| 25 | **I10 / V1.2 — Comunicação e marketing**: aprovar provedor de IA, custos e tratamento de dados **antes** de qualquer integração | AUDDOC017 RF-25 a RF-28, §18 (D-08) | D, S | Não |
+| 24 | ~~V1.1~~ — **implementado em 11/10/2026** (serviço contratado e execução, M03–M06 como minutas com campos PENDENTES, caixa gerencial e indicadores de caixa). Falta só a revisão jurídica dos modelos (item 8 / caderno J2) para retirar a marca de minuta | AUDDOC017 §2, RF-07, RF-18, RF-23 | J | Não |
+| 25 | **I10 / V1.2 — Comunicação e marketing**: módulo **sem IA implementado no I10** (marca, campanhas, peças, revisão e exportação). Para ligar IA: aprovar provedor, custos, tratamento de dados e revisão humana (decisão D-08) | AUDDOC017 RF-25 a RF-28, §18 (D-08) | D, S | Não |
 | 26 | **Integração com Audita PRO / HUB**: somente em estágio próprio, após inventário dos três sistemas | AUDDOC014; AUDDOC017 §12 | D, S | Não |
 
 ## Observações
