@@ -38,7 +38,7 @@ describe("V1.1 — execução e caixa (PGlite)", () => {
       set session_replication_role = replica;
       insert into audita.clients (id, client_code, legal_name, is_test) values ('${CLIENT}', 'CLI-9001', '[TESTE] Cliente Fictício LTDA', true);
       insert into audita.demands (id, demand_code, client_id, summary, status, is_test) values ('${DEMAND}', 'DEM-2026-9001', '${CLIENT}', '[TESTE] Consultoria mensal', 'aceita', true);
-      insert into audita.pricing_parameter_sets (id, version, label, status) values ('${PSET}', 99, '[TESTE]', 'vigente');
+      insert into audita.pricing_parameter_sets (id, version, label, status, published_at) values ('${PSET}', 99, '[TESTE]', 'vigente', now());
       insert into audita.quotes (id, quote_code, demand_id, client_id, status, current_revision_id, is_test, parameter_set_id)
         values ('${QUOTE}', 'PROP-2026-9001', '${DEMAND}', '${CLIENT}', 'aceita', '${REV}', true, '${PSET}'),
                ('${QUOTE2}', 'PROP-2026-9002', '${DEMAND}', '${CLIENT}', 'emitida', null, true, '${PSET}');
