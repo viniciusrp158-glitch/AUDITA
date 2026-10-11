@@ -67,7 +67,8 @@ test("FL-04: logo aprovado → peça do marketing → revisão do administrador 
   await nf.locator('input[name="theme"]').fill(`[TESTE] Integração de SST ${tag}`);
   await nf.locator('select[name="channel"]').selectOption("linkedin");
   await nf.getByRole("button", { name: /Criar peça/ }).click();
-  await expect(mkt.page).toHaveURL(/\/comunicacao\/pecas\/[0-9a-f-]{36}\?criada=1/);
+  await expect(mkt.page).toHaveURL(/\/comunicacao\/pecas\/[0-9a-f-]{36}/);
+  await expect(mkt.page.getByText(/Peça criada\./)).toBeVisible();
   const pieceUrl = mkt.page.url().split("?")[0];
 
   const pf = mkt.page.getByTestId("piece-form");
