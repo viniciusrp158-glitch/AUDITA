@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useActionState, useId, useMemo, useState, useTransition } from "react";
 import { Alert, CheckboxField, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
 import {
   ASSET_VARIANTS,
@@ -239,10 +239,16 @@ export function ReviewForm({ action, blockers }: { action: Action; blockers: str
 
 export function ReasonForm({ action, label, button, danger }: { action: Action; label: string; button: string; danger?: boolean }) {
   const [state, formAction] = useActionState<CommState, FormData>(action, {});
+  const uid = useId(); // vários formulários de motivo na mesma página: ids únicos
+  const err = state.fieldErrors?.motivo;
   return (
     <form action={formAction} className="space-y-3">
       {state.error && <Alert kind="error">{state.error}</Alert>}
-      <Field label={label} name="motivo" error={state.fieldErrors?.motivo} maxLength={500} />
+      <label className="block" htmlFor={`motivo-${uid}`}>
+        <span className="mb-1 block text-sm font-medium text-ink">{label}</span>
+        <input id={`motivo-${uid}`} name="motivo" maxLength={500} className={`${inputCls} ${err ? "border-danger" : ""}`} aria-invalid={err ? true : undefined} />
+        {err && <span className="mt-1 block text-xs text-danger">{err}</span>}
+      </label>
       <div className="sm:max-w-xs">
         <SubmitButton pendingText="Registrando…" variant={danger ? "danger" : "secondary"}>
           {button}
