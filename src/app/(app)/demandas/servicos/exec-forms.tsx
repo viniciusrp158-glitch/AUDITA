@@ -52,7 +52,13 @@ export function ContractForm({ action, initial }: { action: Action; initial: Rec
 
 export function StatusForm({ action, options, labels }: { action: Action; options: string[]; labels: Record<string, string> }) {
   const [state, formAction] = useActionState<ExecState, FormData>(action, {});
-  if (!options.length) return <p className="text-sm text-muted">Sem novas situações possíveis.</p>;
+  if (!options.length)
+    return (
+      <div className="space-y-2" data-testid="status-form">
+        <Feedback state={state} />
+        <p className="text-sm text-muted">Sem novas situações possíveis.</p>
+      </div>
+    );
   return (
     <form action={formAction} className="space-y-3" data-testid="status-form">
       <Feedback state={state} />
