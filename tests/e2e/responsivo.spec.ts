@@ -27,6 +27,8 @@ const PAGES = [
   "/configuracoes/parametros",
   "/configuracoes/modelos",
   "/conta",
+  "/caixa",
+  "/demandas/servicos",
   "/configuracoes/institucional",
 ];
 
