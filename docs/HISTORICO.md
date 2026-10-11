@@ -415,3 +415,27 @@ Solução:
 | Supabase advisors (segurança) | apenas "proteção contra senhas vazadas" (pendência 17) |
 
 Observação: a publicação **não** é feita nos testes do banco de desenvolvimento (deixaria uma versão de teste vigente); ela é verificada no banco descartável. O e2e deixa um rascunho vazio marcado TESTE (versão 1), reaproveitado nas execuções seguintes.
+
+## I10 — Comunicação, sem IA (em validação)
+
+**Objetivo:** módulo Comunicação com o fluxo FL-04 sem inteligência artificial: modelo → briefing → texto escrito pela equipe → revisão de marca e texto pelo administrador → exportação autorizada e registrada.
+**Requisitos:** AUDDOC017 §4 (menu Comunicação), RF-25 (modelos e campanhas com a identidade do AUDDOC003), RF-26 (somente o briefing — a geração por IA continua bloqueada até a decisão D-08 do §18), RF-27 (biblioteca de logos oficiais com versões), RF-28 (exportação só após revisão, com fonte, versão e autorização registradas; nada é publicado ou agendado), §10 (perfil Marketing) e §13 FL-04; AUDDOC003 §01–§04, §06, §11 e §12.
+
+Observação de ambiente (11/10/2026): repositório confirmado como `viniciusrp158-glitch/AUDITA` (remoto atualizado no ambiente de trabalho e no computador do Diretor) e banco `audita-dev`; nada do Audita PRO/HUB foi acessado.
+
+Solução:
+- **Banco** — migração aditiva `20261010215009_i10_comunicacao` (MD5 `8a3aa1fc2aa13e1f0ef17ffd210d74bf`, conferida antes no PGlite): `brand_assets` e `brand_asset_versions` (arquivos de marca com SHA-256, dimensões, origem; uma versão aprovada por ativo; versões imutáveis), `comm_campaigns` (código CAM-AAAA-NNN), `comm_pieces` (código COM-AAAA-NNNN; briefing e texto), `comm_piece_versions` (conteúdo congelado a cada envio, com logo, serviço e contatos oficiais do momento) e `comm_exports` (somente inclusão). Bucket privado `audita-marca`. Funções do fluxo: enviar, revisar (aprovar/devolver), reabrir, cancelar, registrar exportação; aprovar logo / cancelar versão.
+- **Regras no banco:** só o administrador aprova peças e logos; aprovação exige os 5 itens da revisão (logo sem alteração, identidade, texto, tom de voz, dados reais), **logo oficial aprovado**, **serviço citado “Apto comercialmente”** (AUDDOC004) e **contatos oficiais publicados** quando a peça os mostra. Exportação só de versão aprovada. O marketing cria e edita rascunhos, envia para revisão e exporta o aprovado; vê só os logos aprovados. Operador sem acesso (modo mais restritivo). Sem exclusão física.
+- **Peças** — 5 modelos (post quadrado 1080×1080, post retrato 1080×1350, story 1080×1920, capa de apresentação 1920×1080 e comunicado A4), desenhados no servidor com a paleta e a tipografia do AUDDOC003 (Montserrat, licença OFL, subconjunto latino), marcas AUDITA / Audita PRO / Audita HUB (“Uma solução AUDITA”), slogan e assinatura aprovados; logo sobre fundo branco; sem logo aprovado aparece “LOGO OFICIAL PENDENTE”; contatos somente dos dados institucionais (I9.2). Exportação em PNG e PDF, com a faixa “TESTE — SEM VALIDADE” fora da produção.
+- **Telas** — Comunicação (contadores, filtros e lista de peças), Nova peça (briefing), Peça (texto com avisos de tom de voz e de excesso de texto por modelo, prévia, envio, revisão com checklist, versão aprovada com exportação e legenda, histórico de versões e de exportações), Campanhas e Biblioteca de marca (paleta, envio por link assinado, conferência e aprovação). O marketing passa a entrar direto em Comunicação.
+
+### Evidências de teste (11/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| Migração | conferida no PGlite e aplicada com MD5 idêntico; advisors de segurança: só a pendência 17 |
+| `tsc`, `eslint`, `next build` | sem erros nem avisos |
+| Vitest — total | 153/153. I10: 4 unitários (5 modelos em PNG e PDF nas dimensões certas, com e sem logo; contatos; avisos de tom de voz e de tamanho) e 4 de integração — 3 no banco descartável (logos: só o administrador envia/aprova, versões imutáveis, marketing vê só a aprovada; peça: fluxo completo com devolução por serviço não liberado e por contatos ausentes, checklist obrigatório, imutabilidade, exportação só aprovada, reabertura, cancelamento, operador barrado, trilha) e 1 no banco real (marketing cria e envia, não aprova; operador, sem acesso e anônimo barrados). Varredura de segurança atualizada com o bucket de marca; teste de níveis atualizado para o marketing |
+| Playwright — total | 37/37 (I10: logo aprovado → peça do marketing → aviso “zero multas” → prévia → envio → revisão com checklist → aprovação → exportação PNG (administrador) e PDF (marketing) registradas → cancelamento da peça de teste; operador barrado; 4 telas no celular sem rolagem horizontal; rotas novas no teste responsivo) |
+
+Dados de teste deixados no desenvolvimento: ativo “[TESTE] Logo AUDITA (arquivo do sistema)” com uma versão aprovada (é o arquivo `public/brand/audita-logo.png` já usado no sistema) e peças COM-2026-0001 a 0004 canceladas.
