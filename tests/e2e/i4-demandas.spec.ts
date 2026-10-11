@@ -122,7 +122,7 @@ test("demandas no celular: lista em cartões e ficha sem rolagem horizontal", as
   await expect(page.getByRole("heading", { name: "Demandas" })).toBeVisible();
   await expect(page.getByRole("table")).toBeHidden();
   await page.screenshot({ path: `${SHOTS}/43-demandas-celular.png` });
-  await page.locator('ul a[href^="/demandas/"]').first().click();
+  await page.locator('ul a[href^="/demandas/"]:not([href^="/demandas/servicos"])').first().click();
   await expect(page.getByRole("button", { name: "Atualizar situação" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/44-demanda-celular.png`, fullPage: true });

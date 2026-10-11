@@ -56,7 +56,7 @@ for (const vp of [
     await page.goto("/configuracoes/servicos");
     const serviceHref = await page.locator('a[href^="/configuracoes/servicos/"]').first().getAttribute("href");
     await page.goto("/demandas?grupo=todas");
-    const demandHref = await page.locator('ul a[href^="/demandas/"]').first().getAttribute("href");
+    const demandHref = await page.locator('ul a[href^="/demandas/"]:not([href^="/demandas/servicos"])').first().getAttribute("href");
     await page.goto("/configuracoes/parametros");
     const paramHref = await page.locator('a[href^="/configuracoes/parametros/"]').first().getAttribute("href");
     await page.goto("/orcamentos");
