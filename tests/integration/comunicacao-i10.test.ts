@@ -110,7 +110,7 @@ describe("I10 — fluxo de comunicação (PGlite)", () => {
       expect((await err(db.query(`select audita.review_comm_piece($1, 'aprovar', null, $2)`, [id, CHECK_OK])))?.code).toBe("42501");
       return id;
     });
-    const snap = (await q<{ snapshot: Record<string, any> }>(`select snapshot from audita.comm_piece_versions where id = $1`, [v1]))[0].snapshot;
+    const snap = (await q<{ snapshot: Record<string, Record<string, unknown>> }>(`select snapshot from audita.comm_piece_versions where id = $1`, [v1]))[0].snapshot;
     expect(snap.piece.title).toBe("[TESTE] Integração de novos colaboradores");
     expect(snap.logo.sha256).toBe(SHA);
     expect(snap.service.commercial_status).toBe("nao_liberado");
