@@ -38,6 +38,11 @@ function setup() {
   ready = true;
 }
 
+/** Fontes e políticas de acesso do pdfmake (usado também pela exportação das peças de comunicação). */
+export function ensurePdfmake() {
+  setup();
+}
+
 const gridLayout = {
   hLineWidth: () => 0.6,
   vLineWidth: () => 0.6,

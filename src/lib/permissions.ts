@@ -15,7 +15,8 @@ export const ROLE_HINT: Record<Role, string> = {
   admin: "Acesso completo: parâmetros, catálogo, orçamentos, emissão, biblioteca, indicadores e registro de atividades. Criar usuários é só do mestre.",
   operador:
     "Clientes, unidades e contatos; demandas; prepara orçamentos (itens, horas, despesas e conteúdo) sem ver preços e margens. Não conclui revisão, não emite, não registra aceite, não libera serviços nem altera parâmetros (AUDDOC017 §10).",
-  marketing: "Rascunhos de comunicação quando o módulo existir (I10). Até lá, apenas a própria conta. Não vê preços nem clientes (AUDDOC017 §10).",
+  marketing:
+    "Comunicação: campanhas e peças (briefing e rascunhos), envio para revisão e exportação do que o administrador aprovou; vê só os logos oficiais aprovados. Não aprova peças, não envia logos e não vê preços nem clientes (AUDDOC017 §10).",
 };
 
 /** Níveis oferecidos ao criar/alterar usuários. "mestre" = mestre adicional: Administrador + marca de mestre
@@ -36,15 +37,17 @@ export const NAV_ROLES: Record<string, Role[]> = {
   "/demandas": ["admin", "operador"],
   "/orcamentos": ["admin", "operador"],
   "/biblioteca": ["admin"],
-  "/comunicacao": ["admin"],
+  "/comunicacao": ["admin", "marketing"],
   "/configuracoes": ["admin"],
 };
 
 export function homeFor(role: Role): string {
   if (role === "operador") return "/clientes";
-  if (role === "marketing") return "/conta";
+  if (role === "marketing") return "/comunicacao";
   return "/";
 }
 
 export const OPERATE: Role[] = ["admin", "operador"];
+/** Comunicação (I10): administrador e marketing; só o administrador aprova peças e logos. */
+export const COMMUNICATE: Role[] = ["admin", "marketing"];
 export const ADMIN_ONLY: Role[] = ["admin"];
