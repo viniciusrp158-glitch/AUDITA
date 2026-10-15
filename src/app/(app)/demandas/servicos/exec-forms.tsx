@@ -176,7 +176,7 @@ export function GenerateForm({ action, label }: { action: Action; label: string 
               ))}
             </ul>
           </Alert>
-          <CheckboxField name="confirm" label="Gerar mesmo assim (os campos saem como [PENDENTE] na minuta)." />
+          <CheckboxField name="confirm" label="Gerar mesmo assim (os campos saem como [PENDENTE] no documento)." />
         </div>
       )}
       <SubmitButton pendingText="Gerando…" variant="secondary" full={false}>

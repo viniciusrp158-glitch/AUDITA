@@ -1,6 +1,7 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { BASE_PATH } from "@/lib/base-path";
 
 /** Retorno dos links enviados por e-mail (recuperação de senha). Aceita PKCE (`code`) e `token_hash`. */
 export async function GET(request: NextRequest) {
@@ -20,5 +21,5 @@ export async function GET(request: NextRequest) {
     ok = !(await supabase.auth.verifyOtp({ type, token_hash: tokenHash })).error;
   }
 
-  return NextResponse.redirect(`${origin}${ok ? safeNext : "/login?motivo=link"}`);
+  return NextResponse.redirect(`${origin}${BASE_PATH}${ok ? safeNext : "/login?motivo=link"}`);
 }

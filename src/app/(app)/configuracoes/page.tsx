@@ -12,6 +12,7 @@ const ITENS = [
   { href: "/configuracoes/servicos", titulo: "Catálogo de serviços", desc: "Serviços AUDDOC004/005 e situação de liberação.", pronto: true },
   { href: "/configuracoes/parametros", titulo: "Parâmetros financeiros", desc: "Conjuntos versionados de parâmetros AUDDOC011.", pronto: true },
   { href: "/configuracoes/modelos", titulo: "Modelos de documentos", desc: "Versões técnicas dos modelos AUDDOC010.", pronto: true },
+  { href: "/configuracoes/guarda", titulo: "Guarda e anonimização", desc: "Prazos de guarda aprovados (caderno J4) e anonimização de registros vencidos.", pronto: true },
   { href: "/conta", titulo: "Usuários", desc: "Criação e níveis de acesso em “Minha conta” (somente usuário mestre).", pronto: true },
 ] as const;
 

@@ -10,6 +10,7 @@ import { COMMUNICATE } from "@/lib/permissions";
 import { cancelPieceAction, reopenPieceAction, reviewPieceAction, submitPieceAction, updatePieceAction } from "../../actions";
 import { PieceForm, ReasonForm, ReviewForm, SubmitPieceForm } from "../../comm-forms";
 import { NoAiNotice, PieceStatusPill, VersionStatusPill } from "../../shared";
+import { withBase } from "@/lib/base-path";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -176,7 +177,7 @@ export default async function PecaPage({ params, searchParams }: { params: Promi
                   {(["png", "pdf"] as const).map((f) => (
                     <a
                       key={f}
-                      href={`/comunicacao/pecas/${p.id}/versoes/${approved.version}/exportar?formato=${f}`}
+                      href={withBase(`/comunicacao/pecas/${p.id}/versoes/${approved.version}/exportar?formato=${f}`)}
                       className="inline-flex items-center gap-2 rounded-md bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700"
                     >
                       <Download size={16} aria-hidden /> Exportar {f.toUpperCase()}

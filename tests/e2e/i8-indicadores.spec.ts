@@ -11,7 +11,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 test("painel: indicadores do mês com dados de teste, troca de período, exclusão de testes e alertas", async ({ page }) => {

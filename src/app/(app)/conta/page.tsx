@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ChevronDown, Crown, KeyRound, Lock, Palette, UserPlus, UserRound, UsersRound } from "lucide-react";
+import { ChevronDown, Crown, KeyRound, Lock, Palette, ShieldCheck, UserPlus, UserRound, UsersRound } from "lucide-react";
+import { MfaDisable, MfaEnroll } from "@/components/mfa-forms";
+import { createClient } from "@/lib/supabase/server";
 import { Alert } from "@/components/form";
 import { requireAppUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
@@ -63,6 +65,8 @@ export default async function ContaPage() {
   const user = await requireAppUser();
   const theme = user.theme ?? (await getThemeCookie());
   const managed = user.isMaster ? await listManagedUsers() : null;
+  const { data: factors } = await (await createClient()).auth.mfa.listFactors();
+  const mfaActive = (factors?.totp ?? []).some((f) => f.status === "verified");
 
   return (
     <>
@@ -123,6 +127,20 @@ export default async function ContaPage() {
             >
               Alterar
             </Link>
+          </div>
+          <div className="mt-3 rounded-lg border border-line p-3" data-testid="mfa-section">
+            <div className="mb-3 flex items-start gap-3">
+              <ShieldCheck size={18} className="mt-0.5 text-muted" aria-hidden />
+              <div>
+                <p className="text-sm font-semibold text-ink">
+                  Verificação em duas etapas {mfaActive ? <span className="ml-1 rounded-full bg-ok/10 px-2 py-0.5 text-xs text-ok">ativa</span> : null}
+                </p>
+                <p className="text-xs text-muted">
+                  Além da senha, um código do aplicativo autenticador no celular. Recomendado para o usuário mestre (caderno I3.01).
+                </p>
+              </div>
+            </div>
+            {mfaActive ? <MfaDisable /> : <MfaEnroll />}
           </div>
         </Section>
 

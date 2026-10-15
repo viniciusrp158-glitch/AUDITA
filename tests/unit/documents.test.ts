@@ -9,7 +9,7 @@ import { buildDocument, documentTotalsMatch, TEST_WATERMARK } from "@/lib/docume
 import { renderDocx } from "@/lib/documents/render-docx";
 import { renderPdf } from "@/lib/documents/render-pdf";
 import { buildResults, verifySnapshot, type QuoteSnapshot } from "@/lib/documents/snapshot";
-import { institutionalSchema, issuerLine, pendingEssentials, proponentText, type ProponentSnapshot } from "@/lib/institutional";
+import { contractorQualification, institutionalSchema, issuedByLine, issuerLine, pendingEssentials, proponentText, type ProponentSnapshot } from "@/lib/institutional";
 
 const PARAMS = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -231,6 +231,7 @@ const PROPONENTE_TESTE: ProponentSnapshot = {
   show_technical_lead: true,
   signatory_name: null,
   signatory_role: null,
+  signatory_cpf: null,
   full_address_on_proposal: true,
 };
 
@@ -250,16 +251,23 @@ describe("I9.2 — empresa proponente nos documentos", () => {
     const model = buildDocument(s, CTX);
     const { body } = await docxText(await renderDocx(model));
     for (const expected of [
-      "AUDITA — [TESTE] Empresa Proponente Fictícia LTDA — CNPJ 11.444.777/0001-61",
-      "Endereço: Rua de Teste, 10 — Sala 1, Centro, Sorocaba/SP, CEP 18000-000",
-      "Contato: contato@exemplo.test · (15) 99999-0000",
-      "Responsável técnico: Responsável Técnico Fictício (Registro TESTE-000)",
+      "AUDITA — [TESTE] Empresa Proponente Fictícia LTDA, inscrita no CNPJ sob o nº 11.444.777/0001-61",
+      "com sede na Rua de Teste, 10, Sala 1 — Centro, Sorocaba/SP, CEP 18000-000.",
+      "Contato: contato@exemplo.test · (15) 99999-0000.",
+      "Responsável técnico: Responsável Técnico Fictício — Registro TESTE-000.",
+      // Condições gerais aprovadas no caderno (J1.05–J1.09, J6.03)
+      "6. Condições gerais",
+      "multa de 2%, juros de 1% ao mês",
+      "Comarca de Sorocaba/SP",
+      "Alcance e limitações",
     ])
       expect(body, expected).toContain(expected);
     expect(body).not.toContain("pendentes de formalização");
-    expect(model.footer).toContain("AUDITA · CNPJ 11.444.777/0001-61 · contato@exemplo.test · (15) 99999-0000 · Gerado pelo sistema AUDITA");
+    expect(model.footer).toContain("AUDITA · [TESTE] Empresa Proponente Fictícia LTDA · CNPJ 11.444.777/0001-61 · contato@exemplo.test · (15) 99999-0000 · Gerado pelo sistema AUDITA");
     const m02 = buildDocument({ ...s, quote: { ...s.quote, model: "ANX02" } }, CTX);
     expect(m02.footer).toContain("CNPJ 11.444.777/0001-61");
+    const m02text = (await docxText(await renderDocx(m02))).body;
+    for (const expected of ["Empresa proponente", "inscrita no CNPJ sob o nº 11.444.777/0001-61", "ALCANCE"]) expect(m02text, expected).toContain(expected);
     const pdf = await renderPdf(model);
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
   });
@@ -267,13 +275,46 @@ describe("I9.2 — empresa proponente nos documentos", () => {
   it("dados parciais: o que falta aparece como PENDENTE; endereço e responsável técnico respeitam as opções", () => {
     const partial = { ...PROPONENTE_TESTE, cnpj: null, email: null, phone: null, show_technical_lead: false, full_address_on_proposal: false };
     const txt = proponentText(partial);
-    expect(txt).toContain("CNPJ PENDENTE");
+    expect(txt).toContain("CNPJ sob o nº PENDENTE");
     expect(txt).toContain("Contato: PENDENTE");
-    expect(txt).not.toContain("Endereço:");
+    expect(txt).toContain("com sede em Sorocaba/SP."); // só município/UF (caderno D6.06)
+    expect(txt).not.toContain("Rua de Teste");
     expect(txt).not.toContain("Responsável técnico");
-    expect(issuerLine(partial)).toBe("AUDITA");
+    expect(issuerLine(partial)).toBe("AUDITA · [TESTE] Empresa Proponente Fictícia LTDA");
     expect(pendingEssentials(partial).map((f) => f.key)).toEqual(["cnpj", "email", "phone"]);
-    expect(proponentText({ ...PROPONENTE_TESTE, legal_name: null, trade_name: null })).toContain("AUDITA — razão social PENDENTE — CNPJ");
+    expect(proponentText({ ...PROPONENTE_TESTE, legal_name: null, trade_name: null })).toContain("AUDITA — razão social PENDENTE, inscrita no CNPJ");
+  });
+
+  it("MEI (caderno J1.10): qualificação, atividade pelo CNAE, contatos oficiais e qualificação do contrato com CPF do titular", () => {
+    const mei: ProponentSnapshot = {
+      ...PROPONENTE_TESTE,
+      legal_name: "[TESTE] 00.000.000 Titular Fictício",
+      trade_name: "MARCA FICTÍCIA",
+      legal_nature: "Microempreendedor individual (MEI)",
+      cnae_main: "8599-6/04 - Treinamento em desenvolvimento profissional e gerencial",
+      website: "exemplo.test",
+      address_complement: null,
+      full_address_on_proposal: false,
+      signatory_name: "Titular Fictício",
+      signatory_cpf: "52998224725",
+    };
+    expect(proponentText(mei)).toBe(
+      [
+        "MARCA FICTÍCIA — [TESTE] 00.000.000 Titular Fictício, microempreendedor individual inscrito no CNPJ sob o nº 11.444.777/0001-61, com sede em Sorocaba/SP.",
+        "Atividade: treinamento em desenvolvimento profissional e gerencial (CNAE 8599-6/04).",
+        "Contato: exemplo.test · contato@exemplo.test · (15) 99999-0000.",
+        "Responsável técnico: Responsável Técnico Fictício — Registro TESTE-000.",
+      ].join("\n"),
+    );
+    expect(issuerLine(mei)).toBe("MARCA FICTÍCIA · [TESTE] 00.000.000 Titular Fictício · CNPJ 11.444.777/0001-61 · contato@exemplo.test · (15) 99999-0000");
+    const q = contractorQualification(mei);
+    expect(q.missing).toEqual([]);
+    expect(q.text).toBe(
+      "[TESTE] 00.000.000 Titular Fictício, nome fantasia MARCA FICTÍCIA, microempreendedor individual inscrito no CNPJ sob o nº 11.444.777/0001-61, " +
+        "com sede na Rua de Teste, 10 — Centro, Sorocaba/SP, CEP 18000-000, neste ato representado por seu titular, Titular Fictício, inscrito no CPF sob o nº 529.982.247-25. " +
+        "Objeto compatível com a atividade registrada: prestação de serviços de treinamento em desenvolvimento profissional e gerencial (CNAE 8599-6/04), conforme a proposta aceita.",
+    );
+    expect(issuedByLine(mei)).toBe("Emitido por MARCA FICTÍCIA — [TESTE] 00.000.000 Titular Fictício, CNPJ 11.444.777/0001-61.");
   });
 
   it("validação do formulário espelha o banco (CNPJ, CEP, UF, e-mail, telefone, site)", () => {

@@ -18,7 +18,7 @@ async function login(page: Page, who: { email: string; password: string }, landi
 }
 
 test("administrador: Configurações → Dados institucionais, prévia com PENDENTE e validação do rascunho", async ({ page }) => {
-  await login(page, ADMIN, /\/$/);
+  await login(page, ADMIN, /\/empresa$/);
   await page.goto("/configuracoes");
   await page.getByRole("link", { name: /Dados institucionais/ }).click();
   await expect(page).toHaveURL(/\/configuracoes\/institucional$/);
@@ -61,7 +61,7 @@ test("operador não acessa os dados institucionais (modo mais restritivo)", asyn
 test.describe("celular", () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test("tela de dados institucionais sem rolagem horizontal", async ({ page }) => {
-    await login(page, ADMIN, /\/$/);
+    await login(page, ADMIN, /\/empresa$/);
     await page.goto("/configuracoes/institucional");
     await expect(page.getByRole("heading", { name: "Dados institucionais" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);

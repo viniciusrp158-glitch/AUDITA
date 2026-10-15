@@ -13,12 +13,14 @@ export default defineConfig({
     timezoneId: "America/Sao_Paulo",
     trace: "off",
     actionTimeout: 15_000,
+    // Ambientes com o Chromium pré-instalado fora da versão do Playwright: PW_CHROMIUM_PATH=/caminho/do/chromium
+    launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {},
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {} } }],
   webServer: {
     // Requer `npm run build` antes.
     command: `npx next start -p ${PORT}`,
-    url: `http://127.0.0.1:${PORT}/login`,
+    url: `http://127.0.0.1:${PORT}/empresa/login`,
     // E2E_REUSE=1 reaproveita um servidor já iniciado (execuções longas em segundo plano)
     reuseExistingServer: process.env.E2E_REUSE === "1",
     timeout: 60_000,

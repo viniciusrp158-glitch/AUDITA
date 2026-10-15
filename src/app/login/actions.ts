@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { homeFor, type Role } from "@/lib/permissions";
 import { setThemeCookie } from "@/lib/theme";
+import { BASE_PATH } from "@/lib/base-path";
 
 export type FormState = { error?: string; message?: string };
 
@@ -27,6 +28,10 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
     // Mensagem genérica: não revela se o e-mail existe.
     return { error: "E-mail ou senha inválidos." };
   }
+
+  // Verificação em duas etapas ativada: o código é pedido antes de qualquer acesso aos dados (o banco exige aal2)
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") redirect("/verificacao");
 
   // Qualquer nível ativo do AUDITA entra; quem não está cadastrado (ou está inativo) é recusado.
   const { data: role } = await supabase.rpc("current_app_role");
@@ -64,7 +69,7 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
   const origin = h.get("origin") ?? `https://${h.get("host")}`;
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${origin}/auth/confirm?next=/atualizar-senha`,
+    redirectTo: `${origin}${BASE_PATH}/auth/confirm?next=/atualizar-senha`,
   });
   // Resposta idêntica exista ou não o e-mail.
   return {

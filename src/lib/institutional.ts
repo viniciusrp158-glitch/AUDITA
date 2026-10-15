@@ -4,7 +4,7 @@
  * Nada é inventado: campo vazio = PENDENTE. Validações espelham as do banco (audita.institutional_profiles).
  */
 import { z } from "zod";
-import { formatCep, formatCnpj, formatPhone, isValidCnpj, onlyDigits, UFS } from "@/lib/br";
+import { formatCep, formatCnpj, formatCpf, formatPhone, isValidCnpj, isValidCpf, onlyDigits, UFS } from "@/lib/br";
 
 export type InstitutionalStatus = "rascunho" | "vigente" | "substituido";
 
@@ -34,6 +34,7 @@ export type InstitutionalData = {
   show_technical_lead: boolean;
   signatory_name: string | null;
   signatory_role: string | null;
+  signatory_cpf: string | null;
   full_address_on_proposal: boolean;
   notes: string | null;
 };
@@ -73,7 +74,7 @@ export type FieldDef = {
   source: "C1" | "D6";
   hint?: string;
   max: number;
-  kind?: "cnpj" | "zip" | "uf" | "email" | "phone" | "url" | "long";
+  kind?: "cnpj" | "cpf" | "zip" | "uf" | "email" | "phone" | "url" | "long";
 };
 
 export const FIELD_GROUPS: { title: string; description: string; fields: FieldDef[] }[] = [
@@ -122,6 +123,7 @@ export const FIELD_GROUPS: { title: string; description: string; fields: FieldDe
       { key: "technical_lead_registration", label: "Registro profissional do responsável", source: "D6", max: 80, hint: "Ex.: conselho e número. Não preencha sem documento." },
       { key: "signatory_name", label: "Signatário pela AUDITA", source: "D6", max: 160 },
       { key: "signatory_role", label: "Cargo do signatário", source: "D6", max: 120 },
+      { key: "signatory_cpf", label: "CPF do titular (somente no contrato M04)", source: "D6", max: 14, kind: "cpf", hint: "Usado só na qualificação da CONTRATADA no contrato (caderno J1.10)." },
     ],
   },
 ];
@@ -194,6 +196,7 @@ export const institutionalSchema = z.object({
   show_technical_lead: z.preprocess((v) => v === "on" || v === true, z.boolean()),
   signatory_name: opt(160, 2),
   signatory_role: opt(120, 2),
+  signatory_cpf: digits([11], "O CPF precisa ter 11 dígitos.").refine((v) => v === null || isValidCpf(v), "CPF inválido (dígitos verificadores)."),
   full_address_on_proposal: z.preprocess((v) => v === "on" || v === true, z.boolean()),
   notes: opt(2000),
 });
@@ -206,6 +209,7 @@ export function toFormValues(p: Partial<InstitutionalData> | null): Record<strin
   out.cnpj = p?.cnpj ? formatCnpj(p.cnpj) : "";
   out.address_zip = p?.address_zip ? formatCep(p.address_zip) : "";
   out.phone = p?.phone ? formatPhone(p.phone) : "";
+  out.signatory_cpf = p?.signatory_cpf ? formatCpf(p.signatory_cpf) : "";
   out.notes = v("notes");
   out.show_technical_lead = p?.show_technical_lead ? "on" : "";
   out.full_address_on_proposal = p?.full_address_on_proposal === false ? "" : "on";
@@ -224,49 +228,110 @@ export function brandName(p: ProponentSnapshot | null | undefined): string {
   return p?.trade_name?.trim() || "AUDITA";
 }
 
+/** "Rua X, 219 — Bairro, Cidade/UF, CEP 00000-000" (formato do caderno J1.10). */
 export function proponentAddress(p: ProponentSnapshot): string | null {
-  const street = [p.address_street, p.address_number].filter(Boolean).join(", ");
-  const parts = [
-    [street, p.address_complement].filter(Boolean).join(" — "),
-    p.address_district,
-    [p.address_city, p.address_state].filter(Boolean).join("/"),
-    p.address_zip ? `CEP ${formatCep(p.address_zip)}` : null,
-  ].filter((x) => x && String(x).trim());
-  return parts.length ? parts.join(", ") : null;
+  const street = [[p.address_street, p.address_number].filter(Boolean).join(", "), p.address_complement].filter(Boolean).join(", ");
+  const rest = [p.address_district, [p.address_city, p.address_state].filter(Boolean).join("/"), p.address_zip ? `CEP ${formatCep(p.address_zip)}` : null]
+    .filter((x) => x && String(x).trim())
+    .join(", ");
+  const out = [street, rest].filter(Boolean).join(" — ");
+  return out || null;
 }
 
-export function proponentContacts(p: ProponentSnapshot | null | undefined): string | null {
+/** Canais oficiais na ordem do caderno J1.10: site · e-mail · telefone. */
+export function proponentContacts(p: ProponentSnapshot | null | undefined, opts: { website?: boolean } = {}): string | null {
   if (!p) return null;
-  const parts = [p.email, p.phone ? formatPhone(p.phone) : null, p.website].filter(Boolean);
+  const parts = [opts.website === false ? null : p.website, p.email, p.phone ? formatPhone(p.phone) : null].filter(Boolean);
   return parts.length ? parts.join(" · ") : null;
 }
 
+/** "Brand — Razão social" (o nome fantasia vem antes e nunca substitui a razão social — caderno J1.01). */
+function nameLine(p: ProponentSnapshot): string {
+  const brand = brandName(p);
+  const name = p.legal_name?.trim() || `razão social ${PENDENTE}`;
+  return brand !== name ? `${brand} — ${name}` : name;
+}
+
+function isMei(p: ProponentSnapshot): boolean {
+  return /microempreendedor|\bMEI\b/i.test(p.legal_nature ?? "");
+}
+
+/** "8599-6/04 - Treinamento em ..." → "treinamento em ... (CNAE 8599-6/04)". */
+export function activityText(p: ProponentSnapshot | null | undefined): string | null {
+  const raw = p?.cnae_main?.trim();
+  if (!raw) return null;
+  const m = raw.match(/^(\d{4}-\d\/\d{2})\s*[-–—]\s*(.+)$/);
+  if (!m) return raw;
+  const desc = m[2].trim();
+  return `${desc.charAt(0).toLowerCase()}${desc.slice(1)} (CNAE ${m[1]})`;
+}
+
+/** "inscrito no CNPJ sob o nº ..." conforme a natureza jurídica. */
+function cnpjClause(p: ProponentSnapshot): string {
+  const cnpj = p.cnpj ? formatCnpj(p.cnpj) : PENDENTE;
+  return isMei(p) ? `microempreendedor individual inscrito no CNPJ sob o nº ${cnpj}` : `inscrita no CNPJ sob o nº ${cnpj}`;
+}
+
+function technicalLead(p: ProponentSnapshot): string | null {
+  if (!p.show_technical_lead || !p.technical_lead_name?.trim()) return null;
+  const reg = p.technical_lead_registration?.trim();
+  return `${p.technical_lead_name.trim()}${reg ? ` — ${reg}` : ""}`;
+}
+
 /**
- * Campo "Empresa proponente" (AUDDOC010-ANX01). Sem versão vigente (ou revisões anteriores ao I9.2): texto de pendência.
- * Com versão vigente: dados preenchidos; o que faltar de razão social/CNPJ aparece como PENDENTE (nunca inventado).
+ * Campo "Empresa proponente" (AUDDOC010-ANX01; texto obrigatório do caderno J1.10). Sem versão vigente (ou revisões
+ * anteriores ao I9.2): texto de pendência. O que faltar aparece como PENDENTE (nunca inventado).
  */
 export function proponentText(p: ProponentSnapshot | null | undefined): string {
   if (!p) return PROPONENT_PENDING;
-  const brand = brandName(p);
-  const name = p.legal_name?.trim() || `razão social ${PENDENTE}`;
-  const head = brand !== name ? `${brand} — ${name}` : name;
-  const lines = [`${head} — CNPJ ${p.cnpj ? formatCnpj(p.cnpj) : PENDENTE}`];
-  if (p.full_address_on_proposal) {
-    const addr = proponentAddress(p);
-    lines.push(addr ? `Endereço: ${addr}` : `Endereço: ${PENDENTE}`);
-  }
+  const seat = p.full_address_on_proposal
+    ? (proponentAddress(p) ?? PENDENTE)
+    : [p.address_city, p.address_state].filter(Boolean).join("/") || PENDENTE;
+  const lines = [`${nameLine(p)}, ${cnpjClause(p)}, com sede ${p.full_address_on_proposal ? "na" : "em"} ${seat}.`];
+  const activity = activityText(p);
+  if (activity) lines.push(`Atividade: ${activity}.`);
   const contacts = proponentContacts(p);
-  lines.push(contacts ? `Contato: ${contacts}` : `Contato: ${PENDENTE}`);
-  if (p.show_technical_lead && p.technical_lead_name?.trim()) {
-    lines.push(
-      `Responsável técnico: ${p.technical_lead_name.trim()}${p.technical_lead_registration?.trim() ? ` (${p.technical_lead_registration.trim()})` : ""}`,
-    );
-  }
+  lines.push(contacts ? `Contato: ${contacts}.` : `Contato: ${PENDENTE}`);
+  const lead = technicalLead(p);
+  if (lead) lines.push(`Responsável técnico: ${lead}.`);
   return lines.join("\n");
 }
 
-/** Identificação curta para o rodapé: "AUDITA · CNPJ 00.000.000/0000-00 · e-mail · telefone". */
+/** Rodapé de todos os documentos (caderno J1.10): "Marca · Razão social · CNPJ · e-mail · telefone". */
 export function issuerLine(p: ProponentSnapshot | null | undefined): string {
   if (!p) return "AUDITA";
-  return [brandName(p), p.cnpj ? `CNPJ ${formatCnpj(p.cnpj)}` : null, proponentContacts(p)].filter(Boolean).join(" · ");
+  const name = p.legal_name?.trim();
+  return [brandName(p), name && name !== brandName(p) ? name : null, p.cnpj ? `CNPJ ${formatCnpj(p.cnpj)}` : null, proponentContacts(p, { website: false })]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** "Emitido por AUDITA | SSMA & SGI — Razão social, CNPJ ..." (M03, M05, M06 e certificados — caderno J1.10). */
+export function issuedByLine(p: ProponentSnapshot | null | undefined): string {
+  if (!p) return PROPONENT_PENDING;
+  return `Emitido por ${nameLine(p)}, CNPJ ${p.cnpj ? formatCnpj(p.cnpj) : PENDENTE}.`;
+}
+
+/** Qualificação da CONTRATADA no contrato M04 (caderno J1.10). Ausências voltam em `missing`. */
+export function contractorQualification(p: ProponentSnapshot | null | undefined): { text: string; missing: string[] } {
+  const missing: string[] = [];
+  const v = (label: string, value: string | null | undefined) => {
+    const t = (value ?? "").trim();
+    if (t) return t;
+    missing.push(label);
+    return `[PENDENTE: ${label}]`;
+  };
+  const legal = v("Razão social da AUDITA", p?.legal_name);
+  const brand = p?.trade_name?.trim() ? `, nome fantasia ${p.trade_name.trim()}` : "";
+  const cnpj = p?.cnpj ? formatCnpj(p.cnpj) : v("CNPJ da AUDITA", null);
+  const kind = p && isMei(p) ? "microempreendedor individual inscrito" : "inscrita";
+  const addr = v("Endereço da AUDITA", p ? proponentAddress(p) : null);
+  const rep = v("Titular / representante da AUDITA", p?.signatory_name);
+  const cpf = p?.signatory_cpf ? formatCpf(p.signatory_cpf) : v("CPF do titular da AUDITA", null);
+  const activity = activityText(p);
+  const text =
+    `${legal}${brand}, ${kind} no CNPJ sob o nº ${cnpj}, com sede na ${addr}, neste ato representado por seu titular, ${rep}, ` +
+    `inscrito no CPF sob o nº ${cpf}.` +
+    (activity ? ` Objeto compatível com a atividade registrada: prestação de serviços de ${activity}, conforme a proposta aceita.` : "");
+  return { text, missing };
 }

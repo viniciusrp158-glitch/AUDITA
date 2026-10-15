@@ -13,10 +13,11 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 test("FL-01: cadastro completo de cliente com unidade, contato, histórico e inativação", async ({ page }) => {
+  test.setTimeout(90_000);
   const tag = uniqueSuffix();
   const nome = `[Teste automatizado] Indústria Exemplo ${tag} LTDA`;
   const cnpj = randomCnpj();

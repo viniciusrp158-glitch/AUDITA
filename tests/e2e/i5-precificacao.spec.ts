@@ -14,7 +14,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 const PARAMS: [string, string][] = [
@@ -97,6 +97,10 @@ test("FL-06: cotação a partir da demanda, itens com prévia, totais único × 
   // Criar cotação (serviço da demanda entra como item 1, ainda PENDENTE sem horas)
   await page.getByRole("button", { name: "Criar cotação" }).click();
   await expect(page.getByText(/Cotação criada com o código PROP-\d{4}-\d{4,}/)).toBeVisible();
+  // V1.2 — condições comerciais padrão do caderno (D5, J1.04) já preenchidas e editáveis
+  await expect(page.locator('input[name="validity_days"]')).toHaveValue("15");
+  await expect(page.locator('textarea[name="payment_terms"]')).toHaveValue(/acréscimo de 5%/);
+  await expect(page.locator('textarea[name="cancellation_terms"]')).toHaveValue(/2 dias úteis/);
   const item1 = page.getByTestId("quote-item").first();
   await expect(item1).toContainText("PENDENTE: CUSTOS / PARÂMETROS");
   await expect(page.getByText(/serviço não liberado comercialmente/i).first()).toBeVisible();
@@ -166,7 +170,7 @@ test("orçamento no celular: cartões, prévia abaixo do formulário e sem rolag
   await page.goto("/orcamentos");
   await expect(page.getByRole("table")).toBeHidden();
   await page.screenshot({ path: `${SHOTS}/54-orcamentos-celular.png` });
-  await page.locator('ul a[href^="/orcamentos/"]').first().click();
+  await page.locator('ul a[href^="/empresa/orcamentos/"]').first().click();
   await page.waitForURL(/\/orcamentos\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);

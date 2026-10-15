@@ -8,6 +8,15 @@
  */
 import Decimal from "decimal.js";
 import { formatCnpj, formatCpf, formatPhone } from "@/lib/br";
+import {
+  ADJUSTMENT_TEXT,
+  EARLY_TERMINATION_TEXT,
+  FORUM_TEXT,
+  LATE_PAYMENT_TEXT,
+  LIABILITY_TEXT,
+  SCOPE_LIMITS_SHORT,
+  SCOPE_LIMITS_TEXT,
+} from "@/lib/commercial-standards";
 import { issuerLine, PROPONENT_PENDING, proponentText } from "@/lib/institutional";
 import { formatBRL } from "@/lib/pricing/engine";
 import { revisionLabel, type QuoteSnapshot } from "./snapshot";
@@ -228,7 +237,23 @@ export function buildProposalM01(s: QuoteSnapshot, ctx: EmissionContext): DocMod
           "AUDITA: executar apenas atividades liberadas e compatíveis com as habilitações e condições acordadas; registrar resultados e comunicar limitações relevantes. " +
           "Cliente: designar contato, fornecer informações corretas, assegurar acesso e condições seguras, e executar as providências de sua responsabilidade.",
       },
-      { kind: "heading", text: "6. Condições e aceite da proposta" },
+      { kind: "heading", text: "6. Condições gerais" },
+      {
+        kind: "fields",
+        rows: [
+          ["Atraso de pagamento", LATE_PAYMENT_TEXT],
+          ...(s.results.totals.mensal
+            ? ([
+                ["Reajuste (serviços mensais)", ADJUSTMENT_TEXT],
+                ["Rescisão (serviços mensais)", EARLY_TERMINATION_TEXT],
+              ] as [string, string][])
+            : []),
+          ["Alcance e limitações", SCOPE_LIMITS_TEXT],
+          ["Responsabilidade", LIABILITY_TEXT],
+          ["Solução de conflitos e foro", FORUM_TEXT],
+        ],
+      },
+      { kind: "heading", text: "7. Condições e aceite da proposta" },
       {
         kind: "paragraph",
         text:
@@ -276,6 +301,7 @@ export function buildBudgetM02(s: QuoteSnapshot, ctx: EmissionContext): DocModel
         rows: [
           ["Referência", `${h.ref} | Data ${day(ctx.issuedOn)} | Validade ${h.validity}`],
           ["Cliente / responsável", [`${s.client.legal_name}${clientDoc(s) ? ` (${clientDoc(s)})` : ""}`, contactLine(s)].filter(Boolean).join(" — ")],
+          ["Empresa proponente", proponentText(s.proponent)],
           ["Solicitação", request],
           ["Condição de viabilidade", "Serviço(s) liberado(s) comercialmente na AUDDOC004 (situação “Apto comercialmente” — AUDDOC005 §14)."],
         ],
@@ -308,6 +334,7 @@ export function buildBudgetM02(s: QuoteSnapshot, ctx: EmissionContext): DocModel
         label: "USO CORRETO",
         text: "Orçamento isolado não deve gerar execução sem condições mínimas de escopo, aceite e formalização aplicáveis.",
       },
+      { kind: "notice", label: "ALCANCE", text: SCOPE_LIMITS_SHORT },
     ],
   };
 }

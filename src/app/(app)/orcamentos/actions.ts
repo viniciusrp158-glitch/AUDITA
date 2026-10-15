@@ -16,6 +16,14 @@ import { todaySaoPaulo } from "@/lib/format";
 import { getEmissionBlockers, getQuoteOr404, getVigenteParameterSet, getVigenteTemplate } from "@/lib/pricing/queries";
 import { acceptanceSchema, quoteHeaderSchema, quoteItemSchema, reasonSchema, refusalSchema } from "@/lib/pricing/schema";
 import { createClient } from "@/lib/supabase/server";
+import {
+  DEFAULT_ADDITIONAL_EXPENSES,
+  DEFAULT_CANCELLATION_TERMS,
+  DEFAULT_CONTRACT_MONTHS,
+  DEFAULT_NEXT_STEP,
+  DEFAULT_VALIDITY_DAYS,
+  defaultPaymentTerms,
+} from "@/lib/commercial-standards";
 
 export type QuoteActionState = {
   ok?: string;
@@ -63,6 +71,13 @@ export async function createQuoteAction(demandId: string): Promise<void> {
       scope_included: cat?.scope_preliminary?.slice(0, 4000) ?? null,
       scope_excluded: cat?.scope_limits?.slice(0, 4000) ?? null,
       location_modality: cat?.modality?.slice(0, 1000) ?? null,
+      // Condições comerciais padrão aprovadas no caderno (D5, J1.04) — editáveis antes da emissão
+      validity_days: DEFAULT_VALIDITY_DAYS,
+      payment_terms: defaultPaymentTerms(Boolean(demand.is_recurring)),
+      additional_expenses: DEFAULT_ADDITIONAL_EXPENSES,
+      cancellation_terms: DEFAULT_CANCELLATION_TERMS,
+      next_step: DEFAULT_NEXT_STEP,
+      contract_months: demand.is_recurring ? DEFAULT_CONTRACT_MONTHS : null,
     })
     .select("id")
     .single();

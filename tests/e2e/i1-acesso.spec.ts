@@ -37,7 +37,7 @@ test("usuário autenticado sem autorização é bloqueado", async ({ page }) => 
 
 test("administrador entra, navega, vê a trilha e sai", async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
   await expect(page.getByRole("heading", { name: /Olá, Administrador/ })).toBeVisible();
 
   const menu = page.getByRole("complementary", { name: "Menu principal" });
@@ -64,7 +64,7 @@ test("layout responsivo no celular", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
   const page = await ctx.newPage();
   await login(page, ADMIN.email, ADMIN.password);
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
   await page.screenshot({ path: `${SHOTS}/05-celular-inicio.png` });
   await page.getByRole("button", { name: "Abrir menu" }).click();
   await expect(page.getByRole("link", { name: "Orçamentos" })).toBeVisible();

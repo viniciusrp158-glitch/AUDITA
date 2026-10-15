@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
-import { buildContractDocument, LEGAL_WATERMARK, type ContractDocInput } from "@/lib/documents/contracts";
+import { buildContractDocument, type ContractDocInput } from "@/lib/documents/contracts";
 import { TEST_WATERMARK } from "@/lib/documents/proposal";
 import { renderDocx } from "@/lib/documents/render-docx";
 import { renderPdf } from "@/lib/documents/render-pdf";
@@ -88,32 +88,43 @@ async function docxText(buf: Buffer) {
 }
 
 describe("V1.1 — documentos M03–M06", () => {
-  it("M03 e M04: dados dos cadastros; ausências viram [PENDENTE] e são listadas; minuta jurídica sempre identificada", async () => {
+  it("M03 e M04: dados dos cadastros; ausências viram [PENDENTE] e são listadas; textos aprovados no caderno (J2.02)", async () => {
     mkdirSync("test-results/documentos", { recursive: true });
     const m03 = buildContractDocument("M03", BASE);
     expect(m03.missing).toEqual(["Representante do cliente"]);
     const t03 = await docxText(await renderDocx(m03.model));
-    for (const s of ["PROP-2026-0999 Rev.00", "R$ 1.576,78/mês (recorrente)", "[PENDENTE: Representante do cliente]", "DECLARAÇÃO DE ACEITE", "MINUTA"]) expect(t03, s).toContain(s);
+    for (const s of ["PROP-2026-0999 Rev.00", "R$ 1.576,78/mês (recorrente)", "[PENDENTE: Representante do cliente]", "DECLARAÇÃO DE ACEITE"]) expect(t03, s).toContain(s);
+    expect(t03).not.toContain("MINUTA");
     expect(m03.model.watermark).toBe(TEST_WATERMARK);
-    expect(m03.model.footer).toContain(LEGAL_WATERMARK);
+    expect(m03.model.footer).toContain("versão técnica v2");
 
     const m04 = buildContractDocument("M04", BASE);
-    // sem dados institucionais e sem cláusulas jurídicas negociadas: nada inventado
+    // sem dados institucionais: nada inventado (as cláusulas jurídicas já vêm do caderno)
     expect(m04.missing).toEqual(
-      expect.arrayContaining([
-        "Razão social da AUDITA",
-        "CNPJ da AUDITA",
-        "Condições negociadas de alteração, suspensão e encerramento (revisão jurídica)",
-        "Cláusula de responsabilidade e foro validada pela assessoria jurídica",
-      ]),
+      expect.arrayContaining(["Razão social da AUDITA", "CNPJ da AUDITA", "Endereço da AUDITA", "Titular / representante da AUDITA", "CPF do titular da AUDITA"]),
     );
     const t04 = await docxText(await renderDocx(m04.model));
-    for (const s of ["CNPJ 11.222.333/0001-81", "01/11/2026 até 31/10/2027", "Cláusula 5 — Responsabilidades e limites", "REVISÃO OBRIGATÓRIA", "[PENDENTE: CNPJ da AUDITA]"])
+    for (const s of [
+      "CNPJ 11.222.333/0001-81",
+      "01/11/2026 até 31/10/2027",
+      "Contrato de prestação de serviços de treinamento",
+      "Cláusula 5 — Responsabilidades e limites",
+      "11.4. Tabela de penalidades",
+      "30% da atividade + despesas comprovadas",
+      "pelo prazo de 5 anos",
+      "por 10 anos",
+      "Comarca de Sorocaba/SP",
+      "6.3. Valor mensal reajustado",
+      "Sem testemunhas",
+      "[PENDENTE: CNPJ da AUDITA]",
+    ])
       expect(t04, s).toContain(s);
+    expect(t04).not.toContain("[5]");
+    expect(t04).not.toContain("REVISÃO OBRIGATÓRIA");
     const pdf = await renderPdf(m04.model);
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     writeFileSync(`test-results/documentos/${m04.model.fileBase}.pdf`, pdf);
-    expect(buildContractDocument("M03", { ...BASE, test: false }).model.watermark).toBe(LEGAL_WATERMARK);
+    expect(buildContractDocument("M03", { ...BASE, test: false }).model.watermark).toBeNull();
   });
 
   it("M05 (OS-COM) e M06 (ALT): tabela de atividades, liberação e quadro antes/depois com valores em BRL", async () => {

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { BASE_PATH } from "./src/lib/base-path";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -10,6 +11,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Sistema em audita.seg.br/empresa (caderno I2.01); a raiz e caminhos antigos levam ao sistema
+  basePath: BASE_PATH,
+  async redirects() {
+    return [
+      { source: "/", destination: BASE_PATH, basePath: false, permanent: false },
+      { source: "/:path((?!empresa(?:/|$)).*)", destination: `${BASE_PATH}/:path`, basePath: false, permanent: false },
+    ];
+  },
   // Geração de PDF no servidor (pdfmake/pdfkit carregados do node_modules, sem empacotamento)
   serverExternalPackages: ["pdfmake"],
   async headers() {

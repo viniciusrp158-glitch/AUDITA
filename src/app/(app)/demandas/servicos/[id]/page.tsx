@@ -10,6 +10,7 @@ import { ADMIN_ONLY } from "@/lib/permissions";
 import { addEventAction, changeContractStatusAction, createChangeAction, createOrderAction, generateDocumentAction, updateContractAction } from "../actions";
 import { ChangeForm, ContractForm, EventForm, GenerateForm, StatusForm } from "../exec-forms";
 import { ChangeStatusPill, ContractStatusPill, OrderStatusPill } from "../shared";
+import { withBase } from "@/lib/base-path";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -185,7 +186,7 @@ export default async function ServicoPage({ params, searchParams }: { params: Pr
           </Card>
         </div>
 
-        <Card title="Documentos de formalização (minutas — pendentes de revisão jurídica)">
+        <Card title="Documentos de formalização (M03 a M06)">
           <div className="grid gap-4 sm:grid-cols-2">
             {(["M03", "M04"] as const).map((m) => (
               <div key={m} className="rounded-lg border border-line p-3">
@@ -211,10 +212,10 @@ export default async function ServicoPage({ params, searchParams }: { params: Pr
                     Gerado em {formatDateTime(d.generated_at)} · {d.watermark} · SHA-256 PDF {d.pdf_sha256.slice(0, 12)}…
                   </p>
                   <div className="mt-2 flex gap-3 text-xs font-semibold">
-                    <a className="text-navy underline" href={`/demandas/servicos/${c.id}/documentos/${d.id}?formato=pdf`}>
+                    <a className="text-navy underline" href={withBase(`/demandas/servicos/${c.id}/documentos/${d.id}?formato=pdf`)}>
                       Baixar PDF
                     </a>
-                    <a className="text-navy underline" href={`/demandas/servicos/${c.id}/documentos/${d.id}?formato=docx`}>
+                    <a className="text-navy underline" href={withBase(`/demandas/servicos/${c.id}/documentos/${d.id}?formato=docx`)}>
                       Baixar Word
                     </a>
                   </div>

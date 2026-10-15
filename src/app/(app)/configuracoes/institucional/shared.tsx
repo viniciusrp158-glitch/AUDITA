@@ -1,4 +1,4 @@
-import { formatCep, formatCnpj, formatPhone } from "@/lib/br";
+import { formatCep, formatCnpj, formatCpf, formatPhone } from "@/lib/br";
 import { formatDateTime } from "@/lib/format";
 import { FIELD_GROUPS, INSTITUTIONAL_STATUS, issuerLine, proponentText, type InstitutionalProfile, type InstitutionalStatus } from "@/lib/institutional";
 
@@ -14,6 +14,7 @@ function display(key: string, v: string | null): React.ReactNode {
   if (key === "cnpj") return formatCnpj(v);
   if (key === "address_zip") return formatCep(v);
   if (key === "phone") return formatPhone(v);
+  if (key === "signatory_cpf") return formatCpf(v);
   return v;
 }
 

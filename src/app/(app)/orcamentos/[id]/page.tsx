@@ -32,6 +32,7 @@ import { AcceptForm, EmitForm, ReasonForm, ReviewForm } from "./flow-forms";
 import { getContractByQuote } from "@/lib/execucao/queries";
 import { createContractAction } from "../../demandas/servicos/actions";
 import { QuoteContentForm } from "./quote-forms";
+import { withBase } from "@/lib/base-path";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -69,7 +70,7 @@ function DocLinks({ quoteId, rev }: { quoteId: string; rev: QuoteRevision }) {
         .map((d) => (
           <a
             key={d.id}
-            href={`/orcamentos/${quoteId}/documentos/${d.id}`}
+            href={withBase(`/orcamentos/${quoteId}/documentos/${d.id}`)}
             className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:border-navy/40"
             title={`SHA-256 ${d.sha256}`}
           >

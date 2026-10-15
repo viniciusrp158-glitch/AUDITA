@@ -29,7 +29,7 @@ async function as(browser: Browser, who: { email: string; password: string }, la
 test("FL-04: logo aprovado → peça do marketing → revisão do administrador → exportação registrada", async ({ browser }) => {
   test.setTimeout(180_000);
   const tag = uniqueSuffix();
-  const admin = await as(browser, ADMIN, /\/$/);
+  const admin = await as(browser, ADMIN, /\/empresa$/);
 
   // 1) Biblioteca de marca: garante um PNG aprovado da AUDITA (reaproveita o de teste se já existir)
   await admin.page.goto("/comunicacao/marca");

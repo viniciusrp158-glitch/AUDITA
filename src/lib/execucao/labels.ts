@@ -74,7 +74,7 @@ export function activitiesToText(list: Activity[]): string {
 
 export const MODELS = {
   M03: { label: "M03 — Termo de aceite", template: "AUDDOC010-ANX03", hint: "Opcional quando a M01 já tem aceite inequívoco." },
-  M04: { label: "M04 — Contrato de prestação de serviços", template: "AUDDOC010-ANX04", hint: "Minuta jurídica: cláusulas 11 e 12 dependem da assessoria jurídica." },
+  M04: { label: "M04 — Contrato de prestação de serviços", template: "AUDDOC010-ANX04", hint: "Contrato de treinamento com as cláusulas aprovadas no caderno (J2.02): rescisão, penalidades, LGPD, vínculo e foro." },
   M05: { label: "M05 — Ordem de serviço comercial", template: "AUDDOC010-ANX05", hint: "Gerada a partir de uma OS-COM." },
   M06: { label: "M06 — Alteração de escopo", template: "AUDDOC010-ANX06", hint: "Gerada a partir de uma alteração ALT." },
 } as const;

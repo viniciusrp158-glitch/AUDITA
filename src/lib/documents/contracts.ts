@@ -5,18 +5,26 @@
  *  - M05 Ordem de serviço comercial (OS-COM)
  *  - M06 Registro de alteração de escopo (ALT)
  * Regras: dados vêm dos cadastros (cliente, proposta aceita, serviço contratado, dados institucionais vigentes);
- * o que faltar sai como "[PENDENTE: …]" e é listado ANTES da geração (RF-23). Todos saem como MINUTA pendente de revisão
- * jurídica (AUDDOC010 §7; caderno item 8) e, fora da produção, com a marca de teste. Nada é inventado.
+ * o que faltar sai como "[PENDENTE: …]" e é listado ANTES da geração (RF-23). Textos aprovados no Caderno de Pendências
+ * (14/10/2026): M04 "com ajustes" (J2.02 — contrato de treinamento), qualificação do emitente (J1.10), cláusulas J1.04–J1.09
+ * e J6.03; M03, M05 e M06 com a identificação do emitente. Fora da produção, sai com a marca de teste. Nada é inventado.
  */
 import Decimal from "decimal.js";
 import { formatCnpj, formatCpf } from "@/lib/br";
-import { brandName, proponentAddress, type ProponentSnapshot } from "@/lib/institutional";
+import {
+  ADJUSTMENT_TEXT,
+  DEFAULT_CANCELLATION_TERMS,
+  EARLY_TERMINATION_TEXT,
+  FORUM_TEXT,
+  LATE_PAYMENT_TEXT,
+  LIABILITY_TEXT,
+} from "@/lib/commercial-standards";
+import { contractorQualification, issuedByLine, issuerLine, type ProponentSnapshot } from "@/lib/institutional";
 import { formatBRL } from "@/lib/pricing/engine";
 import { TEST_WATERMARK, type Block, type DocModel } from "./proposal";
 
-export const LEGAL_WATERMARK = "MINUTA — PENDENTE DE REVISÃO JURÍDICA";
-export const CONTROLLED_NOTICE =
-  "MODELO CONTROLADO — USO EXTERNO CONDICIONADO À LIBERAÇÃO DO SERVIÇO E À REVISÃO JURÍDICA. Preencher todos os campos relevantes, verificar a situação do serviço na AUDDOC004 e obter revisão jurídica/contábil antes do uso externo.";
+/** Versão técnica dos modelos M03–M06 gerados pelo sistema (v2 = textos do caderno de 14/10/2026). */
+export const CONTRACT_TECH_VERSION = "v2";
 
 export type ContractDocInput = {
   issuedOn: string; // AAAA-MM-DD (São Paulo)
@@ -122,16 +130,6 @@ function totalText(i: ContractDocInput): string | null {
   return parts.length ? parts.join(" + ") : null;
 }
 
-function contratada(i: ContractDocInput, f: Fill): string {
-  const p = i.proponent;
-  return [
-    `${brandName(p)} — ${f.v("Razão social da AUDITA", p?.legal_name)}`,
-    `CNPJ ${p?.cnpj ? formatCnpj(p.cnpj) : f.v("CNPJ da AUDITA", null)}`,
-    f.v("Endereço da AUDITA", p ? proponentAddress(p) : null),
-    `Representante: ${f.v("Representante da AUDITA", p?.signatory_name ? `${p.signatory_name}${p.signatory_role ? `, ${p.signatory_role}` : ""}` : null)}`,
-  ].join(" — ");
-}
-
 function base(i: ContractDocInput, model: ContractModel, title: string, reference: string, blocks: Block[]): DocModel {
   const n = Number(model.slice(2));
   return {
@@ -140,10 +138,10 @@ function base(i: ContractDocInput, model: ContractModel, title: string, referenc
     title,
     reference,
     headerRight: `${title} · ${reference}`,
-    footer: `${brandName(i.proponent)} · Gerado pelo sistema AUDITA a partir do modelo AUDDOC010-ANX0${n} Rev.00 · Emissão ${day(i.issuedOn)} · ${LEGAL_WATERMARK}`,
-    watermark: i.test ? TEST_WATERMARK : LEGAL_WATERMARK,
+    footer: `${issuerLine(i.proponent)} · Gerado pelo sistema AUDITA a partir do modelo AUDDOC010-ANX0${n} Rev.00 (versão técnica ${CONTRACT_TECH_VERSION}) · Emissão ${day(i.issuedOn)}`,
+    watermark: i.test ? TEST_WATERMARK : null,
     fileBase: `${i.test ? "TESTE_" : ""}${reference.replace(/[^\w-]+/g, "_")}_${model}`,
-    blocks: [{ kind: "notice", label: "MINUTA", text: CONTROLLED_NOTICE }, ...blocks],
+    blocks: [{ kind: "paragraph", text: issuedByLine(i.proponent) }, ...blocks],
   };
 }
 
@@ -179,80 +177,111 @@ export function buildM03(i: ContractDocInput): { model: DocModel; missing: strin
   return { model: base(i, "M03", "Termo de aceite / confirmação de contratação", i.contract.code, blocks), missing: f.missing };
 }
 
-const CLAUSES: [string, string][] = [
-  [
+const P = (text: string): Block => ({ kind: "paragraph", text });
+const H = (text: string): Block => ({ kind: "heading", text });
+
+/** Cláusulas do M04 sem alteração no caderno (2, 3, 4, 7 e 9 do texto-base do AUDDOC010-ANX04). */
+const KEPT: Record<"c2" | "c3" | "c4" | "c7" | "c9", [string, string]> = {
+  c2: [
     "Cláusula 2 — Condições de execução",
-    "A execução será agendada conforme disponibilidade e informações fornecidas pela CONTRATANTE. Atividades sujeitas a requisitos de habilitação, autorizações, equipamentos ou acesso somente serão iniciadas após comprovação dessas condições. Situações de risco grave poderão ensejar interrupção justificada, com comunicação e encaminhamento adequado.",
+    "A execução será agendada conforme disponibilidade e informações fornecidas pelo CONTRATANTE. Atividades sujeitas a requisitos de habilitação, autorizações, equipamentos ou acesso somente serão iniciadas após comprovação dessas condições. Situações de risco grave poderão ensejar interrupção justificada, com comunicação e encaminhamento adequado.",
   ],
-  [
+  c3: [
     "Cláusula 3 — Deveres da CONTRATADA",
-    "Atuar com diligência e dentro das atribuições profissionais e condições contratadas; manter sigilo; registrar a execução e entregar os produtos previstos; informar não conformidades relevantes observadas, limitações técnicas e pendências que dependam da CONTRATANTE.",
+    "Atuar com diligência e dentro das atribuições profissionais e condições contratadas; manter sigilo; registrar a execução e entregar os produtos previstos; informar não conformidades relevantes observadas, limitações técnicas e pendências que dependam do CONTRATANTE.",
   ],
-  [
-    "Cláusula 4 — Deveres da CONTRATANTE",
+  c4: [
+    "Cláusula 4 — Deveres do CONTRATANTE",
     "Fornecer dados e documentos corretos, indicar interlocutor, viabilizar acessos e condições seguras, disponibilizar trabalhadores quando previsto, adotar medidas de sua responsabilidade e comunicar alterações de processos, riscos, instalações ou requisitos que impactem os serviços.",
   ],
-  [
-    "Cláusula 5 — Responsabilidades e limites",
-    "A contratação de consultoria ou apoio técnico não transfere automaticamente à CONTRATADA obrigações legais do empregador, não substitui SESMT obrigatório quando exigível, não corresponde a certificação acreditada e não constitui garantia de inexistência de acidentes, multas, fiscalizações ou litígios. Obrigações técnicas privativas de profissionais não integrantes do escopo permanecem excluídas.",
-  ],
-  [
+  c7: [
     "Cláusula 7 — Prazo, aceite e entregas",
-    "Os prazos iniciam após a satisfação das condições documentais, de acesso e de contratação previstas. A entrega será realizada pelo canal acordado e considerada disponibilizada mediante comprovante rastreável; procedimentos de ajuste e revisão técnica serão pactuados conforme natureza do serviço.",
+    "Os prazos iniciam após a satisfação das condições documentais, de acesso e de contratação previstas. A entrega será realizada pelo canal acordado e considerada disponibilizada mediante comprovante rastreável; procedimentos de ajuste e revisão técnica serão pactuados conforme a natureza do serviço.",
   ],
-  [
-    "Cláusula 8 — Confidencialidade e proteção de dados",
-    "As partes restringirão o acesso às informações ao necessário para a execução contratada e adotarão medidas proporcionais de proteção. Finalidades, bases legais, papéis de controlador/operador e eventuais operadores terceiros deverão ser detalhados no instrumento ou anexo específico quando o serviço envolver tratamento relevante de dados pessoais, especialmente ocupacionais ou sensíveis.",
-  ],
-  [
+  c9: [
     "Cláusula 9 — Uso de documentos e propriedade intelectual",
-    "Os entregáveis contratados poderão ser utilizados pela CONTRATANTE para as finalidades acordadas, respeitados direitos sobre modelos, métodos, softwares, materiais didáticos e conteúdos preexistentes da AUDITA ou de terceiros. É vedada divulgação de dados ou imagens para publicidade sem fundamento apropriado e autorização exigível.",
+    "Os entregáveis contratados poderão ser utilizados pelo CONTRATANTE para as finalidades acordadas, respeitados direitos sobre modelos, métodos, softwares, materiais didáticos e conteúdos preexistentes da AUDITA ou de terceiros. É vedada divulgação de dados ou imagens para publicidade sem fundamento apropriado e autorização exigível.",
   ],
-  [
-    "Cláusula 10 — Independência e organização da prestação",
-    "As partes pretendem uma prestação de serviços independente, com organização e limites definidos pelo objeto contratado. A redação não afasta a avaliação da realidade da relação de trabalho e não poderá ser usada para dissimular vínculo de emprego quando caracterizados seus requisitos.",
-  ],
+};
+const kept = (k: keyof typeof KEPT): Block[] => [H(KEPT[k][0]), P(KEPT[k][1])];
+
+/** Tabela de penalidades (Cláusula 11.4 — caderno J2.02, valores confirmados como definitivos em 14/10/2026). */
+const PENALTIES: string[][] = [
+  ["Reagendamento ≥ 2 dias úteis (1ª vez)", "Sem custo"],
+  ["Reagendamento < 2 dias úteis ou a partir da 2ª vez", "20% do valor da atividade + despesas comprovadas"],
+  ["Cancelamento ≥ 5 dias úteis", "Só despesas comprovadas"],
+  ["Cancelamento entre 5 e 2 dias úteis", "30% da atividade + despesas comprovadas"],
+  ["Cancelamento < 2 dias úteis, ausência ou impedimento no local", "50% da atividade + despesas comprovadas"],
+  ["Atraso de pagamento", "Multa de 2% + juros de 1% ao mês proporcionais + IPCA"],
+  ["Atraso > 15 dias", "Suspensão com aviso de 5 dias úteis"],
+  ["Atraso > 60 dias", "Rescisão por motivo justo"],
+  ["Rescisão de serviço mensal sem motivo", "Aviso prévio de 30 dias (+ 20% das parcelas restantes do período mínimo de 1 mês)"],
+  ["Cancelamento ou falha da AUDITA", "Devolução integral do não executado; correção sem custo"],
 ];
 
 export function buildM04(i: ContractDocInput): { model: DocModel; missing: string[] } {
   const f = new Fill();
   const ref = `${i.quote.code} Rev.${String(i.quote.revision).padStart(2, "0")}`;
   const vig = `${f.v("Data de início", day(i.contract.starts_on))} até ${i.contract.ends_on ? day(i.contract.ends_on) : f.v("Data de término ou prazo", null)}`;
+  const q = contractorQualification(i.proponent);
+  for (const m of q.missing) f.v(m, null);
   const blocks: Block[] = [
-    { kind: "paragraph", text: "Base adaptável a serviços pontuais ou consultoria recorrente de SST. Não se aplica automaticamente à assinatura do Audita HUB, que terá termos próprios." },
     {
       kind: "fields",
       rows: [
         ["CONTRATANTE", `${i.client.legal_name}${taxId(i.client.tax_id) ? `, ${taxId(i.client.tax_id)}` : `, ${f.v("CNPJ/CPF do contratante", null)}`}, ${f.v("Endereço do contratante", i.client.address)} — representante legal: ${f.v("Representante legal do contratante", i.contract.client_representative)}`],
-        ["CONTRATADA", contratada(i, f)],
+        ["CONTRATADA", q.text],
         ["Referência comercial", `Proposta ${ref} · Serviço AUDDOC005 ${i.quote.service_codes || "—"} · Serviço contratado ${i.contract.code}`],
         ["Modalidade contratual", i.contract.modality === "recorrente" ? "Recorrente" : "Pontual"],
         ["Vigência", vig],
       ],
     },
-    { kind: "heading", text: "Cláusula 1 — Objeto e anexos" },
-    {
-      kind: "paragraph",
-      text: `A CONTRATADA prestará exclusivamente os serviços descritos no Anexo I / Proposta ${ref}, que integra este contrato para fins de delimitação de escopo, quantidade, unidades, cronograma, entregáveis e exclusões. Alterações relevantes dependerão de ajuste escrito ou registro equivalente aceito pelas partes.`,
-    },
-    ...CLAUSES.slice(0, 4).flatMap(([h, t]): Block[] => [{ kind: "heading", text: h }, { kind: "paragraph", text: t }]),
-    { kind: "heading", text: "Cláusula 6 — Preço, faturamento e despesas" },
-    {
-      kind: "paragraph",
-      text: `A remuneração, vencimentos, condições de faturamento e despesas aprovadas constam da Proposta ${ref}/Anexo II (${f.v("Valor contratado", totalText(i))}). Serviços extras serão submetidos à autorização prévia. Impostos e retenções serão tratados segundo o enquadramento fiscal efetivamente aplicável e confirmados antes da contratação.`,
-    },
-    ...CLAUSES.slice(4).flatMap(([h, t]): Block[] => [{ kind: "heading", text: h }, { kind: "paragraph", text: t }]),
-    { kind: "heading", text: "Cláusula 11 — Alteração, suspensão e encerramento" },
-    {
-      kind: "paragraph",
-      text: `Mudanças de escopo, cancelamento, reagendamento, aviso prévio, pagamento por serviços já prestados, restituições e eventuais multas deverão ser definidos especificamente conforme modalidade contratual e submetidos à revisão jurídica antes da assinatura. ${f.v("Condições negociadas de alteração, suspensão e encerramento (revisão jurídica)", null)}.`,
-    },
-    { kind: "heading", text: "Cláusula 12 — Responsabilidade civil e solução de conflitos" },
-    {
-      kind: "paragraph",
-      text: `Critérios proporcionais de responsabilidade por falhas, danos, omissões, limitações, mediação e foro deverão ser pactuados sem excluir responsabilidades legalmente indisponíveis. ${f.v("Cláusula de responsabilidade e foro validada pela assessoria jurídica", null)}.`,
-    },
-    { kind: "heading", text: "Anexo I — Especificação do serviço" },
+    H("Cláusula 1 — Objeto"),
+    P(`1.1. A CONTRATADA prestará ao CONTRATANTE serviços de treinamento em desenvolvimento profissional e gerencial, compatíveis com a atividade registrada (CNAE 8599-6/04), conforme descritos na Proposta ${ref}, que integra este contrato (Anexo I). A proposta delimita temas, carga horária, modalidade (presencial ou remota), turmas, número de participantes, local, cronograma, materiais, avaliação, certificados e exclusões.`),
+    P("1.2. Não fazem parte deste contrato consultoria, auditoria, elaboração de programas ou documentos legais (como PGR, PCMSO e laudos), responsabilidade técnica por instalações nem qualquer atividade fora do CNAE registrado."),
+    P("1.3. Mudanças relevantes de objeto, quantidade, prazo ou preço dependem de registro de alteração de escopo (M06) aceito pelas partes."),
+    ...kept("c2"),
+    ...kept("c3"),
+    ...kept("c4"),
+    H("Cláusula 5 — Responsabilidades e limites"),
+    P("5.1. O que a CONTRATADA garante: executar o escopo contratado com diligência técnica e no prazo combinado; ministrar conteúdo compatível com as normas regulamentadoras vigentes na data do treinamento; entregar os documentos previstos (lista de presença, avaliações, certificados e relatório); corrigir, sem custo, erros materiais nos documentos que emitir."),
+    P("5.2. O que a CONTRATADA não garante: os serviços de treinamento não asseguram conformidade legal total do CONTRATANTE; não constituem certificação, auditoria de certificação ou acreditação, nem garantem aprovação em auditorias de clientes, certificadoras ou órgãos públicos; não garantem a inexistência ou a eliminação de autuações, multas, interdições, acidentes, doenças ocupacionais, ações judiciais ou fiscalizações; não equivalem à autorização do trabalhador para atividades de risco, que é ato exclusivo do empregador quando a norma exigir (como na NR-10 e na NR-35); e não garantem a aprovação de todos os participantes nem a mudança de comportamento no trabalho."),
+    P("5.3. O contrato não transfere à CONTRATADA as obrigações legais do empregador, entre elas elaborar e implementar o PGR e o PCMSO, avaliar a aptidão de saúde, fornecer EPI, emitir as ordens de serviço de SST, autorizar trabalhadores e manter o SESMT quando exigível."),
+    P("5.4. O treinamento capacita os participantes nos conteúdos programados e tem natureza de obrigação de meio. Não comprova, sozinho, a aptidão ou a autorização do trabalhador para atividades de risco. Continuam com o CONTRATANTE, como empregador: a avaliação de aptidão (inclusive médica, quando exigida); a autorização formal; a supervisão; a reciclagem nos prazos das Normas Regulamentadoras; e a guarda dos registros de capacitação."),
+    P("5.5. O certificado é emitido aos participantes que cumprirem a frequência e os critérios de avaliação da proposta. Ele não é certificação acreditada."),
+    P("5.6. Para treinamentos de Normas Regulamentadoras que exijam requisitos específicos do instrutor, de carga horária ou de prática, a CONTRATADA só executará o treinamento se esses requisitos estiverem atendidos e comprovados. Se não estiverem, o treinamento não será ofertado."),
+    P("5.7. As limitações acima não afastam a responsabilidade da CONTRATADA por falhas na execução do que ela própria se comprometeu a fazer, nos limites da Cláusula 12."),
+    H("Cláusula 6 — Preço, faturamento, mora e reajuste"),
+    P(`6.1. A remuneração, os vencimentos, as condições de faturamento e as despesas aprovadas constam da Proposta ${ref} (${f.v("Valor contratado", totalText(i))}). Serviços extras dependem de autorização prévia.`),
+    P(`6.2. ${LATE_PAYMENT_TEXT}`),
+    ...(i.contract.modality === "recorrente" ? [P(`6.3. ${ADJUSTMENT_TEXT}`)] : []),
+    ...kept("c7"),
+    H("Cláusula 8 — Confidencialidade e proteção de dados (LGPD)"),
+    P("8.1. Confidencialidade. As partes manterão sigilo sobre as informações técnicas, comerciais e operacionais recebidas da outra parte. Elas serão usadas só para executar este contrato, inclusive depois do seu término, pelo prazo de 5 anos. Não são confidenciais as informações já públicas ou cuja divulgação seja exigida por lei ou autoridade."),
+    P("8.2. Dados dos participantes — papéis. Para inscrição, lista de presença, avaliação e emissão de certificados, o CONTRATANTE é o controlador dos dados pessoais dos seus trabalhadores e a CONTRATADA atua como operadora, tratando os dados conforme as instruções do CONTRATANTE e somente para essas finalidades. A CONTRATADA é controladora apenas dos dados necessários aos seus registros próprios: comprovação do serviço prestado, emissão e verificação da autenticidade de certificados, obrigações legais e fiscais, e defesa em processos."),
+    P("8.3. Dados mínimos. Serão tratados apenas os dados necessários: nome, CPF ou documento de identificação, função e assinatura de presença. Não serão coletados dados de saúde nem dados sensíveis, salvo quando indispensáveis ao treinamento, com base legal informada por escrito pelo CONTRATANTE e cláusula específica."),
+    P("8.4. Obrigações da CONTRATADA: adotar medidas de segurança proporcionais (acesso restrito, armazenamento em ambiente protegido); não compartilhar os dados com terceiros, salvo os fornecedores necessários à execução (por exemplo, hospedagem e e-mail), que ficam sujeitos às mesmas obrigações; comunicar ao CONTRATANTE, em até 2 dias úteis depois de tomar conhecimento, qualquer incidente de segurança que possa envolver esses dados; apoiar o CONTRATANTE no atendimento aos direitos dos titulares."),
+    P("8.5. Obrigações do CONTRATANTE: fornecer os dados com base legal adequada e informar aos participantes o tratamento realizado (por exemplo, no aviso de privacidade aos empregados)."),
+    P("8.6. Guarda e eliminação. Encerrado o contrato, a CONTRATADA guardará os registros de presença e de certificados por 10 anos, para comprovação e verificação de autenticidade. Depois disso, os dados serão anonimizados. Os demais dados do CONTRATANTE serão devolvidos ou anonimizados a pedido dele."),
+    P("8.7. Imagens. Fotos e vídeos de participantes ou instalações só podem ser feitos e usados com autorização prévia e escrita do CONTRATANTE e, quando exigido, dos participantes. Nunca serão usados em divulgação sem essa autorização."),
+    ...kept("c9"),
+    H("Cláusula 10 — Independência e ausência de vínculo"),
+    P("10.1. Este contrato é uma prestação de serviços entre o CONTRATANTE e a CONTRATADA, que atua como microempreendedor individual, com autonomia técnica e organização própria do seu trabalho, dentro do escopo, das datas e dos locais acordados. Não cria vínculo empregatício, societário ou de representação entre as partes."),
+    P("10.2. Não há subordinação, controle de jornada nem exclusividade. A CONTRATADA pode atender outros clientes."),
+    P("10.3. Instrutores ou auxiliares que a CONTRATADA vier a usar são de responsabilidade exclusiva dela, que responde pelas obrigações trabalhistas, previdenciárias e fiscais correspondentes, observados os limites legais do MEI. Eles não têm vínculo com o CONTRATANTE."),
+    P("10.4. Os participantes do treinamento continuam sob responsabilidade e subordinação do CONTRATANTE durante as atividades, inclusive quanto à jornada, à segurança no local e ao uso de EPI nas atividades práticas."),
+    P("10.5. Esta redação não afasta a análise da realidade da relação. As partes se comprometem a não usá-la para disfarçar relação de emprego."),
+    H("Cláusula 11 — Alteração, suspensão e encerramento"),
+    P(`11.1. Reagendamento e cancelamento de atividades: ${DEFAULT_CANCELLATION_TERMS}`),
+    P(`11.2. Suspensão por atraso de pagamento: conforme a Cláusula 6.2.`),
+    P(`11.3. Rescisão de serviços mensais ou de programas de treinamento recorrentes: ${EARLY_TERMINATION_TEXT}`),
+    P("11.4. Tabela de penalidades (resumo; prevalece o texto das cláusulas):"),
+    { kind: "table", headers: ["SITUAÇÃO", "CONSEQUÊNCIA"], widths: [50, 50], align: ["left", "left"], rows: PENALTIES, totals: [] },
+    P("11.5. As penalidades não se somam pelo mesmo fato. Elas substituem perdas e danos, salvo nos casos de exclusão do limite de responsabilidade."),
+    H("Cláusula 12 — Responsabilidade civil e foro"),
+    P(`12.1. Limite de responsabilidade: ${LIABILITY_TEXT}`),
+    P(`12.2. Solução de conflitos e foro: ${FORUM_TEXT}`),
+    H("Anexo I — Especificação do serviço"),
     {
       kind: "fields",
       rows: [
@@ -262,22 +291,17 @@ export function buildM04(i: ContractDocInput): { model: DocModel; missing: strin
         ["Entregáveis / periodicidade", f.v("Entregáveis", i.contract.deliverables)],
       ],
     },
-    { kind: "heading", text: "Assinaturas e evidências de aceite" },
+    H("Assinaturas"),
     {
       kind: "fields",
       rows: [
-        ["CONTRATANTE", `${i.contract.client_representative ?? "________________________"} — ____/____/________ — Assinatura/evidência: ________________`],
-        ["CONTRATADA", `${i.proponent?.signatory_name ?? "________________________"} — ____/____/________ — Assinatura/evidência: ________________`],
-        ["Testemunhas (se aplicável)", "Nome/documentação mínima necessária conforme orientação jurídica."],
+        ["CONTRATANTE", `${i.contract.client_representative ?? "________________________"} — ____/____/________ — Assinatura: ________________`],
+        ["CONTRATADA", `${i.proponent?.signatory_name ?? "________________________"}, titular — ____/____/________ — Assinatura: ________________`],
       ],
     },
-    {
-      kind: "notice",
-      label: "REVISÃO OBRIGATÓRIA",
-      text: "Este é um texto-base, não uma assessoria jurídica nem contrato pronto para assinatura. Validar cláusulas de rescisão, penalidades, foro, proteção de dados, regime tributário e riscos de vínculo antes da contratação.",
-    },
+    P("Assinatura eletrônica, certificado digital ou assinatura física (caderno J5.02). Sem testemunhas (caderno J2.03)."),
   ];
-  return { model: base(i, "M04", "Contrato de prestação de serviços técnicos (minuta jurídica)", i.contract.code, blocks), missing: f.missing };
+  return { model: base(i, "M04", "Contrato de prestação de serviços de treinamento", i.contract.code, blocks), missing: f.missing };
 }
 
 export function buildM05(i: ContractDocInput): { model: DocModel; missing: string[] } {

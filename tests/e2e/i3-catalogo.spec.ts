@@ -12,7 +12,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 test("catálogo: lista, filtros, decisão com fundamento e histórico (computador)", async ({ page }) => {

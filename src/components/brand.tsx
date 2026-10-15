@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { withBase } from "@/lib/base-path";
 
 /**
  * Logotipo oficial (arquivo original preservado em /public/brand). Apenas recorte de exibição
@@ -16,7 +17,7 @@ export function Logo({ width = 132 }: { width?: number }) {
       style={{ width, height: Math.round(CROP.h * s) }}
     >
       <Image
-        src="/brand/audita-logo.png"
+        src={withBase("/brand/audita-logo.png")}
         alt="AUDITA"
         width={1920}
         height={1080}

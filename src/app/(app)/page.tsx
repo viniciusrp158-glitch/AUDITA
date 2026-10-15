@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import Link from "next/link";
 import { AlertTriangle, BellRing, CheckCircle2, Circle, CircleDot } from "lucide-react";
 import { ChartCard, HBars, MonthlyColumns, SplitBar, type MonthPoint } from "@/components/charts";
@@ -7,6 +8,7 @@ import { ADMIN_ONLY } from "@/lib/permissions";
 import { isProduction } from "@/lib/env";
 import { todaySaoPaulo } from "@/lib/format";
 import { PRESETS, resolvePeriod, type PresetKey } from "@/lib/indicators/period";
+import { MONTH_PRESETS, TARGETS } from "@/lib/indicators/targets";
 import { getAlerts, getIndicators, getMonthlySeries } from "@/lib/indicators/queries";
 import { formatBRL, formatPercent } from "@/lib/pricing/engine";
 import { QUOTE_STATUS, type QuoteStatus } from "@/lib/pricing/labels";
@@ -47,12 +49,15 @@ function Kpi({
   sub,
   href,
   testid,
+  target,
 }: {
   label: string;
   value: React.ReactNode;
   sub?: React.ReactNode;
   href?: string;
   testid: string;
+  /** Meta do caderno D9 (texto pronto) — exibida ao lado do valor. */
+  target?: string;
 }) {
   const body = (
     <>
@@ -61,6 +66,11 @@ function Kpi({
         {value}
       </p>
       {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
+      {target && (
+        <p className="mt-1 text-xs font-medium text-green-dark" data-testid={`${testid}-target`}>
+          {target}
+        </p>
+      )}
     </>
   );
   return href ? (
@@ -82,6 +92,15 @@ export default async function InicioPage({
   const primeiroNome = user.fullName.split(" ")[0];
   const today = todaySaoPaulo();
   const period = resolvePeriod(sp, today);
+  const isMonth = MONTH_PRESETS.includes(period.key);
+  /** "Meta mensal: X — falta Y" (só compara quando o período é um mês). */
+  const monthTarget = (goal: string, value: string | number | null, money: boolean) => {
+    const fmt = (v: Decimal) => (money ? formatBRL(v.toFixed(2)) : v.toString());
+    const g = new Decimal(goal);
+    if (!isMonth) return `Meta mensal: ${fmt(g)}`;
+    const missing = g.minus(new Decimal(value ?? 0));
+    return missing.gt(0) ? `Meta do mês: ${fmt(g)} — faltam ${fmt(missing)}` : `Meta do mês: ${fmt(g)} — atingida`;
+  };
   // Dados de teste: fora por padrão em produção; no desenvolvimento (só há dados fictícios) entram por padrão, com aviso.
   const includeTest = sp.teste === "1" ? true : sp.teste === "0" ? false : !isProduction;
   const cashYear = Number(today.slice(0, 4));
@@ -212,6 +231,7 @@ export default async function InicioPage({
                 </>
               }
               testid="kpi-quoted"
+              target={monthTarget(TARGETS.quotedPerMonth, ind.quoted.once, true)}
             />
             <Kpi
               label="Valor aceito"
@@ -229,12 +249,14 @@ export default async function InicioPage({
               value={ind.conversion === null ? "sem dados" : formatPercent(ind.conversion)}
               sub={`${ind.decisions.accepted} aceita(s) ÷ ${ind.decisions.accepted + ind.decisions.refused} com decisão no período`}
               testid="kpi-conversion"
+              target={`Meta: ${formatPercent(TARGETS.conversion)}`}
             />
             <Kpi
               label="Ticket médio aceito"
               value={ind.accepted.avg_once === null ? "sem dados" : formatBRL(ind.accepted.avg_once)}
               sub={ind.accepted.avg_monthly === null ? "Valor único por proposta aceita" : `Mensal: ${formatBRL(ind.accepted.avg_monthly)}/mês`}
               testid="kpi-ticket"
+              target={`Meta: ${formatBRL(TARGETS.avgTicket)}`}
             />
             <Kpi
               label="Demandas pendentes"
@@ -243,7 +265,14 @@ export default async function InicioPage({
               href="/demandas"
               testid="kpi-demands"
             />
-            <Kpi label="Demandas recebidas" value={ind.demands.received} sub="No período" href="/demandas?grupo=todas" testid="kpi-received" />
+            <Kpi
+              label="Demandas recebidas"
+              value={ind.demands.received}
+              sub="No período"
+              href="/demandas?grupo=todas"
+              testid="kpi-received"
+              target={monthTarget(String(TARGETS.demandsPerMonth), String(ind.demands.received), false)}
+            />
           </section>
 
           <section className="mt-6" aria-label="Caixa efetivo" data-testid="cash-kpis">

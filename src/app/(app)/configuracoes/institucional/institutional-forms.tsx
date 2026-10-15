@@ -32,7 +32,7 @@ function Input({ f, value, error }: { f: FieldDef; value: string; error?: string
       hint={f.hint}
       maxLength={f.max}
       type={f.kind === "email" ? "email" : "text"}
-      inputMode={f.kind === "cnpj" || f.kind === "zip" || f.kind === "phone" ? "numeric" : undefined}
+      inputMode={f.kind === "cnpj" || f.kind === "cpf" || f.kind === "zip" || f.kind === "phone" ? "numeric" : undefined}
       autoComplete="off"
     />
   );

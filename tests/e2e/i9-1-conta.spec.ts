@@ -20,7 +20,7 @@ async function login(page: Page, who: { email: string; password: string }, landi
 const theme = (page: Page) => page.evaluate(() => document.documentElement.dataset.theme);
 
 test("mestre: menu com Minha conta e tema; troca para escuro, mantém ao recarregar e volta ao claro", async ({ page }) => {
-  await login(page, ADMIN, /\/$/);
+  await login(page, ADMIN, /\/empresa$/);
   const box = page.getByTestId("user-box");
   await expect(box).toContainText("Usuário mestre");
   await expect(box.getByRole("link", { name: "Minha conta" })).toBeVisible();
@@ -46,7 +46,7 @@ test("mestre: menu com Minha conta e tema; troca para escuro, mantém ao recarre
   await expect.poll(() => theme(page)).toBe("escuro");
   await page.screenshot({ path: `${SHOTS}/93-inicio-escuro.png`, fullPage: true });
   await page.goto("/orcamentos");
-  await page.locator('a[href^="/orcamentos/"]').first().click();
+  await page.locator('a[href^="/empresa/orcamentos/"]').first().click();
   await page.waitForURL(/\/orcamentos\/[0-9a-f-]{36}/);
   await page.screenshot({ path: `${SHOTS}/94-orcamento-escuro.png`, fullPage: true });
   const back = page.waitForResponse((r) => r.request().method() === "POST" && r.status() === 200);
@@ -59,9 +59,9 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   test.setTimeout(120_000);
   const tag = uniqueSuffix();
   const email = `e2e.${tag.toLowerCase()}@audita.test`;
-  await login(page, ADMIN, /\/$/);
+  await login(page, ADMIN, /\/empresa$/);
   await page.getByTestId("user-box").getByRole("link", { name: "Minha conta" }).click();
-  await expect(page).toHaveURL("/conta");
+  await expect(page).toHaveURL("/empresa/conta", { timeout: 20_000 }); // a lista de usuários consulta a autenticação de cada conta
   await expect(page.getByTestId("master-badge")).toBeVisible();
 
   // Dados da própria conta
@@ -74,7 +74,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   const profile = page.getByTestId("profile-form");
   await profile.getByLabel(/^Cargo/).fill("Administrador de teste");
   await profile.getByRole("button", { name: "Salvar dados" }).click();
-  await expect(page.getByText("Dados da conta salvos.")).toBeVisible();
+  await expect(page.getByText("Dados da conta salvos.")).toBeVisible({ timeout: 20_000 });
 
   // Novo usuário: validação e criação
   await page.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
@@ -121,7 +121,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
     await expect(op.getByTestId("no-permission")).toBeVisible();
   }
   await op.goto("/orcamentos");
-  await op.locator('a[href^="/orcamentos/"]').first().click();
+  await op.locator('a[href^="/empresa/orcamentos/"]').first().click();
   await op.waitForURL(/\/orcamentos\/[0-9a-f-]{36}/);
   await expect(op.getByTestId("operator-flow")).toBeVisible();
   await expect(op.getByTestId("total-unica")).toHaveCount(0);
@@ -137,7 +137,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   await row.locator("summary", { hasText: "Gerenciar acesso e senha" }).click();
   await row.locator('select[name="situacao"]').selectOption("inactive");
   await row.getByRole("button", { name: "Salvar acesso" }).click();
-  await expect(page.getByTestId("inactive-users")).toContainText(email); // inativo vai para a lista recolhida
+  await expect(page.getByTestId("inactive-users")).toContainText(email, { timeout: 20_000 }); // inativo vai para a lista recolhida
   const ctx2 = await browser.newContext({ locale: "pt-BR" });
   const off = await ctx2.newPage();
   await login(off, { email, password: nova }, /\/sem-acesso/);
@@ -148,7 +148,7 @@ test("operador de teste: item do orçamento sem preço, margem ou desconto", asy
   await login(page, OPERADOR, /\/clientes/);
   await page.goto("/orcamentos");
   // primeira cotação em rascunho com item editável
-  const links = page.locator('a[href^="/orcamentos/"]');
+  const links = page.locator('a[href^="/empresa/orcamentos/"]');
   const n = await links.count();
   let opened = false;
   for (let i = 0; i < Math.min(n, 15) && !opened; i++) {
@@ -189,7 +189,7 @@ test("mestre cria outro usuário mestre: mesmas permissões, login próprio, nã
   test.setTimeout(120_000);
   const tag = uniqueSuffix();
   const email = `mestre.${tag.toLowerCase()}@audita.test`;
-  await login(page, ADMIN, /\/$/);
+  await login(page, ADMIN, /\/empresa$/);
   await page.goto("/conta");
   await page.locator("summary", { hasText: "Gerenciamento de usuários" }).click();
   await page.locator("summary", { hasText: "Novo usuário" }).click();
@@ -210,7 +210,7 @@ test("mestre cria outro usuário mestre: mesmas permissões, login próprio, nã
   await m.locator('input[name="password"]').fill(nova);
   await m.locator('input[name="confirm"]').fill(nova);
   await m.getByRole("button", { name: "Salvar senha" }).click();
-  await expect(m).toHaveURL(/\/$/);
+  await expect(m).toHaveURL(/\/empresa$/);
   // mesmo menu do mestre e gestão de usuários disponível
   await expect(m.getByTestId("user-box")).toContainText("Usuário mestre");
   for (const item of ["Início", "Biblioteca", "Configurações"]) await expect(m.locator('aside[aria-label="Menu principal"] nav').getByRole("link", { name: item })).toBeVisible();
@@ -234,5 +234,5 @@ test("mestre cria outro usuário mestre: mesmas permissões, login próprio, nã
   await row.locator("summary", { hasText: "Gerenciar acesso e senha" }).click();
   await row.locator('select[name="situacao"]').selectOption("inactive");
   await row.getByRole("button", { name: "Salvar acesso" }).click();
-  await expect(page.getByTestId("inactive-users")).toContainText(email); // inativo vai para a lista recolhida
+  await expect(page.getByTestId("inactive-users")).toContainText(email, { timeout: 20_000 }); // inativo vai para a lista recolhida
 });

@@ -13,7 +13,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 const CONTENT: [string, string][] = [
@@ -83,7 +83,7 @@ test("FL-02: revisão congelada → emissão DOCX/PDF com marca d'água → down
 
   // Pendências listadas antes da revisão
   const blockers = page.getByTestId("review-blockers");
-  await expect(blockers).toContainText("Validade (dias) não informada");
+  // validade já vem preenchida (15 dias — caderno D5.01); o restante do conteúdo continua exigido
   await expect(blockers).toContainText("Objetivo e necessidade do cliente não preenchido");
   await expect(blockers).toContainText("não estão PRONTO");
 
@@ -238,7 +238,7 @@ test("orçamento emitido no celular: fluxo, revisões e downloads sem rolagem ho
   const page = await ctx.newPage();
   await login(page);
   await page.goto("/orcamentos?q=emissao");
-  await page.locator('ul a[href^="/orcamentos/"]').first().click();
+  await page.locator('ul a[href^="/empresa/orcamentos/"]').first().click();
   await page.waitForURL(/\/orcamentos\/[0-9a-f-]{36}/);
   await expect(page.getByTestId("flow")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);

@@ -46,7 +46,7 @@ test("serviço contratado: execução, M03, OS-COM/M05, alteração de escopo e 
   test.setTimeout(180_000);
   const quoteId = await acceptedQuoteWithoutContract();
   test.skip(!quoteId, "Nenhuma proposta aceita de teste disponível (rode antes os testes do I6/homologação).");
-  await login(page, ADMIN, /\/$/);
+  await login(page, ADMIN, /\/empresa$/);
   await page.goto(`/orcamentos/${quoteId}`);
   await page.getByTestId("contract-link").getByRole("button", { name: "Registrar serviço contratado" }).click();
   await expect(page).toHaveURL(/\/demandas\/servicos\/[0-9a-f-]{36}/);
@@ -136,7 +136,7 @@ test("serviço contratado: execução, M03, OS-COM/M05, alteração de escopo e 
 
 test("caixa gerencial: lançamento, quadro mensal, data futura recusada, estorno e indicadores no Início", async ({ page }) => {
   const tag = uniqueSuffix();
-  await login(page, ADMIN, /\/$/);
+  await login(page, ADMIN, /\/empresa$/);
   await expect(page.getByTestId("cash-kpis")).toBeVisible();
   await page.getByRole("link", { name: "Abrir caixa gerencial" }).click();
   await expect(page).toHaveURL(/\/caixa/);
@@ -175,7 +175,7 @@ test("operador sem caixa e sem serviços contratados; telas no celular sem rolag
 
   const mob = await browser.newContext({ locale: "pt-BR", viewport: { width: 390, height: 844 } });
   const m = await mob.newPage();
-  await login(m, ADMIN, /\/$/);
+  await login(m, ADMIN, /\/empresa$/);
   for (const path of ["/caixa", "/demandas/servicos", "/"]) {
     await m.goto(path);
     expect(await m.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), path).toBeLessThanOrEqual(1);

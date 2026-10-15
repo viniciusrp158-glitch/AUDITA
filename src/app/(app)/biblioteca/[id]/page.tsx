@@ -10,6 +10,7 @@ import { formatBytes, PHASES } from "@/lib/library/labels";
 import { getLibDocumentOr404, templatesBySha, type LibRevision } from "@/lib/library/queries";
 import { cancelRevisionAction, publishRevisionAction } from "../actions";
 import { CancelRevisionForm, PublishRevisionForm, UploadRevisionForm } from "./library-forms";
+import { withBase } from "@/lib/base-path";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 function DownloadLink({ r, label }: { r: LibRevision; label?: string }) {
   return (
     <a
-      href={`/biblioteca/arquivo/${r.id}`}
+      href={withBase(`/biblioteca/arquivo/${r.id}`)}
       className="inline-flex items-center gap-1.5 rounded-md border border-line bg-white px-3 py-1.5 text-xs font-semibold text-navy hover:border-navy/40"
       title={`SHA-256 ${r.sha256}`}
     >

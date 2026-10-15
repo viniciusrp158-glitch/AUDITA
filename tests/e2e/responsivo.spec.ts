@@ -37,7 +37,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 for (const vp of [
@@ -52,18 +52,18 @@ for (const vp of [
 
     // Inclui a ficha de um cliente e de um serviço existentes
     await page.goto("/clientes?situacao=todos");
-    const clientHref = await page.locator('a[href^="/clientes/"][href*="-"]').first().getAttribute("href");
+    const clientHref = await page.locator('a[href^="/empresa/clientes/"][href*="-"]').first().getAttribute("href");
     await page.goto("/configuracoes/servicos");
-    const serviceHref = await page.locator('a[href^="/configuracoes/servicos/"]').first().getAttribute("href");
+    const serviceHref = await page.locator('a[href^="/empresa/configuracoes/servicos/"]').first().getAttribute("href");
     await page.goto("/demandas?grupo=todas");
-    const demandHref = await page.locator('ul a[href^="/demandas/"]:not([href^="/demandas/servicos"])').first().getAttribute("href");
+    const demandHref = await page.locator('ul a[href^="/empresa/demandas/"]:not([href^="/empresa/demandas/servicos"])').first().getAttribute("href");
     await page.goto("/configuracoes/parametros");
-    const paramHref = await page.locator('a[href^="/configuracoes/parametros/"]').first().getAttribute("href");
+    const paramHref = await page.locator('a[href^="/empresa/configuracoes/parametros/"]').first().getAttribute("href");
     await page.goto("/orcamentos");
-    const quoteHref = await page.locator('ul a[href^="/orcamentos/"]').first().getAttribute("href");
+    const quoteHref = await page.locator('ul a[href^="/empresa/orcamentos/"]').first().getAttribute("href");
     const quoteItemPages = quoteHref ? [`${quoteHref}/itens/novo`] : [];
     await page.goto("/biblioteca?q=AUDDOC010");
-    const libHref = await page.locator('ul a[href^="/biblioteca/"]').first().getAttribute("href");
+    const libHref = await page.locator('ul a[href^="/empresa/biblioteca/"]').first().getAttribute("href");
 
     const problems: string[] = [];
     for (const path of [...PAGES, clientHref, serviceHref, demandHref, paramHref, quoteHref, ...quoteItemPages, libHref].filter(Boolean) as string[]) {

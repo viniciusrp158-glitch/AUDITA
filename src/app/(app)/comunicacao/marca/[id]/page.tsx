@@ -11,6 +11,7 @@ import { COMMUNICATE } from "@/lib/permissions";
 import { approveBrandVersionAction, cancelBrandVersionAction, setAssetStatusAction } from "../../actions";
 import { ApproveBrandForm, BrandUploadForm, ReasonForm } from "../../comm-forms";
 import { AssetStatusPill } from "../../shared";
+import { withBase } from "@/lib/base-path";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -78,7 +79,7 @@ export default async function AtivoPage({ params, searchParams }: { params: Prom
                         {v.approved_at ? ` · aprovada em ${formatDateTime(v.approved_at)}` : ""}
                       </p>
                       {v.status_note && <p className="mt-0.5 text-xs text-ink">“{v.status_note}”</p>}
-                      <a href={`/comunicacao/marca/${a.id}/arquivo/${v.id}?baixar=1`} className="mt-2 inline-block text-xs font-semibold text-navy underline">
+                      <a href={withBase(`/comunicacao/marca/${a.id}/arquivo/${v.id}?baixar=1`)} className="mt-2 inline-block text-xs font-semibold text-navy underline">
                         Baixar arquivo original
                       </a>
                     </div>

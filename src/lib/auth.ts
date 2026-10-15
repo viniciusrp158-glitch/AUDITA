@@ -59,6 +59,10 @@ export async function requireAppUser(roles?: Role[]): Promise<AppUser> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?motivo=sessao");
 
+  // Quem ativou a verificação em duas etapas só entra com a sessão verificada (o banco também exige — RLS)
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") redirect("/verificacao");
+
   const appUser = await getAppUser();
   if (!appUser) redirect("/sem-acesso");
   if (appUser.mustChangePassword) redirect("/atualizar-senha?primeiro=1");

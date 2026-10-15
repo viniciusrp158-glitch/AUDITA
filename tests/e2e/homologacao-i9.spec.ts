@@ -51,7 +51,7 @@ test("homologação: jornada completa FL-01 → FL-05 → FL-02 → FL-03 com co
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL(/\/(clientes)?$/);
+  await expect(page).toHaveURL(/\/empresa(\/clientes)?$/);
 
   const before = await kpis(page);
 

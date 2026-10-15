@@ -13,7 +13,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/empresa");
 }
 
 async function uploadRevision(page: Page, revision: string, content: string) {
@@ -140,7 +140,7 @@ test("biblioteca no celular: cartões e documento sem rolagem horizontal", async
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/73-biblioteca-celular.png` });
   await page.goto("/biblioteca?q=AUDDOC011");
-  await page.locator('ul a[href^="/biblioteca/"]').first().click();
+  await page.locator('ul a[href^="/empresa/biblioteca/"]').first().click();
   await page.waitForURL(/\/biblioteca\/[0-9a-f-]{36}/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: `${SHOTS}/74-documento-celular.png`, fullPage: true });
