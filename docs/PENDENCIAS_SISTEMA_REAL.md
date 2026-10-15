@@ -6,6 +6,22 @@
 > **Quem**: D = Diretor; C = contador; J = assessoria jurídica; S = desenvolvimento do sistema.
 > **Bloqueia o uso real?** Sim = sem isso o sistema não deve operar com clientes reais; Não = pode vir depois.
 
+## Situação após o caderno respondido (15/10/2026 — V1.2)
+
+Resolvidos no sistema: 1, 2 (parâmetros prontos para carga), 3, 4 (decisões prontas para carga), 5, 7, 8, 9, 10, 11, 12, 13, 14 (mantido o modo restritivo), 16, 24 (minuta retirada), 27, MFA do item 17. O que falta:
+
+| # | Pendência | Quem | Bloqueia? |
+|---|---|---|---|
+| A | **Autorizar/executar a limpeza dos dados de teste** do `audita-dev` (`scripts/limpeza-dados-teste.sql`) e, em seguida, a carga real (`scripts/carga-configuracao-real.mjs`: dados institucionais, parâmetros com pró-labore-alvo R$ 3.000,00 e liberações do D3) e a remoção dos usuários de teste | D, S | Sim |
+| B | Decidir o usuário `teste01rosalia@hotmail.com` (administrador ativo, não marcado como teste) | D | Sim |
+| C | **E-mail do domínio** (D8): contratar a caixa/serviço de envio para `nao-responda@audita.seg.br` e configurar o SMTP do Supabase; até lá, convites e recuperação de senha usam o envio padrão do Supabase | D, S | Sim |
+| D | Ativar a **proteção contra senhas vazadas** no painel do Supabase (Authentication → Policies); no plano gratuito pode não estar disponível | D | Sim |
+| E | Inscrição municipal (C1.09) — preencher nos dados institucionais quando houver | D | Não |
+| F | **Publicação**: variáveis de produção na Vercel (`NEXT_PUBLIC_APP_ENV=producao`), merge em `main`, DNS no Cloudflare (A `@` 76.76.21.21; CNAME `www` cname.vercel-dns.com; proxy desligado) e URL de retorno `https://audita.seg.br/empresa/auth/confirm` permitida no Supabase (Authentication → URL Configuration) | D, S | Sim |
+| G | Remover pelo painel do Storage os arquivos antigos de teste (sem registro apontando para eles) | D | Não |
+| H | Modelo de preço SaaS do SIS-001/SIS-002 (liberados, mas sem cálculo automático — AUDDOC011 §6) | D | Não |
+| I | Contrato M04 aprovado é de **treinamento** (cláusula 1.2 exclui consultoria/auditoria): para os serviços SST/DOC/AUD/AMB liberados, usar M01 com aceite ou ajustar o contrato com o jurídico | D, J | Não |
+
 ## Etapa A — Empresa e regras de negócio (definições do Diretor)
 
 | # | Pendência | AUDDOC | Quem | Onde entra no sistema | Bloqueia? |

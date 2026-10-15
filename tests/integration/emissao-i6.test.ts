@@ -168,8 +168,14 @@ describe.skipIf(!ready)("I6 — revisões, emissão e decisão", () => {
   });
 
   it("modelos técnicos M01/M02 cadastrados com origem e SHA-256 do anexo oficial; imutáveis", async () => {
-    const t = await admin.from("document_templates").select("template_code, document_revision, technical_version, source_sha256, status").order("template_code");
-    expect(t.data!.map((x) => x.template_code)).toEqual(["AUDDOC010-ANX01", "AUDDOC010-ANX02"]);
+    const t = await admin.from("document_templates").select("template_code, document_revision, technical_version, source_sha256, status").order("template_code").order("technical_version");
+    // v1 (I6) substituída pela v2 (V1.2 — textos do caderno); uma só vigente por modelo
+    expect(t.data!.map((x) => `${x.template_code} ${x.technical_version} ${x.status}`)).toEqual([
+      "AUDDOC010-ANX01 v1 substituido",
+      "AUDDOC010-ANX01 v2 vigente",
+      "AUDDOC010-ANX02 v1 substituido",
+      "AUDDOC010-ANX02 v2 vigente",
+    ]);
     expect(t.data!.every((x) => x.document_revision === "Rev.00" && /^[0-9a-f]{64}$/.test(x.source_sha256))).toBe(true);
     const upd = await admin.from("document_templates").update({ technical_version: "v9" }).eq("template_code", "AUDDOC010-ANX01").select();
     expect(upd.error).not.toBeNull();

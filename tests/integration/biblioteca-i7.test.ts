@@ -190,7 +190,7 @@ describe.skipIf(!ready)("I7 — biblioteca documental", () => {
     expect(log.data).toEqual([{ action: "download", parent_entity_id: d.id }]);
   });
 
-  it("acervo oficial (quando importado): minuta não vigente; modelos M01/M02 com o mesmo SHA-256 do anexo vigente", async () => {
+  it("acervo oficial (quando importado): AUDDOC001 vigente só com o arquivo aprovado; modelos M01/M02 com o mesmo SHA-256 do anexo vigente", async () => {
     const { data: docs } = await admin
       .from("library_documents")
       .select("doc_code, library_revisions(status, sha256)")
@@ -198,8 +198,11 @@ describe.skipIf(!ready)("I7 — biblioteca documental", () => {
     if (!docs || docs.length < 3) return; // importação ainda não executada neste banco
     type Rev = { status: string; sha256: string };
     const by: Record<string, Rev[]> = Object.fromEntries(docs.map((d) => [d.doc_code as string, d.library_revisions as Rev[]]));
-    expect(by.AUDDOC001.some((r) => r.status === "vigente")).toBe(false);
-    const tpl = (await admin.from("document_templates").select("template_code, source_sha256")).data!;
+    // a minuta do dossiê nunca ficou vigente; a Rev.00 só passou a vigente com o arquivo aprovado (caderno D10.01, 14/10/2026)
+    const vig001 = by.AUDDOC001.find((r) => r.status === "vigente");
+    if (vig001) expect(vig001.sha256).toBe("6ea2c145b0d8ec7503f1d10a64be98a107095e657f8a93f7cde43dfab0cb0254");
+    expect(by.AUDDOC001.some((r) => r.sha256 === "b7eddee3e67e954dabba7da7ac5a0f8b625dda0c26cf5f44affdd0b65f9466cd" && r.status === "vigente")).toBe(false);
+    const tpl = (await admin.from("document_templates").select("template_code, source_sha256").eq("status", "vigente")).data!;
     for (const t of tpl) {
       const vig = by[t.template_code].find((r) => r.status === "vigente");
       expect(vig?.sha256, t.template_code).toBe(t.source_sha256);
