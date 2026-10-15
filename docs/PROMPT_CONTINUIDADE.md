@@ -1,339 +1,219 @@
-# Prompt de continuidade — Sistema AUDITA de Operação
+# Prompt de continuidade — Sistema AUDITA de Operação (v2 — 15/10/2026)
 
-> **Como usar:** cole este documento inteiro como primeira mensagem para o novo Claude, junto com os anexos indicados na seção 13. Ele foi escrito em 11/10/2026 pelo Claude que desenvolveu o sistema até aqui (incrementos I1 a I10 e V1.1).
+> **Como usar:** o Diretor cola este documento inteiro como primeira mensagem para o novo Claude. Ele foi escrito pelo Claude que desenvolveu o sistema (incrementos I1 a I10, V1.1 e V1.2) e substitui a versão de 11/10/2026.
+> **Fonte da verdade:** o repositório GitHub **`viniciusrp158-glitch/AUDITA`**, ramo **`develop`** (último commit da V1.2: `00263bd` ou posterior). Tudo o que foi feito está lá: código, migrações, testes, scripts, histórico e pendências. **Comece sincronizando esse ramo** — não use cópias antigas da pasta `Documents\AUDITA` do Diretor, que podem estar desatualizadas.
 
 ---
 
-## 1. Seu papel e a missão
+## 1. Sua missão
 
-Você assume o desenvolvimento do **Sistema AUDITA de Operação**, aplicação administrativa **interna e privada** da empresa AUDITA (SSMA & SGI — Segurança, Saúde, Meio Ambiente e Sistemas de Gestão Integrados). O sistema centraliza:
-- clientes;
-- demandas (atendimentos);
-- orçamentos e propostas;
-- serviços contratados e execução;
-- caixa gerencial;
-- biblioteca documental;
-- comunicação;
-- indicadores.
+Você vai **colocar o Sistema AUDITA de Operação no ar** em **https://audita.seg.br/empresa**, com os dados reais da empresa, e entregá-lo funcionando ao Diretor.
 
-O **Diretor** é Vinicius Rocha Pereira. Fale com ele em **português do Brasil**, de forma clara e sem jargão técnico desnecessário.
+O software está **pronto e testado** (167 testes de unidade/integração e 43 testes de navegador passando). O caderno de pendências já foi respondido e aplicado. Falta a **implantação**: limpar os dados de teste do banco, carregar a configuração real, configurar Supabase e Vercel, apontar o domínio e conferir tudo em produção.
 
-A missão é **finalizar o projeto**, em três frentes:
-1. Aplicar as respostas do **Caderno de Pendências** (que o Diretor vai anexar respondido).
-2. Fechar as decisões em aberto.
-3. Levar o sistema à **produção**, somente com autorização expressa do Diretor.
+O **Diretor** é **Vinicius Rocha Pereira** (titular do MEI e usuário mestre do sistema). Fale com ele em **português do Brasil**, de forma simples, sem jargão. Ele não é programador: explique o que ele precisa fazer em passos curtos, com os nomes exatos dos botões e campos.
 
-Quase todo o software já está pronto e testado. O que falta é, principalmente, configurar o sistema com dados reais e fazer a implantação.
+**Publicar exige autorização expressa do Diretor.** Ele já disse que quer o sistema no ar; mesmo assim, antes do passo de publicação (seção 8, etapa F), confirme com ele em uma frase.
 
-Há outros dois projetos irmãos, tocados por **outros agentes**. **Não mexa neles:**
+### Projetos irmãos — não mexa
 
-| Agente | Repositório GitHub | Projeto Supabase | Sistema |
+| Agente | Repositório | Supabase | Sistema |
 |---|---|---|---|
-| **Você (Codex 01)** | `viniciusrp158-glitch/AUDITA` | **`audita-dev`** (ref `avfqgxckcclzktrojynj`) | Sistema AUDITA de Operação |
-| Codex 02 | `AUDITAPRO` | AuditaPRO | Audita PRO |
-| Codex 03 | `AUDITAHUB` | AuditaPRO | Audita HUB |
+| **Você** | `viniciusrp158-glitch/AUDITA` | **`audita-dev`** (ref `avfqgxckcclzktrojynj`, região São Paulo) | Sistema AUDITA de Operação |
+| Outro agente | `AUDITAPRO` | `AuditaPRO` (ref `zlckcpeqcxmtrgbdquee`) | Audita PRO |
+| Outro agente | `AUDITAHUB` | `AuditaPRO` | Audita HUB |
+
+**Decisão do Diretor (13 e 14/10/2026): o sistema real roda no banco `audita-dev`**, e não no `AuditaPRO`. O caderno (I1.01) ainda diz "projeto corporativo do Audita PRO", mas o Diretor revogou isso depois de saber que instalar lá afetaria o PRO/HUB (lista de schemas expostos e um gatilho do PRO que cria perfil ativo para todo usuário novo). **Nunca** aplique nada no `AuditaPRO`.
 
 ---
 
-## 2. Regras obrigatórias (valem acima de qualquer conveniência)
+## 2. Regras obrigatórias
 
-As regras estão em `CLAUDE.md`, na raiz do repositório. **Leia esse arquivo primeiro.** Em resumo:
+Estão em `CLAUDE.md` (raiz do repositório). **Leia primeiro.** Resumo:
 
-1. **Referência oficial:** AUDDOC017 Rev.00 (requisitos do sistema) e AUDDOC001–015.
-   - Os documentos estão na Biblioteca do sistema (bucket `audita-biblioteca`) e na pasta `Documents\AUDITA` do Diretor.
-   - Se houver divergência, valem os documentos aprovados: **apresente o conflito ao Diretor antes de decidir**.
-2. **Nunca** acessar, alterar ou migrar tabelas do Audita PRO ou do Audita HUB. Tudo do AUDITA fica no schema **`audita`**. **Não fazer integração com PRO/HUB agora.**
-3. Migrações:
-   - apenas **aditivas**, em `supabase/migrations/`;
-   - o nome do arquivo deve ser igual à versão aplicada no banco (procedimento na seção 7);
-   - nada destrutivo sem aprovação expressa.
-4. Segurança do banco:
-   - **RLS** em toda tabela nova;
-   - GRANT explícito e mínimo;
-   - nada para `anon`, exceto as duas funções do autocadastro (`invite_context`, `submit_registration`);
-   - funções `SECURITY DEFINER` sempre com `set search_path = ''`.
-5. Sem exclusão física de cadastros, propostas e documentos: usar **inativação lógica** ou **estorno**. Revisões emitidas são imutáveis.
-6. **Não inventar** dados institucionais, CNPJ, tributos, margens, valores, certificados ou qualificações. Parâmetro ausente vira **PENDENTE**, sem preço.
-7. Dados fictícios:
-   - só no ambiente de desenvolvimento;
-   - sempre marcados como teste (`is_test`, prefixo `[TESTE]`);
-   - nunca levados para a produção.
-8. Cálculos financeiros:
-   - fórmulas exatas do AUDDOC011;
-   - aritmética decimal exata (`decimal.js`);
-   - margens comparadas com 4 casas decimais.
-9. Nenhuma chave privilegiada (`service_role`, chaves de IA) no navegador ou no Git.
-10. Interface e testes:
-    - textos em pt-BR, valores em R$ (BRL), datas dd/mm/aaaa, fuso America/Sao_Paulo;
-    - identidade visual do AUDDOC003;
-    - **toda tela deve funcionar em celular e computador**, conferido nos testes e2e com tela de celular.
-11. Um módulo só é concluído com **testes executados** e **evidência registrada em `docs/HISTORICO.md`**.
-12. Ordens permanentes do Diretor:
-    - não publicar em produção sem a autorização dele;
-    - não liberar comercialmente serviços que continuam condicionados no AUDDOC004;
-    - não expor senhas, tokens ou chaves.
-13. Forma de trabalho:
-    - entregas em **incrementos pequenos**, cada um encerrado com um **relatório de 8 seções**: objetivo, requisitos do AUDDOC017, solução técnica, implementação, testes, demonstração, problemas/pendências, próximo incremento;
-    - o Diretor valida cada incremento antes do próximo.
+1. Referência oficial: AUDDOC017 Rev.00 e AUDDOC001–015 (e agora AUDDOC018). Em divergência, valem os documentos aprovados — apresente o conflito ao Diretor antes de decidir.
+2. Tudo do AUDITA fica no schema **`audita`**. Não tocar em tabelas do Audita PRO/HUB. **Não integrar com PRO/HUB agora.**
+3. Migrações só **aditivas**, em `supabase/migrations/`, com o nome igual à versão aplicada (procedimento na seção 10). Nada destrutivo sem aprovação expressa.
+4. RLS em toda tabela nova; GRANT mínimo; nada para `anon` além de `invite_context` e `submit_registration`; `SECURITY DEFINER` sempre com `search_path = ''`.
+5. Sem exclusão física de cadastros, propostas e documentos (inativação lógica, estorno). Revisões emitidas são imutáveis. Descarte de dados pessoais = **somente anonimização** (decisão de 14/10/2026).
+6. Não inventar dados institucionais, CNPJ, tributos, margens, valores, certificados ou qualificações. Ausente = **PENDENTE**.
+7. Dados fictícios só no desenvolvimento, sempre marcados como teste — e **nenhum** pode ficar no banco quando o sistema for ao ar.
+8. Dinheiro com `decimal.js`, fórmulas do AUDDOC011, margens comparadas com 4 casas.
+9. Nenhuma chave privilegiada (`service_role`, IA) no navegador ou no Git. **Dados pessoais (CPF, senhas) também não entram no Git.**
+10. pt-BR, R$, dd/mm/aaaa, fuso America/Sao_Paulo, identidade visual do AUDDOC003; **toda tela funciona no celular e no computador**.
+11. Um módulo só termina com testes executados e evidência em `docs/HISTORICO.md`.
+12. Cada entrega termina com um **relatório de 8 seções**: objetivo, requisitos, solução técnica, implementação, testes, demonstração, problemas/pendências, próximo passo.
 
 ---
 
-## 3. Arquitetura e ambiente
+## 3. A empresa (dados reais, já aprovados)
 
-### Tecnologias
-- **Aplicação:** Next.js 15.5 (App Router, Server Actions com `useActionState`), TypeScript, Tailwind 4 (tokens em `src/app/globals.css`, tema escuro via `html[data-theme="escuro"]`), zod 3.25, decimal.js.
-- **Banco e serviços:** Supabase (Postgres 17, RLS, Storage, Edge Function `usuarios`).
-- **Documentos:** `docx` e `pdfmake` (propostas e contratos); `next/og` com a fonte Montserrat embutida (peças de comunicação).
-- **Testes:** Vitest (unitários e integração; `fileParallelism: false`) e Playwright (e2e, servidor em `next start` na porta 3100). O PGlite 0.5.8 executa as migrações num banco descartável.
-- **Hospedagem:** Vercel, time `auditapro`, projeto `audita`. Cada branch gera um *preview*. Produção ainda **não** foi publicada.
-
-### Repositório e branches
-- Branch de trabalho: **`develop`**. Ela contém tudo até a V1.1, inclusive I10 e V1.1, que ainda aguardam validação do Diretor.
-- Branches de incremento: `feat/...`. A `main` não foi usada para produção.
-
-### Estrutura do código
-- **Telas e regras:** `src/app/(app)/...`.
-- **Bibliotecas:** `src/lib/` — `pricing` (motor AUDDOC011), `documents` (M01/M02 e M03–M06), `comunicacao`, `execucao`, `institutional`, `permissions`, entre outras.
-- **Roteiros:** `scripts/`:
-  - `verificar-migracoes.mjs`: aplica todas as migrações no PGlite;
-  - `importar-dossie.mjs`: importa o acervo oficial para a Biblioteca;
-  - `backup-restauracao.mjs`: ensaio de cópia de segurança e restauração;
-  - `dev-liberar-servicos-teste.mjs`: liberações fictícias, só no ambiente de desenvolvimento;
-  - `gerar-caderno-pendencias.cjs`: gera o Word do caderno.
-- **Documentação:** `docs/`:
-  - `HISTORICO.md`: evidências de cada incremento — leia;
-  - `PENDENCIAS_SISTEMA_REAL.md`: lista mestra de pendências;
-  - `HOMOLOGACAO_MVP.md`;
-  - `ARQUITETURA.md`;
-  - `Caderno_Pendencias_Sistema_AUDITA_v1.0.docx`.
-
-### Variáveis de ambiente
-O arquivo `.env.local` **não está no Git**. Os nomes estão em `.env.example`:
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`;
-- `NEXT_PUBLIC_APP_ENV` (`desenvolvimento` ou `producao`);
-- usuários fictícios de teste: `TEST_ADMIN_*` (mestre de teste), `TEST_OPERADOR_*`, `TEST_MARKETING_*`, `TEST_INTRUSO_*` (sem acesso), cada um com `_EMAIL` e `_PASSWORD`.
-
-O Diretor tem uma cópia do `.env.local` na pasta `Documents\AUDITA` do computador dele. **Não cole esses valores em mensagens nem em commits.**
-
-### Como trabalhar
-- **Ferramentas:**
-  - Supabase: use as ferramentas MCP para aplicar migrações, executar SQL de verificação, consultar os *advisors* e publicar Edge Functions;
-  - Vercel: use as ferramentas MCP para listar deploys e gerar link de visualização temporário (`get_access_to_vercel_url`).
-- **Computador do Diretor** (ambiente usado até aqui):
-  - o repositório fica em `$HOME/work/audita`, numa máquina Linux vinculada;
-  - carregar o ambiente: `set -a && . ./.env.local && set +a`;
-  - Playwright exigia `export LD_LIBRARY_PATH=$HOME/libs/usr/lib/x86_64-linux-gnu`;
-  - rode `npx next build` antes do e2e;
-  - os comandos tinham limite de ~175 s, por isso os testes rodavam em lotes;
-  - esse computador **não conseguia `git push`**: o commit e o push eram feitos no ambiente de nuvem, seguidos de `git pull` no computador.
-- **Seu ambiente pode ser diferente:** adapte. O essencial é ter Node 22, as dependências do `package.json`, o `.env.local` e o Chromium do Playwright.
-- **Cópia para o Diretor:** depois de cada incremento, sincronize os arquivos versionados com a pasta dele: `git ls-files | grep -v '^\.env' > /tmp/fl && rsync -a --files-from=/tmp/fl . "<Documents>/AUDITA/"`.
+| Campo | Valor |
+|---|---|
+| Razão social | 69.563.249 VINICIUS ROCHA PEREIRA |
+| Nome fantasia | AUDITA \| SSMA & SGI |
+| CNPJ | 69.563.249/0001-01 (aberto em 11/10/2026) |
+| Natureza | Microempreendedor individual (MEI), Simples Nacional/SIMEI |
+| CNAE (único) | 8599-6/04 — Treinamento em desenvolvimento profissional e gerencial |
+| Sede | Rua Oswaldo de Barros, 219 — Conjunto Habitacional Herbert de Souza, Sorocaba/SP, CEP 18079-026 (nas propostas aparece só "Sorocaba/SP") |
+| Contatos oficiais | audita.seg.br · engenharia.audita@outlook.com · (15) 99689-1049 |
+| Responsável técnico | Vinicius Rocha Pereira — Técnico em Segurança do Trabalho, registro MTE nº 0120523 |
+| Signatário | Vinicius Rocha Pereira — Diretor (o CPF do titular entra só no contrato M04 e é pedido ao Diretor na hora da carga — nunca no Git) |
+| Inscrição municipal | PENDENTE (C1.09); inscrição estadual não se aplica |
+| NFS-e | portal notafiscal.sorocaba.sp.gov.br, emitida após aceite e validação do cliente (contratos: mensal) |
 
 ---
 
-## 4. Modelo de segurança atual (não afrouxe sem decisão do Diretor)
+## 4. O que o sistema faz (funcionalidades prontas)
 
-### Níveis de acesso
-Ficam em `audita.app_users.role`, com as funções `is_admin()`, `has_role(...)`, `can_operate()`, `can_communicate()` e `is_master()`.
+Aplicação **interna e privada** (só usuários cadastrados) para a operação comercial e administrativa da AUDITA:
 
-- **Administrador:** acesso completo.
-- **Usuário mestre:**
-  - **titular:** o Diretor (`is_master`);
-  - **mestres adicionais:** `is_comaster`, com as mesmas permissões do titular;
-  - só um mestre cria usuários e define níveis (Minha conta → Gerenciamento de usuários, via Edge Function `usuarios`);
-  - ninguém altera o próprio nível;
-  - o titular não pode ser alterado por outro mestre.
-- **Operador administrativo** (modo **mais restritivo**, decisão do Diretor):
-  - faz: clientes, unidades, contatos, demandas e preparo de orçamentos **sem ver preços**;
-  - não vê: parâmetros, revisões, documentos emitidos, autocadastro, biblioteca, comunicação, serviços contratados nem caixa;
-  - políticas RESTRITIVAS no banco e o gatilho `pricing_admin_guard` garantem isso.
-- **Marketing:** só o módulo Comunicação e a própria conta. Escreve e envia peças para revisão; não aprova; vê só os logos aprovados.
+| Módulo | O que faz |
+|---|---|
+| Acesso | Login, recuperação de senha, sessão validada no servidor, trilha de auditoria de tudo, **verificação em duas etapas** (TOTP) exigida também pelo banco para quem ativar |
+| Minha conta | Dados da conta, tema claro/escuro, senha, MFA; **usuário mestre** cria usuários e define níveis (administrador, operador administrativo, marketing) |
+| Clientes | Empresas, unidades e contatos (código CLI permanente, duplicidade, inativação); **autocadastro por link** com termo LGPD versionado |
+| Catálogo | 33 serviços + 12 ofertas de treinamento (AUDDOC004/005), situação de liberação com fundamento e histórico; só "Apto comercialmente" gera proposta |
+| Demandas | Atendimentos com estados do AUDDOC009 e linha do tempo |
+| Orçamentos | Parâmetros versionados + motor AUDDOC011 (custo/hora, contingência, margem, desconto autorizado), itens únicos e mensais, tempo de contrato; **condições padrão pré-preenchidas** (validade 15 dias, pagamento, cartão +5%, cancelamento, próximo passo) |
+| Propostas | Revisões congeladas; emissão M01 (proposta integrada) e M02 (orçamento) em DOCX/PDF com qualificação MEI e "Condições gerais" (mora, reajuste, rescisão, limitações, responsabilidade, foro); aceite/recusa |
+| Serviços contratados | Contrato (CTR), linha do tempo, OS comercial (M05), alteração de escopo (M06), termo de aceite (M03) e **contrato M04 aprovado** (contrato de treinamento) |
+| Caixa gerencial | Recebimentos e pagamentos efetivos, quadro mensal, estorno; indicadores no Início |
+| Biblioteca | Acervo oficial com revisões e SHA-256 (AUDDOC001–018, inclusive os 10 modelos operacionais do AUDDOC018) |
+| Comunicação | Marca (logos oficiais aprovados), campanhas, peças PNG/PDF com revisão — **sem IA** (decisão D-08 pendente) |
+| Indicadores | Início com gráficos, alertas e **metas** (R$ 10.000/mês cotado, conversão 30%, ticket R$ 300, 5 demandas/mês) |
+| Guarda de dados | Configurações → Guarda e anonimização: 8 prazos aprovados (J4) e anonimização controlada pelo mestre |
 
-### Outras proteções
-- Arquivos em buckets privados (`audita-documentos`, `audita-biblioteca`, `audita-marca`), com links assinados de curta duração.
-- `security_self_check()` faz a autoverificação. Os testes `tests/integration/seguranca-i9.test.ts` varrem tabelas, funções e Storage.
-- **Matriz D7 do caderno:** cada "?" respondido libera uma permissão. Cada liberação exige uma nova migração **aditiva** (por exemplo, remover uma política restritiva específica criando outra mais ampla, ou ajustar a função de nível), com teste de integração e e2e.
-- Aproveite a mesma migração para consolidar as políticas permissivas duplicadas (aviso de desempenho do Supabase).
+Histórico detalhado de cada incremento, com evidências: `docs/HISTORICO.md` (leia ao menos de I9 em diante; a **V1.2** está no final).
 
 ---
 
-## 5. O que já está pronto
+## 5. Decisões do Diretor que você precisa conhecer (caderno + conferência de 14/10/2026)
 
-O detalhe e as evidências de cada incremento estão em `docs/HISTORICO.md`.
+- **Serviços liberados (D3):** todos os marcados "Apto comercialmente" — SST-001 a 010, DOC-001 a 003, TRN-001/002/003/005, AUD-001 a 004, AMB-001/002, SIS-001/002 e as 12 ofertas TRN-NR (NR-11, NR-33 e NR-35 "com prática realizada na estrutura do cliente"). **Não liberados:** TRN-004 e ESP-001 a ESP-007. O roteiro de carga já traz o fundamento de cada um.
+- **Parâmetros (D1, C2–C5, item 6):** pró-labore-alvo **R$ 3.000,00**; despesas fixas **R$ 310,00** (telefone/internet R$ 240 + DAS R$ 90); **60 h/mês**; tributos **0%** (DAS já nas despesas; impostos omitidos na proposta); taxas de cobrança **0%** no cálculo (cartão +5% informado no texto); comissão 0%; contingência 10%; margem-alvo 20%; desconto máximo 10% (todas as famílias, autorizado pelo Diretor). Custo/hora = (3.000 + 310) ÷ 60 = **R$ 55,17**.
+- **Textos jurídicos:** M01/M02 aprovados com ajustes (J1), cláusulas J1.04–J1.09 e o M04 "Ajustes no M04" com os valores entre colchetes **confirmados como definitivos**; sem testemunhas; aceite por e-mail vale para serviços pontuais; termo do autocadastro aprovado como está.
+- **Endereço:** sistema em **audita.seg.br/empresa**; a raiz fica para um futuro site institucional (hoje redireciona para /empresa).
+- **Banco:** `audita-dev`, **limpo dos dados de teste antes do uso real** (autorizado: "pode limpar antes de publicar").
+- **Segurança (I3):** MFA para o mestre: sim; proteção contra senhas vazadas: sim.
+- **Backup (I1.02/I1.03):** manter o plano atual do Supabase; ensaio de restauração antes do piloto e depois trimestral.
+- **Piloto (D11):** G1 marcado "Aprovado"; o Diretor quer "colocar todo o sistema na rede e depois aplicar o piloto".
+- **Única pendência assumida pelo Diretor:** caixa de e-mail do domínio (D8 — `nao-responda@audita.seg.br`), ainda não contratada.
 
-| Inc. | Entrega | Situação |
-|---|---|---|
-| I1 | Fundação: login, sessão, lista de autorizados, trilha de auditoria, menu com 7 entradas | Validado |
-| I2 / I2.1 | Clientes, unidades, contatos (código CLI permanente, duplicidade, inativação); autocadastro por link individual com termo LGPD | Validado |
-| I3 | Catálogo AUDDOC004/005 (33 serviços + 12 ofertas), situação de liberação com histórico | Validado |
-| I4 | Demandas (RUA, estados do AUDDOC009, linha do tempo) | Validado |
-| I5 | Parâmetros versionados + motor AUDDOC011 (reproduz a planilha ANX01), cotação com vários itens, único × mensal | Validado |
-| I6 | Revisões congeladas, emissão M01/M02 em DOCX e PDF com marca d'água de teste, aceite/recusa, desconto autorizado, tempo de contrato | Validado |
-| I7 | Biblioteca documental (acervo oficial importado com SHA-256, revisões vigente/substituída) | Validado |
-| I8 | Indicadores com gráficos e alertas (conversão, ticket médio, cotado × aceito) | Validado |
-| I9 | Homologação do MVP: CA-01 a CA-12, varredura de segurança, ensaio de cópia e restauração | Validado |
-| I9.1 | Minha conta (seções recolhíveis), tema claro/escuro, níveis de acesso, usuário mestre adicional | Validado |
-| I9.2 | Dados institucionais em versões (rascunho → vigente), ligados ao campo "Empresa proponente" e ao rodapé das propostas | Entregue; o Diretor elogiou e pediu para seguir; tratar como validado |
-| **I10** | Comunicação **sem IA**: biblioteca de marca (logos oficiais da AUDITA, do PRO e do HUB **já aprovados**), campanhas, 5 modelos de peça (PNG/PDF), revisão de marca e texto com checklist, exportação registrada | **Aguardando validação** |
-| **V1.1** | Serviço contratado e execução (CTR), OS comercial M05 (OS-COM), alteração de escopo M06 (ALT), minutas M03/M04, caixa gerencial e indicadores de caixa no Início | **Aguardando validação** |
-
-### Regressão na entrega
-- Vitest **162/162**.
-- Playwright **40/40**.
-- `tsc`, `eslint` e `next build` sem erros.
-- *Advisors* de segurança do Supabase: só "proteção contra senhas vazadas" (pendência 17, configuração do painel).
-
-**Primeira tarefa sugerida:** apresente ao Diretor o relatório do I10 e da V1.1 (estão no `HISTORICO.md`), com um link de visualização da Vercel da branch `develop`, e peça a validação.
+### Perguntas ainda sem resposta (faça ao Diretor no início)
+1. **Usuário `teste01rosalia@hotmail.com`** existe no `audita-dev` como administrador ativo, sem marca de teste. Remover ou manter?
+2. **M04 é só de treinamento** (cláusula 1.2 exclui consultoria/auditoria), mas consultoria SST, DOC, AUD e AMB foram liberados. Para esses, usar proposta M01 + aceite (sem contrato) ou preparar um contrato próprio com o jurídico?
+3. **Conta para a carga real:** os roteiros de carga entram com uma conta de administrador. Combine com o Diretor qual usar (ver seção 8, etapa B).
 
 ---
 
-## 6. O que falta (lista completa)
+## 6. Arquitetura e ambiente
 
-A fonte é `docs/PENDENCIAS_SISTEMA_REAL.md`, organizada por etapas. O **Caderno de Pendências** (Word) traz cada item com o AUDDOC correspondente e os campos que o Diretor, o jurídico (J) e a contabilidade (C) preenchem.
-
-### 6.1 Aplicar as respostas do caderno
-
-| Caderno | Assunto | Onde aplicar no sistema | Como |
-|---|---|---|---|
-| **C1, D6** | Formalização da empresa e dados institucionais (razão social, CNPJ, CNAEs, inscrições, regime, endereço, e-mail/telefone/site oficiais, responsável técnico, signatário) | Configurações → Dados institucionais | Criar versão, preencher, publicar. Os campos já existem e são validados (CNPJ com dígito verificador). Os documentos passam a sair sem PENDENTE |
-| **C2–C5, D1** | Tributos, pró-labore, despesas fixas, taxas, comissão, contingência, margem-alvo, desconto máximo, horas faturáveis | Configurações → Parâmetros financeiros | Nova versão com os valores reais e a fonte/validador; publicar. **Em produção** não levar o conjunto "[TESTE]" |
-| **D2** | Política de desconto por família | Hoje: desconto até o máximo do parâmetro, com autorização registrada no item | Se o Diretor definir limites por família, implementar a regra no motor e no banco (migração aditiva + testes do motor) |
-| **D3, D4** | Liberação de cada serviço/treinamento (AUDDOC004) e comprovações do responsável técnico | Configurações → Catálogo de serviços | Registrar a decisão de cada serviço pelo fluxo normal (fundamento e verificação documentos/RT/recursos). Só "Apto comercialmente" gera proposta final. **Não liberar** o que continuar condicionado |
-| **D5** | Condições comerciais padrão (pagamento, despesas, reagendamento, validade) | Conteúdo da proposta | Se padronizar, criar valores padrão por modelo (preenchimento inicial editável) |
-| **D7** | Matriz de permissões por nível | Políticas do banco e `src/lib/permissions.ts` | Seção 4 acima. Migração aditiva + testes `niveis-i9-1` e e2e |
-| **D8** | Remetente dos e-mails (domínio próprio) | Supabase Auth (SMTP), recuperação de senha, avisos do autocadastro | Configurar o SMTP no painel. Depois, liberar a troca de e-mail em Minha conta |
-| **D9** | Metas dos indicadores | Início | Exibir meta × realizado (configuração simples, versionada, só administrador) |
-| **D10** | Arquivo aprovado do AUDDOC001; títulos internos do AUDDOC014/015 | Biblioteca | Enviar nova revisão e publicar |
-| **D11** | Escopo do piloto e gates G1/G2 (AUDDOC015) | Decisão | Registrar no histórico e seguir a decisão |
-| **C6** | Emissão fiscal, cobrança e recebimentos | Fora do sistema (RF-18: o caixa não substitui a contabilidade) | Registrar a decisão; no máximo, campos de referência de NF no caixa (já existe "Comprovante / referência") |
-| **J1, J2** | Revisão jurídica de M01/M02 e de M03–M06 | Modelos de documentos (`src/lib/documents/proposal.ts` e `contracts.ts`) | Aplicar o texto revisado. Registrar nova **versão técnica** do modelo (Configurações → Modelos) e, se o documento mudar, nova revisão na Biblioteca. Para M03–M06: retirar a marca "MINUTA — PENDENTE DE REVISÃO JURÍDICA" (`LEGAL_WATERMARK`) só depois da aprovação e preencher as cláusulas 11 e 12 do M04 |
-| **J3** | LGPD (termo do autocadastro, aviso de privacidade, papéis) | Autocadastro (`consent_terms` versionado) | Publicar a nova versão do termo |
-| **J4** | Prazos de retenção e descarte | Hoje nada é excluído | Implementar só o que for decidido, com registro da decisão (anonimização ou descarte controlado, testado) |
-| **J5** | Aceite por e-mail e assinatura eletrônica | Registro de aceite da proposta | Se houver fornecedor, integrar depois de aprovado; senão, manter o registro atual (data, nome, referência) |
-| **J6** | Marca em relatórios e limites de responsabilidade técnica | Textos dos modelos e das peças | Ajustar textos conforme a decisão |
-
-### 6.2 Decisões que não estão no caderno
-- **D-08 — IA na Comunicação:** aprovar fornecedor, custo, tratamento de dados e quem revisa. Até lá, a Comunicação fica **sem IA**.
-  - Se for aprovada, a chave fica só no servidor (Edge Function ou variável de servidor).
-  - A IA gera apenas um **rascunho**, que passa pela mesma revisão já existente (RF-26/RF-28).
-  - Nada é publicado automaticamente.
-- **Fotos nas peças de comunicação:** dependem de regra de direito de imagem e LGPD (jurídico).
-- **Logos:** os PNGs foram enviados pelo chat (podem ter sido convertidos no caminho). Na implantação, peça os **arquivos-matriz originais** e reenvie-os na Biblioteca de marca; o sistema avisa quando o arquivo é idêntico.
-
-### 6.3 Ida para produção (itens 15 e 17–22 de `PENDENCIAS_SISTEMA_REAL.md`)
-**Somente com autorização expressa do Diretor.**
-
-1. **Banco de produção.** O AUDDOC017 §12 prevê um banco corporativo compartilhado com o PRO/HUB. Confirme com o Diretor qual projeto usar e então:
-   1. faça o inventário de schemas e tabelas e confirme o backup;
-   2. monte o plano de reversão;
-   3. aplique as **22 migrações** do repositório **somente no schema `audita`**, na ordem;
-   4. ao expor o schema na API, **acrescente** `audita` à lista existente, **sem retirar** os schemas do PRO (achado H-04);
-   5. publique a Edge Function `usuarios`.
-2. **Segurança das contas.** Ative a verificação em duas etapas (MFA) do administrador e a proteção contra senhas vazadas. Deixe o cadastro público do Auth **desativado**.
-3. **E-mail.** Configure o SMTP com domínio próprio (D8).
-4. **Vercel.** Ambiente de produção com `NEXT_PUBLIC_APP_ENV=producao` e as variáveis do banco de produção; subdomínio de audita.seg.br.
-5. **Carga inicial real:**
-   - usuário do Diretor (`is_master`);
-   - dados institucionais, parâmetros e liberações publicados;
-   - acervo oficial com `scripts/importar-dossie.mjs`;
-   - logos oficiais na Biblioteca de marca;
-   - **nenhum dado de teste**: as migrações não carregam dados.
-6. **Backup.** Configure a rotina do plano Supabase e faça um **novo ensaio de restauração** (`scripts/backup-restauracao.mjs`) antes de cadastrar dados reais.
-7. **Regressão final em produção.** Sem deixar dados de teste persistentes; conferir as telas no celular.
-8. **Entrega final ao Diretor.** Relatório final e atualização de `HOMOLOGACAO_MVP.md` e `PENDENCIAS_SISTEMA_REAL.md`.
-
-### 6.4 Fora de escopo agora
-Integração com Audita PRO/HUB (AUDDOC014; AUDDOC017 §12), que terá um estágio próprio. Também ficam fora, por definição do AUDDOC017 §2: auditorias ISO, EPI, CIPA, brigada, EAD, laudos, ART, faturamento fiscal e gateway de pagamento.
+- **Aplicação:** Next.js 15.5 (App Router, Server Actions), TypeScript, Tailwind 4, zod, decimal.js. **`basePath: "/empresa"`** em `next.config.ts` (`src/lib/base-path.ts`); a raiz e caminhos sem `/empresa` redirecionam para `/empresa`. `<Link>`, `redirect()` e o roteador já aplicam o prefixo; em `<a href>`, `<img>` e URLs absolutas use `withBase()`.
+- **Banco:** Supabase Postgres 17 (projeto `audita-dev`), RLS, buckets privados `audita-documentos`, `audita-biblioteca`, `audita-marca`, Edge Function `usuarios` (criar usuários, redefinir senha).
+- **Documentos:** `docx` e `pdfmake` (`src/lib/documents/proposal.ts` e `contracts.ts`); textos padrão em `src/lib/commercial-standards.ts`; qualificação do proponente em `src/lib/institutional.ts`.
+- **Hospedagem:** Vercel, time **`auditapro`**, projeto **`audita`** (`prj_NM4vJkRvmZ3AIr6OcE88ViHkQgqH`). Domínios **`audita.seg.br`** e **`www.audita.seg.br`** (redireciona para o principal) **já cadastrados e verificados no projeto**. Ainda **não existe deploy de produção**. Ramo de produção: `main` (nunca recebeu merge).
+- **Variáveis de ambiente** (nomes em `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_APP_ENV` (`desenvolvimento` | `producao`; em produção some a marca d'água de teste e os indicadores ignoram dados de teste). Testes usam `TEST_ADMIN_*`, `TEST_OPERADOR_*`, `TEST_MARKETING_*`, `TEST_INTRUSO_*`. O `.env.local` **não está no Git**; recrie-o (a URL e a chave publicável vêm da ferramenta do Supabase; senhas de teste podem ser redefinidas no banco de desenvolvimento, como feito na V1.2, enquanto esses usuários existirem).
+- **Migrações aplicadas:** 23 arquivos em `supabase/migrations/`, a última `20261015012319_v1_2_caderno.sql` (MD5 `8997680756105937ac5f24227d06ae6e`).
+- **Roteiros (`scripts/`):** `verificar-migracoes.mjs` (todas as migrações no PGlite), `importar-dossie.mjs`, `backup-restauracao.mjs`, `carga-biblioteca-v1-2.mjs` (já executado), **`limpeza-dados-teste.sql`** e **`carga-configuracao-real.mjs`** (a executar — seção 8).
+- **No aplicativo Claude:** conecte GitHub (repositório acima), Supabase e Vercel. Clone o repositório, rode `npm ci`. Se o Chromium do Playwright não for a versão esperada, use `PW_CHROMIUM_PATH=/caminho/do/chromium npx playwright test` (já previsto em `playwright.config.ts`). Carregue o ambiente com `set -a && . ./.env.local && set +a`. Rode `npm run build` antes do e2e; a suíte completa leva ~13 min (rode em segundo plano ou em lotes).
 
 ---
 
-## 7. Procedimento de migração (siga exatamente)
+## 7. Segurança atual (não afrouxe sem decisão do Diretor)
 
-1. Escreva o arquivo `supabase/migrations/<timestamp>_<nome>.sql`: somente aditivo, com RLS, GRANT mínimo e `SECURITY DEFINER` com `search_path = ''`.
-2. Teste no banco descartável: `node scripts/verificar-migracoes.mjs "select 1"` (aplica todas as migrações no PGlite). Escreva também um teste de integração em `tests/integration/` usando `tests/helpers/pglite.ts` (`migratedDb`, `asUser`) para os fluxos que mudariam o estado do banco real.
-3. Aplique com a ferramenta MCP `apply_migration` (projeto do ambiente certo, nome `<nome>`), passando **exatamente** o conteúdo do arquivo.
-4. Confira o MD5: `select version, md5(array_to_string(statements, ';')) from supabase_migrations.schema_migrations where name = '<nome>'`. O resultado deve ser igual ao `md5sum` do arquivo.
-5. Renomeie o arquivo para `<version retornada>_<nome>.sql` e faça o commit.
-6. Rode os *advisors* de segurança e o `seguranca-i9.test.ts`. Se a migração criar bucket, acrescente-o à lista esperada nesse teste.
-
----
-
-## 8. Testes e evidências
-
-- **Comandos:**
-  - `npx tsc --noEmit`
-  - `npx eslint src tests --quiet`
-  - `npx vitest run` (precisa do `.env.local`; os testes de integração usam o banco de desenvolvimento e os usuários fictícios)
-  - `npx next build`
-  - `npx playwright test` (em lotes, se houver limite de tempo)
-- **Viewport de celular:** os testes e2e de cada módulo usam 390×844. O `tests/e2e/responsivo.spec.ts` lista as rotas que não podem ter rolagem horizontal; **inclua nele toda rota nova**.
-- **Falhas intermitentes conhecidas:** login com tempo de 5 s esgotado no e2e do I6. Repita o teste antes de investigar.
-- **Registro:** em cada entrega, registre em `docs/HISTORICO.md`:
-  - objetivo e requisitos;
-  - solução (com a migração e o MD5);
-  - tabela de evidências (contagens de testes);
-  - dados de teste deixados no ambiente de desenvolvimento.
-- Mantenha atualizados `docs/PENDENCIAS_SISTEMA_REAL.md` e, no Projeto do claude.ai "Sistema AUDITA de Operação", os docs `claude/PENDENCIAS_SISTEMA_REAL.md` e `claude/HOMOLOGACAO_MVP.md`.
+- Níveis em `audita.app_users.role` + funções `current_app_role()`, `is_admin()`, `has_role()`, `can_operate()`, `is_master()`. **Mestre** = titular (`is_master`, o Diretor, `viniciusrp158@hotmail.com`) e mestres adicionais (`is_comaster`).
+- **Operador administrativo** em modo restritivo (sem preços, parâmetros, emissão, biblioteca, comunicação, contratos e caixa). **Marketing**: só Comunicação e a própria conta.
+- **MFA:** `audita.mfa_ok()` — quem tem fator TOTP verificado só tem papel com sessão `aal2`; o login leva a `/verificacao`.
+- **Anonimização:** `anonymization_candidates()` e `anonymize_record()` — só o mestre, só após o prazo, com motivo; trilha sem dados pessoais.
+- Autoverificação `security_self_check()` e testes `tests/integration/seguranca-i9.test.ts`. Advisors do Supabase: só "Leaked Password Protection Disabled" (configuração do painel).
 
 ---
 
-## 9. Dados de teste existentes no desenvolvimento (não levar à produção)
+## 8. O que falta para colocar no ar — siga nesta ordem
 
-- Parâmetros "[TESTE] Parâmetros fictícios…".
-- Liberação fictícia de SST-001, SST-009, DOC-002, TRN-001 e TRN-NR06 (decisão do Diretor de 09/10/2026, só no ambiente de desenvolvimento).
-- Clientes, demandas, propostas, serviços contratados (CTR), OS, alterações, lançamentos de caixa e peças de comunicação marcados TESTE.
-- Rascunho institucional vazio "versão 1" (TESTE).
-- Logos oficiais aprovados (marcados como teste no ambiente de desenvolvimento) e o ativo "[TESTE] Logo AUDITA (arquivo do sistema)", inativado.
+**A. Preparação (sem mudar nada):** sincronize `develop`; leia `CLAUDE.md`, este prompt, `docs/HISTORICO.md` (V1.2) e `docs/PENDENCIAS_SISTEMA_REAL.md` (seção "Situação após o caderno"). Rode `tsc`, `eslint`, `vitest` e um lote de e2e para confirmar que está verde. Faça ao Diretor as 3 perguntas da seção 5.
 
----
+**B. Limpeza dos dados de teste** — `scripts/limpeza-dados-teste.sql`, etapa 1.
+- Conferido em 15/10/2026: **nenhum registro real** nas tabelas apagadas (clientes, demandas, propostas, contratos, caixa, peças, parâmetros, dados institucionais, convites e solicitações são todos de teste). O roteiro preserva catálogo, Biblioteca oficial (AUDDOC001–018), modelos técnicos, termo LGPD, prazos de guarda, logos aprovados e o histórico deles.
+- Na sessão anterior, a execução automática foi **barrada pela proteção do ambiente** (exclusão em massa). Peça ao Diretor a confirmação explícita e execute quando o pedido de aprovação aparecer **ou** oriente-o a colar o roteiro no Supabase (SQL Editor do projeto `audita-dev`). Não contorne a proteção de outra forma.
 
-## 10. Preferências do Diretor (aprendidas no projeto)
+**C. Carga da configuração real** — `scripts/carga-configuracao-real.mjs` (dados institucionais publicados, parâmetros publicados, liberações do D3 com fundamento).
+- Precisa de uma conta **administradora** (`AUDITA_IMPORT_EMAIL`/`AUDITA_IMPORT_PASSWORD`) e do CPF do titular em `AUDITA_TITULAR_CPF` (peça ao Diretor; use só na variável, nunca em arquivo versionado). Opções para a conta: o Diretor roda o roteiro com o próprio login, ou você usa a conta técnica de teste antes de removê-la (o registro "publicado por" ficará com ela — explique isso ao Diretor).
+- Confira na tela: Configurações → Dados institucionais (vigente, sem PENDENTE essencial), Parâmetros (custo/hora R$ 55,17), Catálogo (liberados conforme seção 5). Faça uma cotação de conferência (ex.: treinamento de 8 h, conferindo o preço sugerido com as fórmulas do AUDDOC011) **sem emitir**.
 
-- Quer telas simples:
-  - seções recolhíveis em vez de muita informação aberta;
-  - alertas em vermelho claro;
-  - indicadores com gráficos fáceis de entender.
-- Valida cada incremento e às vezes pede ajustes visuais. Atenda aos ajustes e registre-os no `HISTORICO.md` como "Ajustes do Ix pedidos na validação".
-- Prefere que você termine tudo o que for possível sem esperar respostas, e que deixe claro o que depende dele, do jurídico ou da contabilidade.
-- Relatórios: 8 seções, objetivos, com link de visualização da Vercel (expira em ~23 h) e capturas de tela salvas em `Documents\AUDITA\_telas_*`.
+**D. Remover os usuários de teste** — etapa 2 do roteiro (`@audita.test`) e decidir o `teste01rosalia@hotmail.com`. Fica só o mestre real.
 
----
+**E. Supabase (painel — oriente o Diretor ou use as ferramentas disponíveis):**
+- Authentication → URL Configuration: Site URL `https://audita.seg.br/empresa`; Redirect URL `https://audita.seg.br/empresa/auth/confirm`.
+- Authentication → Policies: **Leaked password protection** ligada (se o plano permitir; se não, registre como pendência).
+- Cadastro público do Auth desativado (só o mestre cria usuários).
+- Rode `scripts/backup-restauracao.mjs` (ensaio de restauração) e registre a evidência **antes** de dados reais.
+- Advisors de segurança e `security_self_check()` sem alertas além dos conhecidos.
 
-## 11. Primeiros passos recomendados (nesta ordem)
+**F. Vercel (com o "pode publicar" do Diretor):**
+- Projeto `audita` → Environment Variables (Production): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (do `audita-dev`) e `NEXT_PUBLIC_APP_ENV=producao`.
+- Abra PR `develop` → `main`, faça o merge e acompanhe o deploy de produção até `READY`.
+- Domínios já estão no projeto; confirme que `audita.seg.br` aponta para a produção.
 
-1. Leia `CLAUDE.md`, este documento, `docs/HISTORICO.md` (pelo menos I9 em diante) e `docs/PENDENCIAS_SISTEMA_REAL.md`.
-2. Prepare o ambiente: `npm ci`, `.env.local` e Chromium do Playwright. Rode `tsc`, `eslint`, `vitest` e um lote de e2e para confirmar que está tudo verde.
-3. Envie ao Diretor um link de visualização da `develop` e peça a validação do **I10** e da **V1.1**. Aplique os ajustes que ele pedir.
-4. Leia o **Caderno de Pendências respondido**. Monte um plano em incrementos e apresente-o antes de executar. Sugestão:
-   1. **F1:** dados institucionais, parâmetros, liberações e condições padrão (configuração pelas telas, sem código, com evidências);
-   2. **F2:** matriz D7 de permissões (migração + testes);
-   3. **F3:** textos jurídicos revisados em M01–M06 e no termo LGPD (novas versões técnicas; retirada da marca de minuta só do que foi aprovado);
-   4. **F4:** metas dos indicadores, e-mail e demais ajustes;
-   5. **F5:** ida para produção (seção 6.3), só com autorização.
-5. Para cada item do caderno ainda "a definir" ou ambíguo, **pergunte ao Diretor antes**. Não suponha valores.
+**G. DNS (feito pelo Diretor, no Cloudflare):**
+- No Registro.br, trocar os "Servidores DNS" do audita.seg.br pelos dois indicados pelo Cloudflare (hoje ainda são `a.auto.dns.br`/`b.auto.dns.br`).
+- No Cloudflare, com **proxy desligado (nuvem cinza)**: `A` `@` → `76.76.21.21`; `CNAME` `www` → `cname.vercel-dns.com`.
+- Acompanhe pela Vercel até o domínio ficar válido e o HTTPS emitido.
 
----
+**H. Conferência em produção:**
+- Abrir `https://audita.seg.br` (deve levar a `/empresa/login`), entrar com o mestre, **ativar a verificação em duas etapas** do mestre (decisão I3.01) com o Diretor, conferir Início, Catálogo, Biblioteca e uma cotação de conferência, e todas as telas no celular.
+- Não deixe dados de teste persistentes em produção. Se precisar testar emissão, use um registro identificado e anonimizável, e combine com o Diretor.
 
-## 12. Riscos e cuidados
-
-- O banco de produção pode ser **compartilhado com o PRO**. Qualquer DDL fora do schema `audita`, ou mudança em `pgrst.db_schemas` que remova schemas existentes, pode derrubar o PRO.
-- **Não reutilize** dados de teste em produção. Os indicadores excluem `is_test` em produção, mas a carga inicial deve ser limpa.
-- Os documentos emitidos e as revisões são **imutáveis** por gatilho. Mudança de texto = nova versão técnica do modelo, sem alterar o que já foi emitido.
-- Em uma proposta, só serviço "Apto comercialmente" sai como documento final. Na Comunicação, a aprovação é bloqueada para peças que citem serviço não liberado.
+**I. Fechamento:** registre a implantação em `docs/HISTORICO.md` (evidências, data, links), atualize `docs/PENDENCIAS_SISTEMA_REAL.md` e `docs/HOMOLOGACAO_MVP.md`, registre a decisão G1, faça o commit/push e entregue o relatório de 8 seções ao Diretor.
 
 ---
 
-## 13. Anexos que o Diretor deve enviar junto com este prompt
+## 9. Pendências que não impedem ir ao ar
 
-1. **Este arquivo** (`PROMPT_CONTINUIDADE.md`). Também está no repositório, em `docs/`.
-2. **Caderno de Pendências respondido** (`Caderno_Pendencias_Sistema_AUDITA_v1.0.docx` preenchido pelo Diretor, jurídico e contabilidade).
-3. **Acesso, em vez de anexo:**
-   - repositório GitHub `viniciusrp158-glitch/AUDITA`;
-   - projeto Supabase `audita-dev` (e, na implantação, o de produção);
-   - time Vercel `auditapro`.
+| Item | Situação |
+|---|---|
+| E-mail do domínio (D8) | Contratar serviço/caixa para `nao-responda@audita.seg.br`, criar os registros DNS e configurar o SMTP do Supabase. Até lá, recuperação de senha e convites usam o envio padrão do Supabase (limitado) — avise o Diretor |
+| Inscrição municipal (C1.09) | Preencher nos dados institucionais quando houver (nova versão) |
+| Arquivos antigos de teste no Storage | Sem registro apontando para eles; remover pelo painel (pastas listadas no fim do roteiro de limpeza) |
+| SIS-001/SIS-002 | Liberados, mas o modelo de preço SaaS não existe (AUDDOC011 §6) — sem cálculo automático |
+| IA na Comunicação (D-08) | Continua desligada até decisão |
+| Integração PRO/HUB | Estágio próprio, futuro |
+| D7 — Marketing na Biblioteca | Ficou "?" no caderno; mantido sem acesso (modo restritivo) |
 
-   Conecte esses serviços na sessão do novo Claude.
-4. **Variáveis de ambiente** (`.env.local`, que está em `Documents\AUDITA`): forneça-as por um canal seguro ou deixe o novo Claude ler da pasta. Não cole os valores no chat.
-5. *(Na implantação)* Arquivos-matriz originais dos logos e qualquer documento novo aprovado (por exemplo, a revisão aprovada do AUDDOC001).
+---
 
-Tudo o mais — código, migrações, testes, documentação, histórico e o próprio caderno em branco — está no repositório e na pasta `Documents\AUDITA`.
+## 10. Procedimento de migração (se precisar de alguma)
+
+1. Arquivo `supabase/migrations/<timestamp>_<nome>.sql`, aditivo, com RLS/GRANT mínimo/`search_path = ''`.
+2. `node scripts/verificar-migracoes.mjs` (PGlite) e teste de integração com `tests/helpers/pglite.ts`.
+3. Aplicar com `apply_migration` no `audita-dev`, passando exatamente o conteúdo do arquivo.
+4. Conferir o MD5: `select version, md5(array_to_string(statements, ';')) from supabase_migrations.schema_migrations where name = '<nome>'` = `md5sum` do arquivo.
+5. Renomear o arquivo para a versão aplicada, commit, advisors e `seguranca-i9.test.ts`.
+
+---
+
+## 11. Testes
+
+- `npx tsc --noEmit` · `npx eslint . --quiet` · `npx vitest run` (precisa do `.env.local`; integração usa o banco de desenvolvimento) · `npm run build` · `npx playwright test`.
+- Os e2e usam o endereço com `/empresa` e viewport de celular 390×844; `tests/e2e/responsivo.spec.ts` lista as rotas que não podem ter rolagem horizontal.
+- **Atenção:** os testes de integração e e2e **criam dados de teste no banco** e dependem dos usuários `@audita.test`. Depois da limpeza e da remoção desses usuários, **não rode a suíte contra o banco real** — use só o PGlite (`tests/integration/*` que usam `migratedDb`), os testes unitários e conferências manuais combinadas com o Diretor.
+- Telas lentas com muitos usuários de teste acumulados (Minha conta) tiveram tempos maiores nos testes; isso some após a limpeza.
+
+---
+
+## 12. Preferências do Diretor
+
+- Telas simples, seções recolhíveis, alertas em vermelho claro, gráficos fáceis.
+- Quer que você faça tudo o que puder sem esperar, e diga claramente o que depende dele.
+- Explicações curtas, passo a passo, com os nomes exatos dos botões. Ele pediu arquivos editáveis em Word/Excel/PowerPoint quando houver documentos.
+- Relatórios em 8 seções.
+
+---
+
+## 13. Riscos e cuidados
+
+- Não aplique nada no `AuditaPRO` (afetaria PRO/HUB).
+- A limpeza é irreversível: execute só com a confirmação do Diretor e só o roteiro revisado.
+- Não leve dados de teste à produção; não deixe CPF ou senhas em arquivos versionados.
+- Mudança de texto em documento = nova versão técnica do modelo; o que já foi emitido não muda.
