@@ -1,0 +1,19 @@
+# Sistema AUDITA de Operação — site na VPS (/opt/audita-sistema). Só escuta em 127.0.0.1:3200; o Nginx publica em
+# https://audita.seg.br/empresa. A imagem é escolhida por AUDITA_WEB_TAG (arquivo .env ao lado, gerado no deploy).
+name: audita-sistema
+
+services:
+  web:
+    container_name: audita-web
+    image: audita-sistema:${AUDITA_WEB_TAG:?defina AUDITA_WEB_TAG}
+    restart: unless-stopped
+    env_file: web.env
+    ports:
+      - "127.0.0.1:3200:3200"
+    extra_hosts:
+      - "api.audita.seg.br:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3200/empresa/login > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

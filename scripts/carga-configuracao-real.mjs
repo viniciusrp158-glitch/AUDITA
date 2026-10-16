@@ -5,20 +5,50 @@
  *  2) Parâmetros financeiros (C2–C5, D1; pró-labore-alvo do item 6) → versão publicada;
  *  3) Decisões do catálogo (D3/D4) com fundamento e comprovações.
  * Idempotente: não repete o que já está vigente/decidido. Nada é marcado como teste.
- * Credenciais: AUDITA_IMPORT_EMAIL/AUDITA_IMPORT_PASSWORD (administrador), AUDITA_TITULAR_CPF e as variáveis públicas do Supabase.
- * Uso: node scripts/carga-configuracao-real.mjs
+ * Credenciais: e-mail e senha de um administrador (decisão de 15/10/2026: o login do próprio Diretor) e o CPF do titular,
+ * pedidos na tela (a senha não aparece) ou lidos de AUDITA_IMPORT_EMAIL/AUDITA_IMPORT_PASSWORD/AUDITA_TITULAR_CPF.
+ * Nunca usa a conta de teste. As variáveis públicas do Supabase vêm do .env.local.
+ * Uso (na pasta do projeto): node scripts/carga-configuracao-real.mjs
  */
+import { existsSync } from "node:fs";
+import readline from "node:readline";
 import { createClient } from "@supabase/supabase-js";
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL && existsSync(".env.local")) process.loadEnvFile(".env.local");
+
+/** Pergunta na tela; com `hidden`, mostra * no lugar do que é digitado. */
+function ask(question, hidden = false) {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+    if (hidden) rl._writeToOutput = (s) => rl.output.write(s.includes(question) ? s : s.replace(/[^\r\n]/g, "*"));
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+
+console.log("Carga da configuração real do Sistema AUDITA de Operação (banco audita-dev).\n");
+const email = process.env.AUDITA_IMPORT_EMAIL || (await ask("Seu e-mail de acesso ao sistema: "));
+const password = process.env.AUDITA_IMPORT_PASSWORD || (await ask("Sua senha (não aparece na tela): ", true));
+const cpfInput = process.env.AUDITA_TITULAR_CPF || (await ask("CPF do titular (só números ou com pontos e traço): "));
+const titularCpf = cpfInput.replace(/\D/g, "");
+if (!email || !password) throw new Error("E-mail e senha são obrigatórios.");
+if (email.toLowerCase().endsWith("@audita.test")) throw new Error("A carga real não pode ser feita com uma conta de teste.");
+if (titularCpf.length !== 11) throw new Error("CPF do titular deve ter 11 números.");
 
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
   db: { schema: "audita" },
   auth: { persistSession: false },
 });
-const { error: authError } = await db.auth.signInWithPassword({
-  email: process.env.AUDITA_IMPORT_EMAIL ?? process.env.TEST_ADMIN_EMAIL,
-  password: process.env.AUDITA_IMPORT_PASSWORD ?? process.env.TEST_ADMIN_PASSWORD,
-});
-if (authError) throw authError;
+const { error: authError } = await db.auth.signInWithPassword({ email, password });
+if (authError) throw new Error(`Não foi possível entrar: ${authError.message}`);
+console.log(`\nEntrou como ${email}. Serão gravados e publicados: dados institucionais (CPF terminado em ${titularCpf.slice(-2)}),`);
+console.log("parâmetros financeiros reais (custo/hora R$ 55,17) e a liberação de 37 serviços/ofertas do catálogo (D3/D4).");
+if ((await ask("Confirma a carga? Digite S para continuar: ")).toUpperCase() !== "S") {
+  console.log("Carga cancelada. Nada foi gravado.");
+  process.exit(0);
+}
 const must = (r, what) => {
   if (r.error) throw new Error(`${what}: ${r.error.message}`);
   return r.data;
@@ -51,7 +81,7 @@ const INSTITUTIONAL = {
   signatory_name: "Vinicius Rocha Pereira",
   signatory_role: "Diretor",
   // CPF do titular: informado por variável de ambiente (dado pessoal — não fica no Git)
-  signatory_cpf: (process.env.AUDITA_TITULAR_CPF ?? "").replace(/\D/g, "") || null,
+  signatory_cpf: titularCpf,
   full_address_on_proposal: false,
   notes:
     "Caderno de pendências (14/10/2026): C1 (certificado MEI, cartão CNPJ e ficha da JUCESP de 11/10/2026), D6 e J1.10. Inscrição estadual não se aplica. Inscrição municipal: PENDENTE (C1.09). NFS-e pelo portal notafiscal.sorocaba.sp.gov.br.",
@@ -157,3 +187,4 @@ for (const s of services) {
 const missing = Object.keys(LIBERAR).filter((c) => !services.some((s) => s.service_code === c));
 if (missing.length) throw new Error(`Códigos não encontrados no catálogo: ${missing.join(", ")}`);
 console.log(`Catálogo: ${changed} serviço(s) liberado(s) agora; TRN-004 e ESP-001 a ESP-007 continuam "Não liberado" (AUDDOC004 e D3).`);
+console.log("\nCarga concluída. Avise o Claude para conferir.");

@@ -43,3 +43,6 @@ next-env.d.ts
 !.env.example
 test-results/
 playwright-report/
+
+# configurações locais do Claude Code (permissões pessoais)
+.claude/settings.local.json

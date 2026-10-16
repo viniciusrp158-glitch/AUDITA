@@ -3,6 +3,8 @@
 > **Como usar:** o Diretor cola este documento inteiro como primeira mensagem para o novo Claude. Ele foi escrito pelo Claude que desenvolveu o sistema (incrementos I1 a I10, V1.1 e V1.2) e substitui a versão de 11/10/2026.
 > **Fonte da verdade:** o repositório GitHub **`viniciusrp158-glitch/AUDITA`**, ramo **`develop`** (último commit da V1.2: `00263bd` ou posterior). Tudo o que foi feito está lá: código, migrações, testes, scripts, histórico e pendências. **Comece sincronizando esse ramo** — não use cópias antigas da pasta `Documents\AUDITA` do Diretor, que podem estar desatualizadas.
 
+> **Atualização de 15/10/2026:** o sistema foi implantado — não na Vercel, mas numa **VPS própria com Supabase self-hosted** (`deploy/vps/README.md`). As etapas B a I abaixo estão concluídas ou substituídas; veja `docs/HISTORICO.md` ("Implantação — Supabase próprio e site na VPS") e as pendências V1–V6 em `docs/PENDENCIAS_SISTEMA_REAL.md`.
+
 ---
 
 ## 1. Sua missão

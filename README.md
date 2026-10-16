@@ -9,14 +9,14 @@ biblioteca documental e indicadores. Especificação oficial: **AUDDOC017 — Re
 
 ## Stack
 
-Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · Supabase (Auth, Postgres com RLS, Storage) · Vitest · Vercel.
+Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · Supabase (Auth, Postgres com RLS, Storage) · Vitest · VPS própria (Docker + Nginx).
 
 ## Ambientes
 
 | Ambiente | Supabase | Dados |
 |---|---|---|
-| Desenvolvimento | projeto `audita-dev` (sa-east-1) | somente fictícios |
-| Produção | projeto corporativo, schema `audita` | reais — **somente após autorização do Diretor** |
+| Produção | Supabase self-hosted na VPS (`https://api.audita.seg.br`), site em `https://audita.seg.br/empresa` — ver `deploy/vps/README.md` | reais (no ar desde 15/10/2026) |
+| Nuvem (antigo desenvolvimento) | projeto `audita-dev` (sa-east-1) | cópia do estado de 15/10/2026; destino a decidir (pendência V4) |
 
 ## Executar localmente
 

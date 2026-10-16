@@ -6,6 +6,20 @@
 > **Quem**: D = Diretor; C = contador; J = assessoria jurídica; S = desenvolvimento do sistema.
 > **Bloqueia o uso real?** Sim = sem isso o sistema não deve operar com clientes reais; Não = pode vir depois.
 
+## Situação após a implantação na VPS (15/10/2026)
+
+O sistema está no ar em **https://audita.seg.br/empresa**, com Supabase próprio na VPS (detalhes e evidências em `HISTORICO.md`). Da tabela abaixo (V1.2), A e B foram concluídos; D deixa de valer (o banco real saiu do plano gratuito do Supabase em nuvem); F foi substituído pela publicação na VPS. O que falta:
+
+| # | Pendência | Quem | Bloqueia? |
+|---|---|---|---|
+| V1 | **E-mail (D8)**: autenticar `audita.seg.br` no Brevo (registros DKIM/SPF/DMARC no Cloudflare), cadastrar `nao-responda@audita.seg.br`, gerar a chave SMTP e rodar `ssh -t root@164.68.112.61 audita-email producao`; testar "Esqueci minha senha" | D, S | Sim, para recuperar senha |
+| V2 | Ativar a **verificação em duas etapas** do usuário mestre (decisão I3.01) | D | Não |
+| V3 | Retirar `audita.seg.br` e `www.audita.seg.br` do projeto `audita` da Vercel (não é mais usado) | D, S | Não |
+| V4 | Decidir o destino do `audita-dev` em nuvem: voltar a ser **ambiente de testes** (retirando o CPF do titular e os dados reais) ou pausar | D | Não |
+| V5 | Copiar periodicamente os backups de `/var/backups/audita-sistema` para fora da VPS | D | Não |
+| V6 | Proteção contra senhas vazadas no Supabase self-hosted (conferir se o Auth da VPS oferece) | S | Não |
+| E, H, I | Inscrição municipal; modelo SaaS do SIS-001/002; consultoria pelo M01 + aceite (decisão de 15/10/2026: sem contrato) | D | Não |
+
 ## Situação após o caderno respondido (15/10/2026 — V1.2)
 
 Resolvidos no sistema: 1, 2 (parâmetros prontos para carga), 3, 4 (decisões prontas para carga), 5, 7, 8, 9, 10, 11, 12, 13, 14 (mantido o modo restritivo), 16, 24 (minuta retirada), 27, MFA do item 17. O que falta:

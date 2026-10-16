@@ -484,3 +484,32 @@ Solução:
 | `tsc`, `eslint`, `next build` | sem erros |
 | Vitest — total | 167/167 (V1.2: MEI/J1.10, M01 com condições gerais, M02 com proponente, M04 aprovado; integração no PGlite — CPF, templates v2, prazos J4, anonimização só pelo mestre e após o prazo com trilha limpa, MFA aal2 no banco) |
 | Playwright — total | 43/43 (V1.2: raiz → /empresa, metas e guarda, condições padrão na cotação, MFA completo — ativar, código errado recusado, entrada com código, desativar — com limpeza garantida). Ajustes: URLs com /empresa e tempos maiores nas telas com muitos usuários de teste acumulados |
+
+## Implantação — Supabase próprio e site na VPS (15/10/2026)
+
+**Objetivo:** colocar o Sistema AUDITA de Operação no ar em **https://audita.seg.br/empresa** com os dados reais (prompt de continuidade v2, seção 8, substituído na publicação pelo guia `GUIA-SISTEMA-AUDITA.md` do Diretor).
+**Decisões do Diretor (15/10/2026):** remover o usuário `teste01rosalia@hotmail.com`; consultoria SST/DOC/AUD/AMB usa a proposta M01 + aceite, sem contrato (o M04 é só de treinamento); carga real feita com o login do Diretor e conta técnica de teste mantida **inativa e bloqueada** (não apagada, porque registrou a Biblioteca oficial e os logos); publicação em **VPS própria com Supabase self-hosted** (o plano gratuito do Supabase em nuvem deixa de importar); dados copiados do `audita-dev` para a VPS.
+
+Execução, em ordem:
+1. **Etapa A (conferência)** — pasta local sincronizada com `develop` (`b1dee76`); `tsc`, `eslint` e `next build` sem erros; Vitest **167/167**; Playwright em lote **13/13** (dois testes que falharam em paralelo passaram um a um: o "Sair" encerra a sessão em todos os aparelhos da mesma conta). Senhas das 4 contas de teste redefinidas só no `.env.local`.
+2. **Etapa B (limpeza)** — `scripts/limpeza-dados-teste.sql` revisado antes da execução: corrigida a coluna do ativo de marca (`title`; com `name` o roteiro pararia e nada seria apagado); trilha passou a guardar só o que continua existindo; testado no PGlite. Executado no `audita-dev`: 0 clientes, demandas, propostas, contratos, caixa, peças, convites, parâmetros e dados institucionais; catálogo de volta ao AUDDOC004 (45 serviços, nenhum liberado); Biblioteca com 36 documentos e 37 revisões oficiais; 3 logos oficiais sem marca de teste; trilha com 168 linhas. Varredura `seguranca-i9` 6/6.
+3. **Etapa C (carga real)** — `scripts/carga-configuracao-real.mjs` passou a pedir e-mail, senha e CPF na tela, recusa contas `@audita.test` e confirma antes de gravar. Rodado pelo Diretor: dados institucionais v1 e parâmetros v1 **vigentes** publicados por `viniciusrp158@hotmail.com`; **37 serviços/ofertas liberados** e 8 não liberados (TRN-004, ESP-001 a 007). Cotação de conferência pelo motor (8 h, custo direto R$ 0,00): custo/hora R$ 55,17, preço sugerido **R$ 606,83** (com todos os custos diretos vazios o item fica PENDENTE, como na planilha).
+4. **Etapa D (usuários)** — conta técnica `admin.teste@audita.test` inativa e bloqueada (marca de mestre de teste retirada, exigida pela regra `app_users_test_master_is_test`); demais 50 contas de teste e `teste01rosalia` removidas. Fica só o mestre real com acesso.
+5. **VPS** (`164.68.112.61`, compartilhada com o Audita PRO — nada do PRO foi alterado; conferido ao fim de cada passo):
+   - Supabase self-hosted `self-hosted/v0.8.2` em `/opt/supabase-audita`, projeto Compose `supabase-audita`, containers `audita-*`, portas só em loopback (API 8100, Postgres 5442, pooler 6553) — `deploy/vps/docker-compose.vps.yml`; cadastro público desligado; esquema `audita` exposto na API.
+   - 23 migrações aplicadas e registradas em `supabase_migrations.schema_migrations` (`deploy/vps/apply-migrations.sh`; MD5 da última `8997680756105937ac5f24227d06ae6e`, igual à nuvem).
+   - Dados copiados do `audita-dev` (dump só de dados do esquema `audita` e de `auth.users`/`auth.identities`, feito pelo Diretor com `audita-copiar-banco-nuvem`): **35 tabelas com contagens idênticas** e conteúdo idêntico por MD5 (dados institucionais, catálogo, Biblioteca); 2 usuários com as senhas mantidas. Arquivos: 40 (37 revisões da Biblioteca + 3 logos) baixados por `scripts/migracao-baixar-arquivos.mjs` e enviados ao Storage da VPS, **40/40 conferidos pelo SHA-256**. Cópias temporárias apagadas.
+   - Função `usuarios` publicada. Site em container (`deploy/vps/web/`, imagem `audita-sistema:<data>`, `127.0.0.1:3200`, `NEXT_PUBLIC_APP_ENV=producao`); Nginx próprio (`deploy/vps/nginx-audita-sistema.conf`) e HTTPS Let's Encrypt para `audita.seg.br`, `www` e `api`.
+   - Backup diário próprio às 04h00 (`/usr/local/bin/audita-sistema-backup`, 14 dias, testado). Comando `audita-email` e modelo de recuperação de senha em português prontos para o SMTP do Brevo.
+
+### Evidências (15/10/2026)
+
+| Verificação | Resultado |
+|---|---|
+| Serviços do Supabase do AUDITA | 11/11 *healthy* |
+| API pela internet | `auth/v1/health` 200; anônimo barrado ao ler `audita.services` (42501); cadastro público recusado (`signup_disabled`); raiz da API 404 |
+| Site | `https://audita.seg.br` → `/empresa`; login 200; **o Diretor entrou com o próprio e-mail e senha** |
+| Audita PRO | containers `supabase-*` sem reinício; `auditapro.app.br` e API respondendo como antes |
+| Advisors do Supabase em nuvem | só "Leaked Password Protection" (o `audita-dev` deixa de ser o banco real) |
+
+Pendente nesta implantação: SMTP do Brevo (autenticar `audita.seg.br` e rodar `audita-email producao`) e teste de "Esqueci minha senha"; ativar a verificação em duas etapas do mestre; retirar o domínio do projeto da Vercel; decidir o destino do `audita-dev` em nuvem (ambiente de testes, com a retirada do CPF, ou pausa).

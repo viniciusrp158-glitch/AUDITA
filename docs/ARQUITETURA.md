@@ -5,7 +5,7 @@ Detalhamento completo e decisões: documento **S0 — Diagnóstico e Planejament
 ## Camadas
 
 ```
-Navegador ──HTTPS/cookie──▶ Next.js (Vercel)
+Navegador ──HTTPS/cookie──▶ Nginx (VPS) ──▶ Next.js (container audita-web)
                               ├─ middleware: renova sessão; sem usuário ⇒ /login
                               ├─ (app)/layout: exige usuário em audita.app_users (servidor)
                               ├─ Server Actions: validação zod, regras de negócio
