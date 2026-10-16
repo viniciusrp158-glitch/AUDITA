@@ -513,3 +513,8 @@ Execução, em ordem:
 | Advisors do Supabase em nuvem | só "Leaked Password Protection" (o `audita-dev` deixa de ser o banco real) |
 
 Pendente nesta implantação: SMTP do Brevo (autenticar `audita.seg.br` e rodar `audita-email producao`) e teste de "Esqueci minha senha"; ativar a verificação em duas etapas do mestre; retirar o domínio do projeto da Vercel; decidir o destino do `audita-dev` em nuvem (ambiente de testes, com a retirada do CPF, ou pausa).
+
+### Ajustes após a implantação (15/10/2026)
+
+- **E-mail (Brevo)** — domínio `audita.seg.br` autenticado (código Brevo, DKIM `brevo1`/`brevo2`, DMARC e SPF `v=spf1 include:spf.brevo.com -all`), remetente `nao-responda@audita.seg.br`. Na primeira execução de `audita-email producao` o Login SMTP foi digitado no campo da porta: o Auth do AUDITA entrou em reinício contínuo (o que também deixava o site lento); corrigido para a porta 587. "Esqueci minha senha" testado pelo Diretor: e-mail entregue (caiu no spam antes do SPF; domínio novo ganha reputação com o uso).
+- **Lentidão** — dentro da VPS a página responde em 0,02 s; a causa é **perda de pacotes na rede do provedor da VPS** (30–40% até destinos próximos; 0% do lado do Diretor). Com autorização do Diretor, **proxy do Cloudflare ligado** nos 3 registros A, SSL **Full (strict)**: conexão + TLS estáveis em ~0,3 s, página de login em 0,6–1 s na maioria das vezes (antes 0,9–9 s) e arquivos fixos servidos pelo cache do Cloudflare (~0,45 s). Os picos ocasionais de ~3 s só somem com a correção do provedor (chamado a abrir pelo Diretor).

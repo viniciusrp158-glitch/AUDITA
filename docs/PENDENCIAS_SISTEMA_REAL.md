@@ -12,7 +12,8 @@ O sistema está no ar em **https://audita.seg.br/empresa**, com Supabase própri
 
 | # | Pendência | Quem | Bloqueia? |
 |---|---|---|---|
-| V1 | **E-mail (D8)**: autenticar `audita.seg.br` no Brevo (registros DKIM/SPF/DMARC no Cloudflare), cadastrar `nao-responda@audita.seg.br`, gerar a chave SMTP e rodar `ssh -t root@164.68.112.61 audita-email producao`; testar "Esqueci minha senha" | D, S | Sim, para recuperar senha |
+| V1 | ~~E-mail (D8)~~ — **concluído em 15/10/2026** (Brevo autenticado, SPF/DKIM/DMARC, recuperação de senha testada). Acompanhar se os e-mails saem do spam; endurecer o DMARC (`p=quarantine`) depois de algumas semanas | D | Não |
+| V7 | **Perda de pacotes na rede da VPS** (30–40%): abrir chamado no provedor informando o servidor `vmi3662674` (IP 164.68.112.61). O proxy do Cloudflare (ligado em 15/10/2026, SSL Full strict) reduz o efeito, mas não elimina | D | Não |
 | V2 | Ativar a **verificação em duas etapas** do usuário mestre (decisão I3.01) | D | Não |
 | V3 | Retirar `audita.seg.br` e `www.audita.seg.br` do projeto `audita` da Vercel (não é mais usado) | D, S | Não |
 | V4 | Decidir o destino do `audita-dev` em nuvem: voltar a ser **ambiente de testes** (retirando o CPF do titular e os dados reais) ou pausar | D | Não |

@@ -10,6 +10,11 @@ ou `docker compose down` na pasta do PRO. Nginx: sempre `nginx -t && systemctl r
 | `https://www.audita.seg.br` | O mesmo sistema |
 | `https://api.audita.seg.br` | Supabase do AUDITA: somente `/auth`, `/rest`, `/storage`, `/functions`, `/realtime`, `/graphql` (`/v1`) |
 
+**Cloudflare:** os 3 registros A (`@`, `www`, `api`) estão com **proxy ligado** e SSL/TLS em **Full (strict)** desde
+15/10/2026 (a rede do provedor da VPS perde pacotes; o proxy reduz o efeito). Não usar o modo "Flexible" (o site entra em
+repetição). Os registros de e-mail do Brevo (TXT, CNAME `brevo1`/`brevo2`, `_dmarc`) ficam sempre em "DNS only". O IP
+real dos visitantes vem do `/etc/nginx/conf.d/cloudflare-realip.conf`.
+
 ## Peças no servidor
 
 - **Supabase** `self-hosted/v0.8.2` em `/opt/supabase-audita` (projeto Compose `supabase-audita`, containers `audita-*`).
