@@ -21,7 +21,9 @@ RUN apk add --no-cache tzdata
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 TZ=America/Sao_Paulo
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/.next ./.next
+# .next pertence ao usuário node: o otimizador de imagens grava em .next/cache/images (sem permissão, a conversão
+# para WebP/AVIF trava e o logo não aparece)
+COPY --from=build --chown=node:node /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/next.config.ts ./
 COPY --from=build /app/src/lib/base-path.ts ./src/lib/base-path.ts
