@@ -29,6 +29,8 @@ real dos visitantes vem do `/etc/nginx/conf.d/cloudflare-realip.conf`.
   (o certbot acrescentou o HTTPS no arquivo da VPS). Certificado `audita.seg.br` (com `www` e `api`), renovação automática.
 - **Backup** diário 04h00: [`audita-sistema-backup.sh`](audita-sistema-backup.sh) → `/var/backups/audita-sistema` (banco
   completo, Storage, `.env` e `web.env`, 14 dias). Ficam no mesmo disco: copie periodicamente para fora da VPS.
+  Cópia para o computador: `sh scripts/baixar-backup-vps.sh agora` (pasta `DocumentsAUDITA-BACKUP-VPS`, fora do Git).
+- **Trocar de VPS**: [`MIGRAR-VPS.md`](MIGRAR-VPS.md). Nginx em uso (com o HTTPS do certbot): [`nginx-audita-sistema.certbot.conf`](nginx-audita-sistema.certbot.conf).
 - **E-mail**: [`audita-email.sh`](audita-email.sh) instalado como `audita-email` (Brevo, `nao-responda@audita.seg.br`).
 
 ## Publicar uma nova versão do site
