@@ -13,7 +13,8 @@ ou `docker compose down` na pasta do PRO. Nginx: sempre `nginx -t && systemctl r
 **Cloudflare:** os 3 registros A (`@`, `www`, `api`) estão com **proxy ligado** e SSL/TLS em **Full (strict)** desde
 15/10/2026 (a rede do provedor da VPS perde pacotes; o proxy reduz o efeito). Não usar o modo "Flexible" (o site entra em
 repetição). Os registros de e-mail do Brevo (TXT, CNAME `brevo1`/`brevo2`, `_dmarc`) ficam sempre em "DNS only". O IP
-real dos visitantes vem do `/etc/nginx/conf.d/cloudflare-realip.conf`.
+real dos visitantes vem do `/etc/nginx/conf.d/cloudflare-realip.conf`. **VPS reinstalada em 20–21/10/2026** (conflito de IP na
+Contabo): o Audita PRO e o HUB não estão mais nesta VPS até serem reinstalados pela sessão deles.
 
 ## Peças no servidor
 
@@ -26,7 +27,8 @@ real dos visitantes vem do `/etc/nginx/conf.d/cloudflare-realip.conf`.
   publicável e `NEXT_PUBLIC_APP_ENV=producao`, 600), `.env` com `AUDITA_WEB_TAG` (versão em uso) e `releases/<data>/` com o
   código de cada versão. Imagem: [`web/Dockerfile`](web/Dockerfile).
 - **Nginx**: [`nginx-audita-sistema.conf`](nginx-audita-sistema.conf) em `/etc/nginx/sites-available/audita-sistema`
-  (o certbot acrescentou o HTTPS no arquivo da VPS). Certificado `audita.seg.br` (com `www` e `api`), renovação automática.
+  (o certbot acrescentou o HTTPS no arquivo da VPS) e [`nginx-conf.d/`](nginx-conf.d) em `/etc/nginx/conf.d/`. Certificado
+  `audita.seg.br` (com `www` e `api`) emitido e renovado pela validação DNS do Cloudflare (`/root/.secrets/cloudflare.ini`).
 - **Backup** diário 04h00: [`audita-sistema-backup.sh`](audita-sistema-backup.sh) → `/var/backups/audita-sistema` (banco
   completo, Storage, `.env` e `web.env`, 14 dias). Ficam no mesmo disco: copie periodicamente para fora da VPS.
   Cópia para o computador: `sh scripts/baixar-backup-vps.sh agora` (pasta `DocumentsAUDITA-BACKUP-VPS`, fora do Git).

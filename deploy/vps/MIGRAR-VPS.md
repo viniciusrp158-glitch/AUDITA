@@ -25,14 +25,25 @@ publicável gravada no site. Com outro `.env`, o site e os usuários deixam de f
 2. **Supabase:** baixar o Supabase self-hosted na mesma versão (`self-hosted/v0.8.2`) para `/opt/supabase-audita`; extrair o
    `config_<data>.tar.gz` na raiz (`tar -xzf config_<data>.tar.gz -C /`), o que repõe `.env`, `docker-compose.vps.yml`,
    `volumes/api`, `volumes/functions` e demais arquivos; subir com `docker compose up -d` e esperar todos *healthy*.
-3. **Banco:** `gunzip -c db_<data>.sql.gz | docker exec -i audita-db psql -U supabase_admin -d postgres`.
+3. **Banco:** `docker compose up -d` (todos os serviços: o Auth precisa criar a estrutura dele antes) e depois
+   `gunzip -c db_<data>.sql.gz | docker exec -i audita-db psql -U supabase_admin -d postgres`. Erros de "already exists" são
+   esperados. **Conferir em seguida** (lição de 21/10/2026): as contagens de todas as tabelas contra o `COPY` do backup;
+   se `auth.users` ficar vazio, recarregar só os blocos `COPY auth.*` (menos `schema_migrations`) com
+   `session_replication_role = replica`; completar `auth.schema_migrations` com as versões do backup (senão o Auth tenta
+   refazer atualizações e fica reiniciando); e reaplicar, do próprio backup, as restrições que faltarem (`ADD CONSTRAINT`),
+   em especial `audita.app_users_user_id_fkey` e as chaves de `auth.identities`/`sessions`/`one_time_tokens`.
 4. **Storage:** parar o serviço `storage`, extrair `storage_<data>.tar.gz` em `/opt/supabase-audita/volumes/` e subir de novo.
 5. **Site:** `/opt/audita-sistema` já vem do pacote de configuração (`docker-compose.yml`, `web.env`, `.env`); publicar a
    versão atual do `develop` como em [README.md](README.md#publicar-uma-nova-versão-do-site).
 6. **Nginx e HTTPS:** copiar [`nginx-audita-sistema.conf`](nginx-audita-sistema.conf) para
-   `/etc/nginx/sites-available/audita-sistema`, ligar em `sites-enabled`, criar `/etc/nginx/conf.d/cloudflare-realip.conf`,
-   `nginx -t && systemctl reload nginx`. No Cloudflare, apontar os 3 registros A (`@`, `www`, `api`) para o IP novo e
-   emitir o certificado com `certbot --nginx -d audita.seg.br -d www.audita.seg.br -d api.audita.seg.br --redirect`.
+   `/etc/nginx/sites-available/audita-sistema`, ligar em `sites-enabled` (tirar o `default`), copiar
+   [`nginx-conf.d/`](nginx-conf.d) para `/etc/nginx/conf.d/` (IP real do Cloudflare e o `map` do WebSocket, que antes vinha do
+   arquivo do PRO) e `nginx -t && systemctl reload nginx`. No Cloudflare, apontar os 3 registros A (`@`, `www`, `api`)
+   para o IP novo. Certificado pela **validação DNS do Cloudflare** (não depende de o IP responder): instalar
+   `python3-certbot-dns-cloudflare`, gravar o token em `/root/.secrets/cloudflare.ini` (600) e rodar
+   `certbot certonly --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.ini --cert-name audita.seg.br -d audita.seg.br -d www.audita.seg.br -d api.audita.seg.br`
+   e `certbot install --nginx --cert-name audita.seg.br --redirect`. O token precisa de **Zone:Read e DNS:Edit** só da zona
+   `audita.seg.br` e **sem validade**, senão a renovação automática falha.
 7. **Backup e e-mail:** o pacote de configuração já repõe `/usr/local/bin/audita-*` e `/etc/cron.d/audita-sistema-backup`;
    conferir com `audita-email status`.
 8. **Conferência:** 11 serviços *healthy*; `https://api.audita.seg.br/auth/v1/health` 200; login do Diretor; Biblioteca
