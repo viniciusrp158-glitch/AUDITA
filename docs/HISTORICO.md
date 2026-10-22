@@ -590,3 +590,21 @@ Treinamentos e as etapas do aluno ficam só na lateral. Os vídeos ficam no YouT
   - nova versão.
 - `tests/e2e/responsivo.spec.ts` não roda no ambiente novo de desenvolvimento, porque ele ainda não tem cliente nem
   serviço cadastrados. É uma pendência do ambiente, não da etapa.
+
+### Publicação da etapa 1 em produção (22/10/2026, com o SIM do Leandro)
+
+- **Backup antes:** `audita-sistema-backup` de 22/10 16h49.
+- **Migração:** `20261022180000_t1_treinamentos` aplicada (MD5 igual ao do repositório), 24 migrações registradas,
+  bucket `audita-treinamentos` criado.
+- **Site:** imagem `audita-sistema:20261022-1950-t1`, gerada da branch `feat/t1-treinamentos-base`. Container saudável;
+  `/empresa/login` responde 200 e `/empresa/treinamentos` pede login, como as demais abas. Para voltar:
+  `AUDITA_WEB_TAG=20261021-2054-dados` e `docker compose up -d`.
+- **Carga do L01 v1.2 em produção**, feita no servidor porque as senhas dos administradores são pessoais:
+  - treinamento, versão em **rascunho** com a ficha técnica (4 h, instrutor Vinicius Rocha Pereira) e 7 módulos com
+    objetivos, tópicos e minutos;
+  - 141 arquivos (8 do aluno e 133 da equipe, dos quais 102 slides em PNG) no bucket privado, com o SHA-256 conferido num
+    arquivo baixado de volta.
+- **Falta:**
+  - colar os links do YouTube;
+  - conferir e publicar a versão 1.2;
+  - definir preço e prazo de acesso, na aba "Venda e preço".
