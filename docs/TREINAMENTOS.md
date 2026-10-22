@@ -24,8 +24,9 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | 0 | Protótipo visual com o L01 e as decisões acima | Aprovado pelo Diretor (22/10/2026) |
 | **1** | **Aba Treinamentos:** cadastro, ficha técnica, versões, módulos e materiais (aluno, instrutor, slides), venda (preço/prazo) | **Entregue na branch `feat/t1-treinamentos-base` (22/10/2026)** |
 | **2a** | **Alunos e matrículas** (individual e em lote, convite por e-mail) e **área do aluno** em `/treinamentos`: entrar, criar senha, esqueci a senha e Meus cursos | **Em produção desde 22/10/2026 (branch `feat/t2-area-do-aluno`)** |
-| 2b | Player do curso: apostila, vídeo do YouTube, progresso e módulos em sequência | — |
-| 2c | Importador do pacote `.zip` e banco de questões: tempo de prova, tentativas, nota mínima e retorno ao aluno | — |
+| **2b** | **Player do curso:** apostila, vídeo do YouTube, progresso e módulos em sequência | **Entregue na branch `feat/t2b-curso-do-aluno` (22/10/2026)** |
+| **2c** | **Banco de questões** lido dos gabaritos e **provas** com cronômetro, tentativas, nota mínima e retorno ao aluno | **Entregue na mesma branch** (o importador do `.zip` inteiro fica para depois; o L01 já está carregado) |
+| **2d** | **Certificado** com código e QR code de verificação pública | **Entregue na mesma branch** |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
 | 5 | Vitrine pública e conta do aluno | — |
@@ -117,3 +118,53 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
   - container `audita-aluno` (`deploy/vps/web/docker-compose.yml`, `AUDITA_ALUNO_TAG`);
   - Nginx com `location ^~ /treinamentos` (`deploy/vps/nginx-audita-sistema*.conf`);
   - nova imagem do sistema.
+
+## Etapas 2b, 2c e 2d: curso do aluno, provas e certificado
+
+- **Migração `20261023120000_t2b_curso_do_aluno.sql`:**
+  - `training_assessments`: uma por módulo, com tempo de prova, tentativas, intervalo entre tentativas, nota mínima
+    (vazia = sem nota) e embaralhar;
+  - `training_questions`: código do material (`M03-Q01`, `M03-A01`…), objetiva (alternativas, resposta certa, retorno
+    ao aluno) ou aberta (resposta de referência);
+  - `training_attempts` e `training_attempt_answers`: tentativas e respostas, gravadas só pelas funções;
+  - `training_certificates`: dados congelados na emissão, código `XXXX-XXXX-XXXX`, cancelamento só com motivo.
+- **Regras (no servidor):**
+  - o aluno nunca lê a tabela de questões (a resposta certa fica lá); tudo passa pelas funções;
+  - módulo liberado só com o anterior concluído; dentro do módulo, Apostila → Videoaula (se tiver link) → Avaliação
+    (se tiver questões);
+  - prova com prazo pelo relógio do servidor (30 s de tolerância); tempo esgotado envia com o que estiver salvo;
+  - para enviar, todas as questões respondidas (abertas com pelo menos 10 caracteres);
+  - retorno por questão: sempre nas avaliações sem nota; na de nota mínima, só depois da aprovação ou quando acabam as
+    tentativas. Na reprovação aparecem os módulos a revisar (a referência "(Módulo NN)" do retorno das questões
+    erradas), sem dizer quais questões foram erradas;
+  - todos os módulos concluídos ⇒ matrícula concluída e certificado emitido;
+  - a versão publicada congela também as avaliações e as questões; a nova versão copia tudo.
+- **Gestão (aba Treinamentos em `/empresa`):**
+  - "Ler os gabaritos de todos os módulos" (aba Módulos) ou "Ler questões do gabarito" (página do módulo): o servidor
+    lê o PDF "Gabarito comentado" já enviado (`pdftotext`, pacote `poppler-utils` na imagem) e mostra a conferência
+    com avisos (chave rápida divergente, alternativas ou retorno ausentes, código de outro módulo) antes de gravar;
+  - as orientações ao corretor dentro da "Resposta esperada" ("Aceitar…", "Não exigir…", "Não aceitar…") não vão
+    para o aluno;
+  - regras da avaliação e edição de cada questão no rascunho;
+  - aba Alunos com o andamento (módulos concluídos, nota final e código do certificado).
+- **L01:** 45 questões lidas dos 7 gabaritos (34 objetivas e 11 abertas), sem nenhum aviso. Tempo de prova padrão =
+  minutos de atividades do módulo. Na final (M07), nota mínima 7 de 10, conforme o material. **Número de tentativas e
+  intervalo não estão no material: ficam "sem limite" até o Diretor definir.**
+- **Área do aluno (`/treinamentos`):**
+  - `/curso/<matrícula>`: "Continuar de onde parei" e, no celular, a lista de módulos;
+  - lateral com os módulos (concluído, liberado ou com cadeado) e as etapas do módulo em foco; no celular, a lateral
+    vira a gaveta "Conteúdo"; nenhum quadro de etapas acima do conteúdo;
+  - apostila desenhada na página (funciona no celular), com zoom e "Baixar PDF", entregue por `/arquivo/<id>` com a
+    sessão do aluno (só material do aluno, só de módulo liberado);
+  - videoaula do YouTube incorporada (`youtube-nocookie`); a conclusão libera ao chegar ao fim (ou 90%); se o player
+    não carregar, o botão é liberado para não travar o aluno;
+  - prova uma questão por vez, cronômetro, salvamento automático e envio automático no fim do tempo; resultado com o
+    retorno de cada questão;
+  - certificado no modelo aprovado (A4 deitado, QR code, imprimir/salvar em PDF);
+  - `/certificado/<código>`: verificação pública pela função `certificado`, que usa a chave de serviço só dentro do
+    Supabase. **Nada é liberado para `anon` no banco.**
+- **Publicação na VPS (ainda não feita):**
+  1. aplicar a migração;
+  2. copiar a função `certificado` para `volumes/functions` e reiniciar as funções;
+  3. gerar a nova imagem do sistema (o `Dockerfile` agora instala `poppler-utils`);
+  4. gerar a nova imagem da área do aluno.

@@ -17,7 +17,8 @@ RUN npm run build
 
 FROM node:22-alpine
 WORKDIR /app
-RUN apk add --no-cache tzdata
+# poppler-utils: pdftotext, usado na leitura das questões dos gabaritos (Treinamentos)
+RUN apk add --no-cache tzdata poppler-utils
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 TZ=America/Sao_Paulo
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules

@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { STUDENT_COOKIE } from "./lib/supabase/cookies";
 
-const PUBLIC_PATHS = ["/entrar", "/esqueci", "/auth/confirm", "/definir-senha"];
+// /certificado/<código>: verificação pública do certificado
+const PUBLIC_PATHS = ["/entrar", "/esqueci", "/auth/confirm", "/definir-senha", "/certificado"];
 
 /** Renova a sessão do aluno e leva ao "Entrar" quem não estiver logado. */
 export async function middleware(request: NextRequest) {

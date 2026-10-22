@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BookOpen, Clock } from "lucide-react";
 import { createClient, currentStudent } from "@/lib/supabase/server";
 import { StudentHeader } from "../shell";
@@ -80,9 +81,19 @@ export default async function MeusCursosPage({ searchParams }: { searchParams: P
                     )}
                     <span>{r.access_until ? `Acesso até ${fmtDate(r.access_until)}` : "Acesso sem prazo"}</span>
                   </p>
-                  <span className={`mt-auto inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold ${blocked ? "bg-surface text-muted" : "bg-surface text-muted"}`}>
-                    <BookOpen size={16} aria-hidden /> {blocked ? "Indisponível" : "Conteúdo do curso na próxima entrega"}
-                  </span>
+                  {blocked ? (
+                    <span className="mt-auto inline-flex items-center justify-center gap-2 rounded-md bg-surface px-4 py-2.5 text-sm font-semibold text-muted">
+                      <BookOpen size={16} aria-hidden /> Indisponível
+                    </span>
+                  ) : (
+                    <Link
+                      href={r.status === "concluida" ? `/curso/${r.id}/certificado` : `/curso/${r.id}`}
+                      className="mt-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-700"
+                      data-testid="open-course"
+                    >
+                      <BookOpen size={16} aria-hidden /> {r.status === "concluida" ? "Ver certificado" : "Abrir o curso"}
+                    </Link>
+                  )}
                 </li>
               );
             })}

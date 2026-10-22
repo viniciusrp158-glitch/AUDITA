@@ -662,3 +662,44 @@ cursos). O cadastro com compra fica para as etapas 5 e 6. Detalhes em `docs/TREI
   - restaurar `~/audita/proxy/audita.conf.bak-20261022-t2` e `docker-compose.vps.yml.bak-20261022-t2`.
   - As tabelas novas podem ficar (aditivas).
 - **Para matricular** em produção, o L01 precisa ter a versão 1.2 publicada (hoje em rascunho).
+
+## T2b/c/d — Curso do aluno, provas e certificado (22/10/2026) — em validação
+
+Pedido do Leandro: avançar o máximo sem ele, depois da publicação da 2a. Entrega o player do curso, o banco de questões
+lido dos gabaritos com as provas e o certificado com verificação. Detalhes em `docs/TREINAMENTOS.md`.
+
+### Evidências de teste (22/10/2026)
+
+- `tests/unit/gabarito.test.ts`, **2/2**: leitura de objetivas e abertas, cabeçalho e rodapé ignorados, orientações ao
+  corretor retiradas, avisos de chave rápida divergente, módulo errado e arquivo sem questões.
+- Leitura dos 7 gabaritos reais do L01 (pdftotext): **34 objetivas e 11 abertas, nenhum aviso** (conferido também na
+  tela, no teste de navegador).
+- `tests/integration/curso-do-aluno-t2b.test.ts` (PGlite), **7/7**:
+  - importação só em rascunho, reimportação por código, nota mínima conferida na publicação e versão congelada;
+  - aluno sem acesso às questões; módulos e etapas em sequência;
+  - correção no servidor, retorno completo nas avaliações sem nota;
+  - resposta aberta mínima;
+  - final sem retorno antes da aprovação, com os módulos a revisar, limite de tentativas, conclusão e certificado;
+  - verificação só pela chave de serviço;
+  - tempo esgotado e nova versão copiando as avaliações.
+- Suíte completa: **94 testes passaram** (os demais continuam pulados por dependerem de banco configurado). `tsc` e
+  `eslint` sem erros (1 aviso antigo em `mfa-actions.ts`). `next build` do sistema e da área do aluno concluídos.
+- `tests/e2e/t2b-curso-do-aluno.spec.ts`, contra o ambiente de desenvolvimento, **2/2**:
+  - gestão: nova versão do L01, leitura dos 7 gabaritos (45 questões, sem avisos), gravação, nota 7 e 3 tentativas na
+    final, link do YouTube no M02 e publicação;
+  - aluno: convite, senha e os 7 módulos em sequência (apostila no leitor, videoaula com detecção do fim, avaliações
+    com cronômetro e retorno);
+  - final reprovada sem retorno e com os módulos a revisar, aprovada na 2ª tentativa (10/10);
+  - certificado com nome, nota e código; verificação pública "válido" e código inexistente "não encontrado";
+  - celular sem rolagem horizontal (curso e certificado) e gaveta "Conteúdo";
+  - gestão com "7 de 7 módulos · nota final 10/10" e o código.
+- `tests/e2e/t1-treinamentos.spec.ts` e `tests/e2e/t2-alunos.spec.ts` repetidos: **4/4**.
+- Ajustes encontrados nos testes:
+  - o leitor de PDF em JavaScript perdia hífens e parênteses das fontes do L01, por isso a leitura dos gabaritos usa o
+    `pdftotext`;
+  - o certificado em tamanho A4 ficava cortado ao lado da lateral e empurrava a largura no celular; agora se ajusta à
+    largura disponível.
+- Prints em `D:\Audita-deploy\etapa2b-prints`.
+- **Pendências:**
+  - o Diretor definir o número de tentativas e o intervalo da avaliação final (hoje "sem limite");
+  - aprovar a página pública de verificação do certificado antes da publicação.

@@ -159,3 +159,55 @@ export async function getCourseDetail(id: string, wantedVersion?: string) {
   }
   return { course: course as TrainingCourse, versions: all, version, modules, files };
 }
+
+export type AssessmentQuestion = {
+  id: string;
+  position: number;
+  code: string;
+  kind: "objetiva" | "aberta";
+  statement: string;
+  options: { key: string; text: string }[] | null;
+  correct_key: string | null;
+  feedback: string | null;
+  status: "ativo" | "inativo";
+};
+export type Assessment = {
+  id: string;
+  module_id: string;
+  time_limit_minutes: number | null;
+  max_attempts: number | null;
+  retry_wait_hours: number;
+  pass_score: number | null;
+  shuffle_questions: boolean;
+  training_questions: AssessmentQuestion[];
+};
+
+/** Avaliações da versão (com as questões), por módulo. */
+export async function getAssessments(versionId: string): Promise<Record<string, Assessment>> {
+  if (!uuidRe.test(versionId)) return {};
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("training_assessments")
+    .select(
+      "id, module_id, time_limit_minutes, max_attempts, retry_wait_hours, pass_score, shuffle_questions, training_questions(id, position, code, kind, statement, options, correct_key, feedback, status)",
+    )
+    .eq("version_id", versionId);
+  const out: Record<string, Assessment> = {};
+  for (const a of (data ?? []) as Assessment[]) {
+    a.training_questions.sort((x, y) => (x.status === y.status ? x.position - y.position : x.status === "ativo" ? -1 : 1));
+    out[a.module_id] = a;
+  }
+  return out;
+}
+
+export type EnrollmentProgress = { modules_done: number; modules_total: number; final_score: number | null; final_max_score: number | null; certificate_code: string | null };
+
+/** Andamento de cada matrícula do treinamento (módulos concluídos, nota final e certificado). */
+export async function getEnrollmentProgress(courseId: string): Promise<Record<string, EnrollmentProgress>> {
+  if (!uuidRe.test(courseId)) return {};
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("training_enrollment_progress", { p_course_id: courseId });
+  const out: Record<string, EnrollmentProgress> = {};
+  for (const r of (data ?? []) as (EnrollmentProgress & { enrollment_id: string })[]) out[r.enrollment_id] = r;
+  return out;
+}

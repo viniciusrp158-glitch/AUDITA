@@ -8,7 +8,7 @@ import { formatDateTime } from "@/lib/format";
 import { formatBRL } from "@/lib/pricing/engine";
 import { COURSE_KINDS, FILE_KINDS, formatMinutes, moduleCode, VERSION_STATUS } from "@/lib/training/labels";
 import { formatDay } from "@/lib/format";
-import { getCourseDetail, listEnrollments, type TrainingFile, type TrainingModule } from "@/lib/training/queries";
+import { getAssessments, getCourseDetail, getEnrollmentProgress, listEnrollments, type Assessment, type TrainingFile, type TrainingModule } from "@/lib/training/queries";
 import {
   addModuleAction,
   cancelVersionAction,
@@ -20,9 +20,10 @@ import {
 } from "../actions";
 import { AddModuleForm, CancelVersionForm, CommercialForm, FichaForm, FileSlot, NewVersionForm, PublishForm } from "./forms";
 import { EnrollmentList, EnrollPanel, type EnrollmentView } from "./alunos";
+import { GabaritoReader } from "./avaliacoes";
 
 async function StudentsTab({ courseId, accessDays, published }: { courseId: string; accessDays: number | null; published: boolean }) {
-  const [{ rows }, invite] = await Promise.all([listEnrollments(courseId), enrollmentInviteStatus(courseId)]);
+  const [{ rows }, invite, progress] = await Promise.all([listEnrollments(courseId), enrollmentInviteStatus(courseId), getEnrollmentProgress(courseId)]);
   const view: EnrollmentView[] = rows
     .filter((r) => r.training_students)
     .map((r) => ({
@@ -40,6 +41,7 @@ async function StudentsTab({ courseId, accessDays, published }: { courseId: stri
       passwordCreated: invite[r.id] ? invite[r.id].senha_criada : null,
       lastAccess: invite[r.id]?.ultimo_acesso ? formatDateTime(invite[r.id].ultimo_acesso!) : null,
       note: r.status_note,
+      progress: progress[r.id] ?? null,
     }));
   return (
     <div className="flex flex-col gap-4">
@@ -75,11 +77,12 @@ function moduleMinutes(m: TrainingModule): number | null {
   return parts.some((p) => p != null) ? parts.reduce<number>((s, p) => s + (p ?? 0), 0) : null;
 }
 
-function ModuleCard({ courseId, m, files }: { courseId: string; m: TrainingModule; files: TrainingFile[] }) {
+function ModuleCard({ courseId, m, files, assessment }: { courseId: string; m: TrainingModule; files: TrainingFile[]; assessment?: Assessment }) {
   const mine = files.filter((f) => f.module_id === m.id);
   const has = (k: string) => mine.some((f) => f.kind === k);
   const slides = mine.filter((f) => f.kind === "slide_imagem").length;
   const total = moduleMinutes(m);
+  const qs = (assessment?.training_questions ?? []).filter((q) => q.status === "ativo").length;
   return (
     <li className={`rounded-xl border bg-white p-4 sm:p-5 ${m.status === "inativo" ? "border-dashed border-line opacity-70" : "border-line"}`}>
       <div className="flex flex-wrap items-start gap-3">
@@ -106,7 +109,9 @@ function ModuleCard({ courseId, m, files }: { courseId: string; m: TrainingModul
       <div className="mt-3 flex flex-wrap gap-2">
         <Chip ok={has("apostila")}>1 · Apostila {has("apostila") ? "✓" : "pendente"}</Chip>
         <Chip ok={Boolean(m.video_url)}>2 · Vídeo {m.video_url ? "✓" : "pendente"}</Chip>
-        <Chip muted>3 · Avaliação (próxima etapa)</Chip>
+        <Chip ok={qs > 0}>
+          3 · Avaliação {qs ? `${qs} ${qs === 1 ? "questão" : "questões"}${assessment?.pass_score ? ` · nota ${assessment.pass_score}` : ""}` : "pendente"}
+        </Chip>
         <Chip muted>
           Equipe: {[has("roteiro") && "roteiro", has("gabarito") && "gabarito", has("slides_pdf") && "slides", slides && `${slides} imagens`].filter(Boolean).join(" · ") || "nada enviado"}
         </Chip>
@@ -136,15 +141,18 @@ export default async function TreinamentoPage({
   const published = versions.find((v) => v.status === "publicada");
   const readOnly = !version || version.status !== "rascunho";
   const vq = sp.v && version ? `&v=${version.id}` : "";
+  const assessments = version ? await getAssessments(version.id) : {};
 
   const active = modules.filter((m) => m.status === "ativo");
   const apostilas = active.filter((m) => files.some((f) => f.module_id === m.id && f.kind === "apostila")).length;
   const videos = active.filter((m) => m.video_url).length;
+  const withQs = active.filter((m) => (assessments[m.id]?.training_questions ?? []).some((q) => q.status === "ativo")).length;
   const checks = [
     { ok: Boolean(version?.workload_minutes), label: version?.workload_minutes ? `Carga horária: ${formatMinutes(version.workload_minutes)}` : "Carga horária não informada (ficha técnica)" },
     { ok: active.length > 1, label: `${active.length} módulo(s) ativo(s), Ambientação incluída` },
     { ok: active.length > 0 && apostilas === active.length, label: `Apostilas: ${apostilas} de ${active.length}` },
     { ok: files.some((f) => f.kind === "ficha_tecnica"), label: "Ficha técnica em PDF (vai para o aluno no M01)" },
+    { ok: active.length > 0 && withQs === active.length, label: `Avaliações com questões: ${withQs} de ${active.length}` },
     { ok: active.length > 0 && videos === active.length, label: `Links do YouTube: ${videos} de ${active.length} (pode completar depois)` },
     { ok: course.price !== null, label: course.price !== null ? `Preço: ${formatBRL(course.price)}` : "Preço PENDENTE (venda numa etapa seguinte)" },
   ];
@@ -239,7 +247,7 @@ export default async function TreinamentoPage({
           <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-3">
             <ol className="flex flex-col gap-3" data-testid="module-list">
               {modules.map((m) => (
-                <ModuleCard key={m.id} courseId={course.id} m={m} files={files} />
+                <ModuleCard key={m.id} courseId={course.id} m={m} files={files} assessment={assessments[m.id]} />
               ))}
             </ol>
             {!readOnly && (
@@ -260,8 +268,15 @@ export default async function TreinamentoPage({
                 ))}
               </ul>
             </section>
+            {!readOnly && (
+              <section className="rounded-xl border border-line bg-white p-4">
+                <h2 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Questões das avaliações</h2>
+                <p className="mb-3 text-sm text-muted">Lê o “Gabarito comentado” de cada módulo e mostra a conferência antes de gravar.</p>
+                <GabaritoReader courseId={course.id} versionId={version.id} label="Ler os gabaritos de todos os módulos" />
+              </section>
+            )}
             <section className="rounded-xl border border-line bg-white p-4 text-sm text-muted">
-              Cada módulo segue <strong className="text-ink">Apostila → Videoaula → Avaliação</strong>. As questões das avaliações e o importador do pacote (.zip) chegam na próxima etapa.
+              Cada módulo segue <strong className="text-ink">Apostila → Videoaula → Avaliação</strong>. O aluno avança um módulo por vez; o certificado sai ao concluir todos.
             </section>
           </aside>
         </div>

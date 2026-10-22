@@ -16,6 +16,15 @@
   --color-warn: #a76613;
   --color-danger: #b63d35;
   --color-white: #ffffff;
+  /* Player do curso (protótipo aprovado pelo Diretor, 22/10/2026) */
+  --color-lime-50: #f3f7ea;
+  --color-lime-200: #cfe3a6;
+  --color-chip: #eef1f5;
+  --color-lock: #8494a7;
+  --color-navy-line: #2a4260;
+  --color-paper: #e9edf2;
+  --color-late: #c2410c;
+  --color-late-50: #fdece4;
   --font-sans: "Inter Variable", Inter, Arial, Helvetica, sans-serif;
 }
 
@@ -33,4 +42,18 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-blue);
   outline-offset: 2px;
+}
+
+/* Certificado: impressão em A4 deitado, só o documento */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  body {
+    background: #ffffff;
+  }
+  .no-print {
+    display: none !important;
+  }
 }

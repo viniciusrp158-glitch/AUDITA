@@ -6,8 +6,10 @@ import { requireAppUser } from "@/lib/auth";
 import { ADMIN_ONLY } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { FILE_KINDS, MODULE_SLIDE_KINDS, MODULE_STAFF_KINDS, moduleCode, VERSION_STATUS, type FileKind } from "@/lib/training/labels";
-import { getCourseDetail, type TrainingFile } from "@/lib/training/queries";
+import { getAssessments, getCourseDetail, type TrainingFile } from "@/lib/training/queries";
 import { updateModuleAction } from "../../../actions";
+import { updateAssessmentAction } from "../../../avaliacoes-actions";
+import { AssessmentRulesForm, GabaritoReader, QuestionList } from "../../avaliacoes";
 import { FileSlot, ModuleControls, ModuleForm, VideoLink } from "../../forms";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,6 +49,10 @@ export default async function ModuloPage({ params }: { params: Promise<{ id: str
   const mine = files.filter((f) => f.module_id === m.id);
   const of = (k: FileKind): TrainingFile[] => mine.filter((f) => f.kind === k);
   const slot = (k: FileKind) => <FileSlot courseId={course.id} versionId={version.id} moduleId={m.id} kind={k} readOnly={readOnly} files={of(k)} />;
+  const assessment = (await getAssessments(version.id))[m.id];
+  const questions = assessment?.training_questions ?? [];
+  const activeQs = questions.filter((q) => q.status === "ativo");
+  const objectives = activeQs.filter((q) => q.kind === "objetiva").length;
   const prev = modules[idx - 1];
   const next = modules[idx + 1];
 
@@ -99,7 +105,19 @@ export default async function ModuloPage({ params }: { params: Promise<{ id: str
           <p className="text-xs text-muted">O link é informado no formulário abaixo.</p>
         </Box>
         <Box step="3" title="Avaliação" audience="aluno">
-          <p className="text-sm text-muted">As questões, o tempo de prova e as tentativas entram na próxima etapa (importação do pacote e banco de questões).</p>
+          {activeQs.length ? (
+            <p className="text-sm text-ink">
+              {objectives} {objectives === 1 ? "objetiva" : "objetivas"}
+              {activeQs.length > objectives ? ` e ${activeQs.length - objectives} ${activeQs.length - objectives === 1 ? "aberta" : "abertas"}` : ""}
+              {assessment?.time_limit_minutes ? ` · ${assessment.time_limit_minutes} min` : " · sem cronômetro"}
+              {assessment?.pass_score ? ` · aprova com ${assessment.pass_score}` : " · sem nota"}
+            </p>
+          ) : (
+            <p className="text-sm text-warn">Sem questões: leia o gabarito abaixo.</p>
+          )}
+          <a href="#avaliacao" className="text-sm font-medium text-navy hover:underline">
+            Questões e regras
+          </a>
         </Box>
       </div>
 
@@ -125,6 +143,33 @@ export default async function ModuloPage({ params }: { params: Promise<{ id: str
           </div>
         </Box>
       </div>
+
+      <section id="avaliacao" className="mb-5 flex flex-col gap-5 rounded-xl border border-line bg-white p-5" data-testid="assessment-section">
+        <div>
+          <h2 className="text-sm font-semibold text-ink">Avaliação do módulo</h2>
+          <p className="mt-1 text-sm text-muted">
+            As questões vêm do “Gabarito comentado” enviado no material do instrutor. O aluno vê o retorno de cada questão depois do envio; com nota
+            mínima, só depois da aprovação ou quando acabam as tentativas.
+          </p>
+        </div>
+        {!readOnly && <GabaritoReader courseId={course.id} moduleId={m.id} label="Ler questões do gabarito" />}
+        <AssessmentRulesForm
+          action={updateAssessmentAction.bind(null, course.id, m.id)}
+          readOnly={readOnly}
+          objectives={objectives}
+          initial={{
+            time_limit_minutes: assessment ? (assessment.time_limit_minutes?.toString() ?? "") : (m.activity_minutes?.toString() ?? ""),
+            pass_score: assessment?.pass_score?.toString() ?? "",
+            max_attempts: assessment?.max_attempts?.toString() ?? "",
+            retry_wait_hours: assessment?.retry_wait_hours?.toString() ?? "0",
+            shuffle_questions: assessment?.shuffle_questions ? "on" : "",
+          }}
+        />
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-ink">Questões ({questions.length})</h3>
+          <QuestionList courseId={course.id} questions={questions} readOnly={readOnly} />
+        </div>
+      </section>
 
       <section className="max-w-4xl rounded-xl border border-line bg-white p-5">
         <h2 className="mb-4 text-sm font-semibold text-ink">Dados do módulo</h2>

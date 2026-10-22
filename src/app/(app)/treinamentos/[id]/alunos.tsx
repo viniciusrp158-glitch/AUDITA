@@ -192,6 +192,7 @@ export type EnrollmentView = {
   passwordCreated: boolean | null;
   lastAccess: string | null;
   note: string | null;
+  progress: { modules_done: number; modules_total: number; final_score: number | null; final_max_score: number | null; certificate_code: string | null } | null;
 };
 
 function EnrollmentActions({ courseId, e }: { courseId: string; e: EnrollmentView }) {
@@ -287,6 +288,13 @@ export function EnrollmentList({ courseId, rows }: { courseId: string; rows: Enr
               <span>
                 {e.passwordCreated === null ? "" : e.passwordCreated ? (e.lastAccess ? `Último acesso: ${e.lastAccess}` : "Senha criada") : "Convite pendente (ainda não criou a senha)"}
               </span>
+              {e.progress && (
+                <span data-testid="enrollment-progress">
+                  {e.progress.modules_done} de {e.progress.modules_total} módulos
+                  {e.progress.final_score != null ? ` · nota final ${e.progress.final_score}/${e.progress.final_max_score}` : ""}
+                  {e.progress.certificate_code ? ` · certificado ${e.progress.certificate_code}` : ""}
+                </span>
+              )}
               {e.note && <span>Obs.: {e.note}</span>}
             </div>
             <div className="flex-[1_1_220px]">
