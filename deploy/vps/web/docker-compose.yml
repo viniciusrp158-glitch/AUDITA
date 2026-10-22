@@ -1,5 +1,6 @@
 # Sistema AUDITA de Operação — site na VPS (/opt/audita-sistema). Só escuta em 127.0.0.1:3200; o Nginx publica em
-# https://audita.seg.br/empresa. A imagem é escolhida por AUDITA_WEB_TAG (arquivo .env ao lado, gerado no deploy).
+# https://audita.seg.br/empresa; a área do aluno (127.0.0.1:3300) em /treinamentos. Imagens escolhidas por AUDITA_WEB_TAG e
+# AUDITA_ALUNO_TAG (arquivo .env ao lado, gerado no deploy).
 name: audita-sistema
 
 services:
@@ -14,6 +15,24 @@ services:
       - "api.audita.seg.br:host-gateway"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3200/empresa/login > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Área do aluno dos treinamentos (https://audita.seg.br/treinamentos), imagem de deploy/vps/aluno/Dockerfile
+  aluno:
+    container_name: audita-aluno
+    image: audita-aluno:${AUDITA_ALUNO_TAG:?defina AUDITA_ALUNO_TAG}
+    restart: unless-stopped
+    env_file: web.env
+    environment:
+      ALUNO_PUBLIC_URL: https://audita.seg.br/treinamentos
+    ports:
+      - "127.0.0.1:3300:3300"
+    extra_hosts:
+      - "api.audita.seg.br:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3300/treinamentos/entrar > /dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

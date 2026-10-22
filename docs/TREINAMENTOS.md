@@ -23,7 +23,7 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 |---|---|---|
 | 0 | Protótipo visual com o L01 e as decisões acima | Aprovado pelo Diretor (22/10/2026) |
 | **1** | **Aba Treinamentos:** cadastro, ficha técnica, versões, módulos e materiais (aluno, instrutor, slides), venda (preço/prazo) | **Entregue na branch `feat/t1-treinamentos-base` (22/10/2026)** |
-| **2a** | **Alunos e matrículas** (individual e em lote, convite por e-mail) e **área do aluno** em `/treinamentos`: entrar, criar senha, esqueci a senha e Meus cursos | **Entregue na branch `feat/t2-area-do-aluno` (22/10/2026)** |
+| **2a** | **Alunos e matrículas** (individual e em lote, convite por e-mail) e **área do aluno** em `/treinamentos`: entrar, criar senha, esqueci a senha e Meus cursos | **Em produção desde 22/10/2026 (branch `feat/t2-area-do-aluno`)** |
 | 2b | Player do curso: apostila, vídeo do YouTube, progresso e módulos em sequência | — |
 | 2c | Importador do pacote `.zip` e banco de questões: tempo de prova, tentativas, nota mínima e retorno ao aluno | — |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
@@ -110,11 +110,10 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 - **Área do aluno (`aluno/`):**
   - páginas `/treinamentos/entrar`, `/esqueci`, `/auth/confirm`, `/definir-senha` e `/meus-cursos`;
   - imagem pelo `deploy/vps/aluno/Dockerfile`, que compila com `npx next build aluno`.
-- **Publicação na VPS (ainda não feita):**
-  1. aplicar a migração;
-  2. copiar a função `alunos` para `volumes/functions`;
-  3. no Auth do AUDITA, configurar `GOTRUE_MAILER_TEMPLATES_INVITE` (o modelo servido em
-     `https://audita.seg.br/email-templates/convite-aluno.html`) e `GOTRUE_MAILER_SUBJECTS_INVITE`;
-  4. subir o container `audita-aluno` (porta 3300, rede do Supabase do AUDITA, `ALUNO_PUBLIC_URL`);
-  5. no Nginx interno, acrescentar `location ^~ /treinamentos` apontando para ele;
-  6. gerar a nova imagem do sistema.
+- **Publicação na VPS (feita em 22/10/2026):**
+  - migração aplicada;
+  - função `alunos` em `volumes/functions`;
+  - modelo e assunto do convite no Auth (`deploy/vps/docker-compose.vps.yml`);
+  - container `audita-aluno` (`deploy/vps/web/docker-compose.yml`, `AUDITA_ALUNO_TAG`);
+  - Nginx com `location ^~ /treinamentos` (`deploy/vps/nginx-audita-sistema*.conf`);
+  - nova imagem do sistema.

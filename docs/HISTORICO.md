@@ -635,3 +635,30 @@ cursos). O cadastro com compra fica para as etapas 5 e 6. Detalhes em `docs/TREI
 - `tests/e2e/t1-treinamentos.spec.ts` repetido: **2/2**.
 - Correção encontrada no teste: o retorno do link de convite redirecionava para o host interno do servidor (e perdia o
   cookie da sessão). Agora usa o host e o protocolo que o navegador pediu (`x-forwarded-*`).
+
+### Publicação em produção (22/10/2026, com o SIM do Leandro)
+
+- Backup antes (`audita-sistema-backup`, 19:07).
+- **Banco:** migração `20261023090000_t2_alunos` aplicada; 25 migrações registradas. As 3 tabelas novas têm RLS, 9
+  políticas, e a política do aluno no armazenamento foi criada.
+- **Convites:**
+  - função `alunos` publicada;
+  - Auth do AUDITA com o modelo `convite-aluno.html` e o assunto "Seu acesso aos treinamentos AUDITA"
+    (`deploy/vps/docker-compose.vps.yml`); o Auth baixa o modelo e encontra o botão "Criar minha senha".
+- **Área do aluno:**
+  - container `audita-aluno`, imagem `audita-aluno:20261022-1915-t2`, saudável;
+  - o Nginx manda `/treinamentos` para ele.
+- **Sistema:** imagem `audita-sistema:20261022-1915-t2` (aba Alunos), saudável.
+- **Conferido sem criar dados** (regra 7):
+  - `/treinamentos/entrar` 200;
+  - `/meus-cursos` e `/definir-senha` sem login voltam para `/treinamentos/entrar` no endereço público;
+  - link de convite falso cai em "link inválido";
+  - sem login, a função `alunos` recusa ("Somente administradores matriculam alunos."), as funções `training_me` e
+    `training_enroll` dão "permission denied" e a tabela de alunos é negada;
+  - `/empresa/login` 200.
+- **Para voltar:**
+  - `AUDITA_WEB_TAG=20261022-1950-t1`;
+  - parar o `audita-aluno`;
+  - restaurar `~/audita/proxy/audita.conf.bak-20261022-t2` e `docker-compose.vps.yml.bak-20261022-t2`.
+  - As tabelas novas podem ficar (aditivas).
+- **Para matricular** em produção, o L01 precisa ter a versão 1.2 publicada (hoje em rascunho).

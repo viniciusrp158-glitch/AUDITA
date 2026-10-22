@@ -18,6 +18,8 @@ services:
     environment:
       GOTRUE_MAILER_SUBJECTS_RECOVERY: "Redefinição de senha — Sistema AUDITA"
       GOTRUE_MAILER_TEMPLATES_RECOVERY: https://audita.seg.br/email-templates/recuperacao.html
+      GOTRUE_MAILER_SUBJECTS_INVITE: "Seu acesso aos treinamentos AUDITA"
+      GOTRUE_MAILER_TEMPLATES_INVITE: https://audita.seg.br/email-templates/convite-aluno.html
   rest:
     container_name: audita-rest
   realtime:
