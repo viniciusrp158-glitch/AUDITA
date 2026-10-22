@@ -12,7 +12,8 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | Decisão | Valor |
 |---|---|
 | Vídeos | **YouTube "não listado"**, publicados pelo Vinícius. O sistema guarda só o link e incorpora o vídeo. Nada de vídeo na VPS. |
-| Vitrine pública | `cursos.audita.seg.br` (etapa 5) |
+| Área do aluno e vitrine | **`audita.seg.br/treinamentos`** (confirmado pelo Diretor em 22/10/2026): site separado do sistema (pasta `aluno/`), mesmo banco, sessão própria (cookie `audita-aluno`, só em `/treinamentos`). A gestão continua em `audita.seg.br/empresa`. |
+| Alunos | Conta própria, separada dos usuários do sistema (nunca entra em `app_users`). Três formas de criar: matrícula individual e em lote (planilha CSV ou texto colado) pela aba Alunos, com convite por e-mail para criar a senha; e cadastro com compra pela vitrine (etapas 5 e 6). |
 | Visual | O padrão novo vale **só dentro da aba Treinamentos**. O menu lateral e as demais abas não mudam. Na área do aluno, as etapas ficam só na lateral, sem quadros acima do conteúdo. |
 | Base técnica | Mesmo padrão da Biblioteca (I7): arquivos privados com SHA-256, links assinados e nada excluído. O modelo segue o motor de treinamentos do Audita PRO (versões congeladas), sem tocar no PRO. |
 
@@ -22,7 +23,9 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 |---|---|---|
 | 0 | Protótipo visual com o L01 e as decisões acima | Aprovado pelo Diretor (22/10/2026) |
 | **1** | **Aba Treinamentos:** cadastro, ficha técnica, versões, módulos e materiais (aluno, instrutor, slides), venda (preço/prazo) | **Entregue na branch `feat/t1-treinamentos-base` (22/10/2026)** |
-| 2 | Importador do pacote `.zip` e banco de questões: tempo de prova, tentativas, nota mínima, retorno ao aluno | — |
+| **2a** | **Alunos e matrículas** (individual e em lote, convite por e-mail) e **área do aluno** em `/treinamentos`: entrar, criar senha, esqueci a senha e Meus cursos | **Entregue na branch `feat/t2-area-do-aluno` (22/10/2026)** |
+| 2b | Player do curso: apostila, vídeo do YouTube, progresso e módulos em sequência | — |
+| 2c | Importador do pacote `.zip` e banco de questões: tempo de prova, tentativas, nota mínima e retorno ao aluno | — |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
 | 5 | Vitrine pública e conta do aluno | — |
@@ -81,3 +84,37 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
   - dados do módulo e link do YouTube;
   - subir, descer e inativar.
 - `/treinamentos/arquivo/[fileId]`: abre o arquivo por link assinado de 60 s, com registro na trilha.
+
+## Etapa 2a: alunos, matrículas e área do aluno
+
+- **Migração `20261023090000_t2_alunos.sql`:**
+  - `training_students`: aluno com conta própria, nome, e-mail permanente, CPF/empresa/telefone opcionais e origem;
+  - `training_enrollments`: aluno × treinamento, presa à **versão publicada** na matrícula, com prazo de acesso (padrão =
+    prazo do treinamento) e situação ativa/suspensa/cancelada/concluída;
+  - `training_progress` (para a etapa 2b).
+- **Regras:**
+  - matrícula só pela função `training_enroll` (administrador);
+  - o aluno vê só o próprio cadastro, as próprias matrículas e o conteúdo **do aluno** (apostila, ficha técnica) das
+    versões em que está matriculado e dentro do prazo, inclusive os arquivos no armazenamento;
+  - roteiro, gabarito e slides nunca aparecem para o aluno;
+  - prazo vencido, matrícula suspensa ou aluno inativo cortam o acesso.
+- **Função `alunos` (Edge Function):**
+  - cria a conta e envia o **convite** (modelo `deploy/vps/email-templates/convite-aluno.html`, assunto "Seu acesso aos
+    treinamentos AUDITA") com um link para `/treinamentos/auth/confirm`;
+  - reaproveita a conta de quem já tem uma (sem e-mail) e matricula até 500 alunos por envio, com resultado por linha;
+  - informa a situação (convite pendente/senha criada/último acesso) e reenvia o convite.
+- **Gestão:** aba **Alunos** no treinamento:
+  - matrícula individual, com opção de cortesia;
+  - matrícula em lote (CSV ou texto colado, com prévia);
+  - lista com busca e as ações reenviar convite, suspender/reativar, alterar prazo e cancelar com motivo.
+- **Área do aluno (`aluno/`):**
+  - páginas `/treinamentos/entrar`, `/esqueci`, `/auth/confirm`, `/definir-senha` e `/meus-cursos`;
+  - imagem pelo `deploy/vps/aluno/Dockerfile`, que compila com `npx next build aluno`.
+- **Publicação na VPS (ainda não feita):**
+  1. aplicar a migração;
+  2. copiar a função `alunos` para `volumes/functions`;
+  3. no Auth do AUDITA, configurar `GOTRUE_MAILER_TEMPLATES_INVITE` (o modelo servido em
+     `https://audita.seg.br/email-templates/convite-aluno.html`) e `GOTRUE_MAILER_SUBJECTS_INVITE`;
+  4. subir o container `audita-aluno` (porta 3300, rede do Supabase do AUDITA, `ALUNO_PUBLIC_URL`);
+  5. no Nginx interno, acrescentar `location ^~ /treinamentos` apontando para ele;
+  6. gerar a nova imagem do sistema.

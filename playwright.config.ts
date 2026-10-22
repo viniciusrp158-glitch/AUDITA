@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
+const ALUNO_PORT = Number(process.env.E2E_ALUNO_PORT ?? 3001);
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -17,12 +18,21 @@ export default defineConfig({
     launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {},
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {} } }],
-  webServer: {
-    // Requer `npm run build` antes.
-    command: `npx next start -p ${PORT}`,
-    url: `http://127.0.0.1:${PORT}/empresa/login`,
-    // E2E_REUSE=1 reaproveita um servidor já iniciado (execuções longas em segundo plano)
-    reuseExistingServer: process.env.E2E_REUSE === "1",
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      // Requer `npm run build` antes.
+      command: `npx next start -p ${PORT}`,
+      url: `http://127.0.0.1:${PORT}/empresa/login`,
+      // E2E_REUSE=1 reaproveita um servidor já iniciado (execuções longas em segundo plano)
+      reuseExistingServer: process.env.E2E_REUSE === "1",
+      timeout: 60_000,
+    },
+    {
+      // Área do aluno (/treinamentos). Requer `npx next build aluno` antes.
+      command: `npx next start aluno -p ${ALUNO_PORT}`,
+      url: `http://127.0.0.1:${ALUNO_PORT}/treinamentos/entrar`,
+      reuseExistingServer: process.env.E2E_REUSE === "1",
+      timeout: 60_000,
+    },
+  ],
 });

@@ -608,3 +608,30 @@ Treinamentos e as etapas do aluno ficam só na lateral. Os vídeos ficam no YouT
   - colar os links do YouTube;
   - conferir e publicar a versão 1.2;
   - definir preço e prazo de acesso, na aba "Venda e preço".
+
+## T2a — Alunos, matrículas e área do aluno em /treinamentos (22/10/2026) — em validação
+
+O Diretor confirmou o endereço `audita.seg.br/treinamentos` e as três formas de criar alunos. Esta entrega cobre a
+matrícula individual e em lote, com convite por e-mail, e a área do aluno (entrar, criar senha, esqueci a senha e Meus
+cursos). O cadastro com compra fica para as etapas 5 e 6. Detalhes em `docs/TREINAMENTOS.md`.
+
+### Evidências de teste (22/10/2026)
+
+- `tests/integration/alunos-t2.test.ts` (PGlite), **4/4**:
+  - matrícula só pela função, na versão publicada, com prazo padrão, recusa de duplicada e de prazo no passado;
+  - aluno restrito ao próprio cadastro e ao conteúdo do aluno, com o arquivo da equipe barrado no armazenamento;
+  - outro aluno sem acesso;
+  - prazo vencido, matrícula suspensa e aluno inativado cortando o acesso;
+  - cancelamento definitivo, com nova matrícula permitida.
+- Suíte completa: **85 testes passaram**, e os demais continuam pulados por dependerem de banco configurado. `tsc` e
+  `eslint` (sistema e área do aluno) sem erros. `next build` do sistema e `next build aluno` concluídos.
+- `tests/e2e/t2-alunos.spec.ts`, contra o ambiente de desenvolvimento com a caixa de testes, **2/2**. O fluxo cobre:
+  - matrícula pela aba Alunos e convite lido na caixa de testes (assunto e link certos);
+  - senha curta recusada, senha criada e "Meus cursos" com o L01;
+  - sair, senha errada recusada e entrar de novo;
+  - aluno barrado no sistema da equipe;
+  - celular sem rolagem horizontal;
+  - matrícula em lote com prévia e resultado por linha (2 de 3, com o e-mail inválido apontado).
+- `tests/e2e/t1-treinamentos.spec.ts` repetido: **2/2**.
+- Correção encontrada no teste: o retorno do link de convite redirecionava para o host interno do servidor (e perdia o
+  cookie da sessão). Agora usa o host e o protocolo que o navegador pediu (`x-forwarded-*`).

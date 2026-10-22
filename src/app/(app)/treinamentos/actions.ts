@@ -343,3 +343,91 @@ export async function newVersionAction(courseId: string, _prev: TrState, formDat
   refresh(courseId);
   redirect(`/treinamentos/${courseId}?aba=modulos&nova=1`);
 }
+
+// ---------------------------------------------------------------------------
+// Alunos e matrículas (a conta e o convite são feitos pela função "alunos", com a chave privilegiada só no Supabase)
+// ---------------------------------------------------------------------------
+export type EnrollResult = { email: string; nome: string; situacao: "convidado" | "conta_existente" | "ja_matriculado" | "erro"; mensagem?: string };
+
+async function callAlunos(body: Record<string, unknown>): Promise<{ status: number; data: Record<string, unknown> }> {
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return { status: 401, data: { erro: "Sessão expirada. Entre novamente." } };
+  const { data, error } = await supabase.functions.invoke("alunos", { body, headers: { Authorization: `Bearer ${session.access_token}` } });
+  if (error) {
+    const ctx = (error as { context?: Response }).context;
+    try {
+      const payload = ctx ? await ctx.json() : null;
+      return { status: ctx?.status ?? 500, data: payload ?? { erro: "Falha ao falar com o serviço de alunos." } };
+    } catch {
+      return { status: 500, data: { erro: "Falha ao falar com o serviço de alunos." } };
+    }
+  }
+  return { status: 200, data: (data ?? {}) as Record<string, unknown> };
+}
+
+const accessDate = z
+  .string()
+  .optional()
+  .transform((v) => (v ? v : null))
+  .refine((v) => v === null || /^\d{4}-\d{2}-\d{2}$/.test(v), { message: "Data inválida." });
+
+export async function enrollStudentsAction(
+  courseId: string,
+  input: { alunos: { nome: string; email: string; cpf?: string; empresa?: string; telefone?: string }[]; acesso_ate?: string; origem: "gestao" | "lote" | "cortesia" },
+): Promise<{ error?: string; resultados?: EnrollResult[] }> {
+  await requireAppUser(ADMIN_ONLY);
+  if (!uuidRe.test(courseId)) return { error: "Treinamento inválido." };
+  const date = accessDate.safeParse(input.acesso_ate);
+  if (!date.success) return { error: "Data de acesso inválida." };
+  if (!input.alunos.length) return { error: "Informe pelo menos um aluno." };
+  if (input.alunos.length > 500) return { error: "No máximo 500 alunos por envio; divida a planilha." };
+  const r = await callAlunos({ acao: "matricular", curso_id: courseId, acesso_ate: date.data, origem: input.origem, alunos: input.alunos });
+  if (r.status !== 200) return { error: String(r.data.erro ?? "Não foi possível matricular.") };
+  refresh(courseId);
+  return { resultados: (r.data.resultados as EnrollResult[]) ?? [] };
+}
+
+export async function enrollmentInviteStatus(courseId: string): Promise<Record<string, { senha_criada: boolean; ultimo_acesso: string | null }>> {
+  await requireAppUser(ADMIN_ONLY);
+  if (!uuidRe.test(courseId)) return {};
+  const r = await callAlunos({ acao: "situacao", curso_id: courseId });
+  return r.status === 200 ? ((r.data.situacao as Record<string, { senha_criada: boolean; ultimo_acesso: string | null }>) ?? {}) : {};
+}
+
+export async function resendInviteAction(courseId: string, studentId: string): Promise<{ error?: string; ok?: string }> {
+  await requireAppUser(ADMIN_ONLY);
+  if (!uuidRe.test(courseId) || !uuidRe.test(studentId)) return { error: "Aluno inválido." };
+  const r = await callAlunos({ acao: "reenviar", aluno_id: studentId });
+  if (r.status !== 200) return { error: String(r.data.erro ?? "Não foi possível reenviar o convite.") };
+  return { ok: "Convite reenviado." };
+}
+
+export async function updateEnrollmentAction(
+  courseId: string,
+  enrollmentId: string,
+  change: { status?: "ativa" | "suspensa" | "cancelada"; access_until?: string | null; note?: string },
+): Promise<{ error?: string }> {
+  await requireAppUser(ADMIN_ONLY);
+  if (!uuidRe.test(courseId) || !uuidRe.test(enrollmentId)) return { error: "Matrícula inválida." };
+  const patch: Record<string, unknown> = {};
+  if (change.status) {
+    if (change.status === "cancelada" && (change.note ?? "").trim().length < 5) return { error: "Informe o motivo do cancelamento (mín. 5 caracteres)." };
+    patch.status = change.status;
+    if (change.note) patch.status_note = change.note.trim().slice(0, 1000);
+  }
+  if (change.access_until !== undefined) {
+    if (change.access_until && !/^\d{4}-\d{2}-\d{2}$/.test(change.access_until)) return { error: "Data inválida." };
+    patch.access_until = change.access_until || null;
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("training_enrollments").update(patch).eq("id", enrollmentId).eq("course_id", courseId).select("id");
+  if (error || !data?.length) {
+    const msg = error?.code === "23514" && error.message.includes("data") ? "O prazo não pode ser anterior ao início." : dbMessage(error, "Não foi possível alterar a matrícula.");
+    return { error: msg };
+  }
+  refresh(courseId);
+  return {};
+}

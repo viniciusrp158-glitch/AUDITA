@@ -74,5 +74,60 @@ export function formatMinutes(min: number | null | undefined): string {
   return m ? `${h} h ${m} min` : `${h} h`;
 }
 
+export const ENROLLMENT_STATUS = {
+  ativa: { label: "Ativa", cls: "bg-ok/10 text-ok" },
+  suspensa: { label: "Suspensa", cls: "bg-warn/10 text-warn" },
+  cancelada: { label: "Cancelada", cls: "bg-surface text-muted line-through" },
+  concluida: { label: "Concluída", cls: "bg-blue/10 text-blue" },
+} as const;
+
+export const ENROLLMENT_SOURCE = { gestao: "Individual", lote: "Em lote", compra: "Compra", cortesia: "Cortesia" } as const;
+
+/** Linha de aluno para matrícula em lote. */
+export type StudentInput = { nome: string; email: string; cpf?: string; empresa?: string; telefone?: string };
+
+/**
+ * Lê a planilha de alunos (CSV exportado do Excel/Google Planilhas, ou texto colado). Aceita ";", "," ou tabulação,
+ * com ou sem cabeçalho. Colunas reconhecidas pelo cabeçalho: nome, e-mail, CPF, empresa, telefone; sem cabeçalho,
+ * a ordem é nome, e-mail, CPF, empresa, telefone.
+ */
+export function parseStudentSheet(text: string): { rows: StudentInput[]; ignored: number } {
+  const lines = text.replace(/^﻿/, "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return { rows: [], ignored: 0 };
+  const sep = [";", "\t", ","].find((s) => lines[0].includes(s)) ?? ";";
+  const split = (l: string) => l.split(sep).map((c) => c.trim().replace(/^"(.*)"$/, "$1").trim());
+  const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^a-z]/g, "");
+  const first = split(lines[0]).map(norm);
+  const hasHeader = first.some((c) => ["nome", "email", "cpf", "empresa", "telefone"].includes(c));
+  const idx = (names: string[], fallback: number) => {
+    if (!hasHeader) return fallback;
+    const i = first.findIndex((c) => names.includes(c));
+    return i;
+  };
+  const col = {
+    nome: idx(["nome", "nomecompleto", "aluno"], 0),
+    email: idx(["email", "emaildoaluno"], 1),
+    cpf: idx(["cpf"], 2),
+    empresa: idx(["empresa"], 3),
+    telefone: idx(["telefone", "celular", "whatsapp"], 4),
+  };
+  const rows: StudentInput[] = [];
+  let ignored = 0;
+  for (const l of hasHeader ? lines.slice(1) : lines) {
+    const c = split(l);
+    const get = (i: number) => (i >= 0 ? (c[i] ?? "").trim() : "");
+    const r: StudentInput = { nome: get(col.nome), email: get(col.email).toLowerCase() };
+    if (get(col.cpf)) r.cpf = get(col.cpf);
+    if (get(col.empresa)) r.empresa = get(col.empresa);
+    if (get(col.telefone)) r.telefone = get(col.telefone);
+    if (!r.nome && !r.email) {
+      ignored++;
+      continue;
+    }
+    rows.push(r);
+  }
+  return { rows, ignored };
+}
+
 /** Aceita links do YouTube (vídeo não listado) nos formatos usuais. */
 export const YOUTUBE_RE = /^https:\/\/(www\.)?(youtube\.com\/(watch\?v=|embed\/|live\/)|youtu\.be\/)[A-Za-z0-9_-]{11}([?&#][A-Za-z0-9_=&.-]*)?$/;

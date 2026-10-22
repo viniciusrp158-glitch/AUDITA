@@ -7,21 +7,53 @@ import { ADMIN_ONLY } from "@/lib/permissions";
 import { formatDateTime } from "@/lib/format";
 import { formatBRL } from "@/lib/pricing/engine";
 import { COURSE_KINDS, FILE_KINDS, formatMinutes, moduleCode, VERSION_STATUS } from "@/lib/training/labels";
-import { getCourseDetail, type TrainingFile, type TrainingModule } from "@/lib/training/queries";
+import { formatDay } from "@/lib/format";
+import { getCourseDetail, listEnrollments, type TrainingFile, type TrainingModule } from "@/lib/training/queries";
 import {
   addModuleAction,
   cancelVersionAction,
+  enrollmentInviteStatus,
   newVersionAction,
   publishVersionAction,
   updateCommercialAction,
   updateFichaAction,
 } from "../actions";
 import { AddModuleForm, CancelVersionForm, CommercialForm, FichaForm, FileSlot, NewVersionForm, PublishForm } from "./forms";
+import { EnrollmentList, EnrollPanel, type EnrollmentView } from "./alunos";
+
+async function StudentsTab({ courseId, accessDays, published }: { courseId: string; accessDays: number | null; published: boolean }) {
+  const [{ rows }, invite] = await Promise.all([listEnrollments(courseId), enrollmentInviteStatus(courseId)]);
+  const view: EnrollmentView[] = rows
+    .filter((r) => r.training_students)
+    .map((r) => ({
+      id: r.id,
+      studentId: r.training_students!.id,
+      name: r.training_students!.full_name,
+      email: r.training_students!.email,
+      company: r.training_students!.company,
+      status: r.status,
+      source: r.source,
+      accessUntil: r.access_until,
+      accessLabel: r.access_until ? `Acesso de ${formatDay(r.starts_on)} a ${formatDay(r.access_until)}` : `Acesso desde ${formatDay(r.starts_on)}, sem prazo`,
+      createdLabel: formatDateTime(r.created_at),
+      version: r.training_versions?.version_label ?? "",
+      passwordCreated: invite[r.id] ? invite[r.id].senha_criada : null,
+      lastAccess: invite[r.id]?.ultimo_acesso ? formatDateTime(invite[r.id].ultimo_acesso!) : null,
+      note: r.status_note,
+    }));
+  return (
+    <div className="flex flex-col gap-4">
+      <EnrollPanel courseId={courseId} canEnroll={published} defaultAccess={accessDays ? `vazio = ${accessDays} dias` : "vazio = sem prazo"} />
+      <EnrollmentList courseId={courseId} rows={view} />
+    </div>
+  );
+}
 
 const TABS = [
   { key: "modulos", label: "Módulos e materiais" },
   { key: "ficha", label: "Ficha técnica" },
   { key: "documentos", label: "Documentos do treinamento" },
+  { key: "alunos", label: "Alunos" },
   { key: "venda", label: "Venda e preço" },
   { key: "versoes", label: "Versões" },
 ] as const;
@@ -168,7 +200,7 @@ export default async function TreinamentoPage({
         )}
       </header>
 
-      {readOnly && version && tab !== "venda" && tab !== "versoes" && (
+      {readOnly && version && tab !== "venda" && tab !== "versoes" && tab !== "alunos" && (
         <div className="mb-4 flex items-start gap-2 rounded-md border border-line bg-white px-3 py-2 text-sm text-muted">
           <Lock size={16} className="mt-0.5 shrink-0" aria-hidden />
           <span>
@@ -270,6 +302,8 @@ export default async function TreinamentoPage({
             </li>
           ))}
         </ul>
+      ) : tab === "alunos" ? (
+        <StudentsTab courseId={course.id} accessDays={course.access_days} published={Boolean(published)} />
       ) : tab === "venda" ? (
         <section className="max-w-3xl rounded-xl border border-line bg-white p-5">
           <CommercialForm

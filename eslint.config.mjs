@@ -15,6 +15,8 @@ const eslintConfig = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      "aluno/.next/**",
+      "aluno/next-env.d.ts",
       "out/**",
       "build/**",
       "next-env.d.ts",

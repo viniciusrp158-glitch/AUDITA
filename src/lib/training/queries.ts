@@ -79,6 +79,32 @@ export async function listCourses(q: string): Promise<{ rows: CourseListRow[]; e
   return { rows: (data ?? []) as CourseListRow[], error: Boolean(error) };
 }
 
+export type EnrollmentRow = {
+  id: string;
+  status: "ativa" | "suspensa" | "cancelada" | "concluida";
+  starts_on: string;
+  access_until: string | null;
+  source: "gestao" | "lote" | "compra" | "cortesia";
+  status_note: string | null;
+  completed_at: string | null;
+  created_at: string;
+  training_students: { id: string; full_name: string; email: string; company: string | null; cpf: string | null; status: "ativo" | "inativo" } | null;
+  training_versions: { version_label: string } | null;
+};
+
+export async function listEnrollments(courseId: string): Promise<{ rows: EnrollmentRow[]; error: boolean }> {
+  if (!uuidRe.test(courseId)) return { rows: [], error: true };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("training_enrollments")
+    .select(
+      "id, status, starts_on, access_until, source, status_note, completed_at, created_at, training_students(id, full_name, email, company, cpf, status), training_versions(version_label)",
+    )
+    .eq("course_id", courseId)
+    .order("created_at", { ascending: false });
+  return { rows: (data ?? []) as unknown as EnrollmentRow[], error: Boolean(error) };
+}
+
 /** Versão em foco: a pedida (se for do treinamento); senão o rascunho, a publicada ou a mais recente. */
 export function pickVersion(versions: TrainingVersion[], wanted?: string): TrainingVersion | null {
   if (wanted) {
