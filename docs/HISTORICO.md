@@ -540,3 +540,53 @@ Com a VPS `vmi3662674` reinstalada pelo Diretor (Ubuntu 24.04 limpo, mesmo IP; c
 - **Backup diário e e-mail (Brevo):** repostos e testados (backup de 21/10 00h07 gerado).
 - **Pela internet:** login 200 em 9 de 10 acessos; as falhas restantes (526) são do conflito de IP, ainda sem solução da Contabo.
 - **Tela branca "Application error" durante o uso (21/10/2026):** a ligação interna site → API na VPS está correta (6/6, sem erros no servidor); a falha ocorre no trecho navegador → Cloudflare → VPS, quando um pedido de tela recebe o 526 do conflito de IP. Criada a tela de erro em português (`src/app/(app)/error.tsx`, `src/app/global-error.tsx`, `src/components/load-error.tsx`): tenta de novo sozinha uma vez por endereço e oferece "Tentar de novo" e "Recarregar a página". `tsc`, `eslint` e `next build` sem erros; publicada como `audita-sistema:20261021-1000`. Teste e2e `tests/e2e/erro-conexao.spec.ts` (simula o 526, computador e celular) escrito, **ainda não executado**: as contas de teste do `audita-dev` foram bloqueadas na etapa D (pendência V4).
+
+### Mudança de servidor (21/10/2026)
+
+Por causa do conflito de IP na Contabo, o Sistema AUDITA (e o Audita PRO/HUB) passou a rodar na **VPS do Leandro**
+(`109.205.179.53`, usuário `deploy`, porta SSH 58212, sem root), em Docker atrás do Nginx Proxy Manager. Os dados foram
+migrados do backup de 21/10 21h38 do servidor antigo. As 69 tabelas têm as mesmas contagens, o Storage está completo e o
+e-mail pelo Brevo foi mantido. As pastas equivalentes ficam em `~/audita/` (`supabase-audita`, `audita-sistema`). O guia
+completo está com o Leandro (`README-VPS1.md`). Os roteiros de `deploy/vps/` continuam descrevendo o servidor antigo.
+
+## T1 — Plataforma de Treinamentos, etapa 1: cadastro de treinamentos (22/10/2026) — em validação
+
+O plano está em `docs/TREINAMENTOS.md`. Protótipo aprovado pelo Diretor em 22/10/2026: o padrão visual novo vale só na aba
+Treinamentos e as etapas do aluno ficam só na lateral. Os vídeos ficam no YouTube "não listado".
+
+- **Banco** (`20261022180000_t1_treinamentos.sql`, aditiva):
+  - treinamentos, versões (rascunho → publicada congelada → nova versão), módulos (Ambientação sempre o M01) e arquivos
+    privados com SHA-256, separados em aluno e equipe;
+  - RLS só para administradores, gatilhos de imutabilidade e trilha.
+- **Telas:**
+  - nova aba **Treinamentos** no menu (só administradores);
+  - lista, novo treinamento, abas do treinamento (módulos e materiais, ficha técnica, documentos, venda e preço,
+    versões) e página de cada módulo, com envio direto ao bucket privado (vários slides de uma vez, em ordem).
+- **Ambiente de desenvolvimento novo:** Supabase separado na VPS do Leandro (`~/audita/supabase-audita-dev`, só em
+  `127.0.0.1:8200`, acesso por túnel SSH), com dados de teste. O curso L01 v1.2 foi carregado nele com os 7 módulos, a
+  ficha técnica e os 141 arquivos.
+
+### Evidências de teste (22/10/2026)
+
+- `tests/integration/treinamentos-t1.test.ts` (PGlite), **6/6**:
+  - criação com o M01;
+  - operador e visitante bloqueados;
+  - ordem dos módulos;
+  - arquivos imutáveis, um ativo por tipo, e remoção sem exclusão;
+  - publicação com as exigências e versão congelada;
+  - nova versão copiando, substituição e cancelamento com motivo.
+- Suíte completa: **81 testes passaram** (os demais dependem de banco de desenvolvimento configurado e foram pulados,
+  como antes). `tsc` e `eslint` sem erros, e `next build` concluído.
+- `tests/e2e/t1-treinamentos.spec.ts`, contra o ambiente de desenvolvimento, **2/2**: o fluxo completo no navegador e o
+  celular (390 px) sem rolagem horizontal. O fluxo cobre:
+  - cadastro;
+  - módulo novo;
+  - apostila e slides com a ordem certa;
+  - link do YouTube recusado e aceito;
+  - arquivo aberto por link assinado (303);
+  - ficha técnica;
+  - publicação exigindo confirmação;
+  - versão congelada;
+  - nova versão.
+- `tests/e2e/responsivo.spec.ts` não roda no ambiente novo de desenvolvimento, porque ele ainda não tem cliente nem
+  serviço cadastrados. É uma pendência do ambiente, não da etapa.

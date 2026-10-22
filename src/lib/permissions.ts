@@ -38,6 +38,7 @@ export const NAV_ROLES: Record<string, Role[]> = {
   "/orcamentos": ["admin", "operador"],
   "/biblioteca": ["admin"],
   "/comunicacao": ["admin", "marketing"],
+  "/treinamentos": ["admin"],
   "/configuracoes": ["admin"],
 };
 

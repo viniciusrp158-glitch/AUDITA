@@ -9,6 +9,7 @@ import {
   Calculator,
   ClipboardList,
   Crown,
+  GraduationCap,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -29,6 +30,7 @@ export const NAV = [
   { href: "/orcamentos", label: "Orçamentos", icon: Calculator },
   { href: "/biblioteca", label: "Biblioteca", icon: BookOpen },
   { href: "/comunicacao", label: "Comunicação", icon: Megaphone },
+  { href: "/treinamentos", label: "Treinamentos", icon: GraduationCap },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
