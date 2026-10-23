@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
-/** audita.seg.br/treinamentos: por enquanto leva à área do aluno (a vitrine de cursos entra numa etapa seguinte). */
-export default function Home() {
-  redirect("/meus-cursos");
+/** Raiz: aluno com sessão vai para Meus cursos; visitante, para a vitrine. */
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  redirect(user ? "/meus-cursos" : "/cursos");
 }

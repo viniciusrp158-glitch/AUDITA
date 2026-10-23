@@ -869,3 +869,48 @@ ele usa.
 - **Disco:** com o cache apagado e as imagens `…-2240-t2e` removidas, ficaram **15 GB livres (85%)**. As imagens
   `…-0005-t2f` foram guardadas para voltar.
 - **Para voltar:** `.env.bak-20261023-enxuta` e `docker compose up -d web aluno`.
+
+## T3 — Vitrine e vendas pelo Mercado Pago (23/10/2026) — em validação
+
+Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados pelo Diretor em 22/10/2026. Detalhes em
+`docs/TREINAMENTOS.md`.
+
+### Evidências de teste (23/10/2026)
+
+- `tests/integration/vendas-t3.test.ts` (PGlite com Vault simulado), **3/3**:
+  - **abertura das vendas:** a venda só abre completa; CNPJ inválido é recusado;
+  - **credenciais:**
+    - gravadas só pela função, com só o final visível;
+    - o Access Token precisa começar por APP_USR- ou TEST-;
+    - só `service_role` lê;
+  - **acessos:** nada para usuário comum nem para `anon`;
+  - **catálogo:** só curso à venda, publicado e com preço;
+  - **pedido:**
+    - validação de aceite, CPF, nome e curso;
+    - valor diferente recusado;
+    - pendente → aprovado com matrícula automática (origem "compra", prazo do curso);
+    - aviso repetido sem duplicar, e aprovado não volta para pendente;
+    - token público conferido;
+    - a mesma pessoa com acesso não compra de novo;
+    - estorno suspende a matrícula;
+    - vendas fechadas recusam pedido.
+- `tests/e2e/t3-vitrine-vendas.spec.ts`, no ambiente de desenvolvimento com o Mercado Pago simulado, **2/2**:
+  - **gestão:** vendedor, CNPJ, suporte e textos "[TESTE]"; credencial errada recusada; credenciais de teste com só o
+    final visível; abrir as vendas; L01 com preço, prazo e "Mostrar na vitrine";
+  - **visitante:**
+    - vitrine → página do curso (preço, 7 módulos) → compra → página do "Mercado Pago" com o valor certo (19700
+      centavos);
+    - pedido aguardando;
+    - aviso com assinatura errada recusado (401); o certo libera, e a repetição não duplica;
+    - pedido aprovado → convite → senha → "Meus cursos" com o L01;
+    - segunda compra do mesmo e-mail recusada;
+    - celular sem rolagem horizontal (vitrine, curso, compra, termos);
+  - **gestão:** pedido "Pago" com "matrícula liberada".
+- Suíte completa: **106 testes passaram**. Prints em `D:\Audita-deploy\etapa3-prints`.
+- **Pendências do Diretor:**
+  - textos reais de termos e de privacidade, vendedor, CNPJ e suporte;
+  - credenciais do Mercado Pago (primeiro as de teste, para uma compra de verdade no ambiente de testes do Mercado
+    Pago, e depois as de produção);
+  - cadastrar a URL de notificações;
+  - marcar "Mostrar na vitrine" no L01.
+- **Fora desta etapa:** lançamento das vendas no Caixa do AUDITA e emissão de nota fiscal.

@@ -30,8 +30,8 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | **2e** | **Importador do pacote `.zip`** e **histórico de tentativas** | **Em produção desde 22/10/2026 (branch `feat/t2e-importador`)** |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
-| 5 | Vitrine pública e conta do aluno | — |
-| 6 | Vendas: Pix e cartão, liberação automática, cupons e lançamento no Caixa | — |
+| **5** | **Vitrine pública** e compra | **Entregue na branch `feat/t3-vitrine-vendas` (23/10/2026)** |
+| **6** | **Vendas pelo Mercado Pago** (Pix, cartão e boleto) com liberação automática | **Entregue na mesma branch**; cupons e lançamento no Caixa ficam para depois |
 | 7 | Gestão do dia a dia e indicadores | — |
 
 ## Etapa 1: modelo de dados (`supabase/migrations/20261022180000_t1_treinamentos.sql`)
@@ -220,3 +220,52 @@ pela função `training_replace_video_url` (migração `20261023170000_t2f_link_
 
 Incluir videoaula onde não havia, ou retirar uma, mudaria as etapas de quem já está no curso; por isso continua exigindo
 uma nova versão.
+
+## Etapa 3: vitrine e vendas (Mercado Pago)
+
+Decisões do Diretor (22/10/2026): vitrine aprovada; checkout pelo Mercado Pago. Pagamento pelo **Checkout Pro**: a
+página de pagamento é do Mercado Pago (Pix, cartão e boleto), e os dados de pagamento não passam pela AUDITA.
+
+- **Nada para `anon` no banco (regra 4):**
+  - vitrine, compra e página do pedido passam pela função `vitrine`;
+  - o aviso de pagamento passa pela função `mercadopago`;
+  - as duas usam a chave de serviço dentro do Supabase, e as funções do banco que elas chamam só são executáveis por
+    `service_role`.
+- **Nada inventado (regra 6):** vendedor, CNPJ, suporte, termos e política de privacidade são preenchidos pelo
+  administrador. As vendas só abrem com tudo preenchido e com as credenciais (regra no banco).
+- **Migração `20261023200000_t3_vitrine_vendas.sql`:**
+  - `training_courses.on_sale`: "Mostrar na vitrine", na aba Venda e preço;
+  - `training_sales_settings`: registro único com vendedor, suporte, CPF obrigatório, termos, privacidade, a data dos
+    textos e o final das credenciais;
+  - `training_orders`: pedidos, com a versão dos termos aceita, o status do Mercado Pago, a matrícula e um token
+    público para a página de retorno;
+  - credenciais no **Supabase Vault**: `training_set_payment_secret` (administrador) grava, e
+    `training_payment_secret` (só `service_role`) lê;
+  - catálogo, criação do pedido, conferência do pagamento (valor e moeda), liberação idempotente do acesso e
+    suspensão da matrícula no estorno.
+- **Funções:**
+  - `vitrine`: catálogo, curso, loja, comprar (cria o pedido e a preferência no Mercado Pago com
+    `external_reference` = pedido) e pedido;
+  - `mercadopago`: confere a assinatura `x-signature` (HMAC-SHA256 com a assinatura secreta), busca o pagamento na
+    API (fonte da verdade), atualiza o pedido e, se aprovado, cria a conta (convite por e-mail) e a matrícula com
+    origem "compra".
+  - Só no desenvolvimento: `supabase/functions-dev/mp-mock`, um simulador da API e do envio do aviso. Nunca vai para a
+    produção.
+- **Gestão `/empresa/treinamentos/vendas`:**
+  - situação (abrir e fechar as vendas, com a lista do que falta);
+  - credenciais (campos só de escrita, mostrando o final);
+  - a URL de notificações para cadastrar no Mercado Pago;
+  - vendedor, suporte e textos legais;
+  - pedidos (pago, aguardando, recusado, estornado) com a matrícula.
+- **Área do aluno (públicas):**
+  - `/treinamentos/cursos` (vitrine) e `/cursos/<código>` (página de venda do protótipo, com conteúdo, perguntas
+    frequentes tiradas dos dados do curso e preço);
+  - `/cursos/<código>/comprar` (dados, CPF se exigido, aceite dos termos e da privacidade);
+  - `/compra/<pedido>?t=<token>` (retorno do Mercado Pago, com atualização automática);
+  - `/termos`, `/privacidade` e `/certificado` (campo para verificar o código);
+  - a raiz manda o visitante para a vitrine e o aluno com sessão para "Meus cursos".
+- **Publicação:**
+  - o aviso do Mercado Pago entra por `https://audita.seg.br/pagamentos/mercadopago`, um `location` no `audita-proxy`
+    que vai direto a `audita-functions:9000/mercadopago`. Não passa pelo gateway do Supabase, porque o gateway troca o
+    `x-request-id`, que entra na assinatura (`FUNCTIONS_VERIFY_JWT=false` na VPS 1);
+  - o simulador não é copiado para a produção.

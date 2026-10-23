@@ -2,8 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { STUDENT_COOKIE } from "./lib/supabase/cookies";
 
-// /certificado/<código>: verificação pública do certificado
-const PUBLIC_PATHS = ["/entrar", "/esqueci", "/auth/confirm", "/definir-senha", "/certificado"];
+// Públicas: acesso, verificação do certificado, vitrine, compra e textos legais (a raiz decide sozinha)
+const PUBLIC_PATHS = ["/entrar", "/esqueci", "/auth/confirm", "/definir-senha", "/certificado", "/cursos", "/compra", "/termos", "/privacidade"];
 
 /** Renova a sessão do aluno e leva ao "Entrar" quem não estiver logado. */
 export async function middleware(request: NextRequest) {
@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isPublic = pathname === "/" || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/entrar";

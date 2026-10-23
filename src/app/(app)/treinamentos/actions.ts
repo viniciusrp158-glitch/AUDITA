@@ -132,6 +132,7 @@ export async function updateCommercialAction(courseId: string, _prev: TrState, f
       access_days: access ? Number(access) : null,
       status,
       notes: (values.notes ?? "").trim() || null,
+      on_sale: values.on_sale === "on",
     })
     .eq("id", courseId);
   if (error) return { values, error: "Não foi possível salvar." };

@@ -36,6 +36,7 @@ export type TrainingCourse = {
   access_days: number | null;
   status: "ativo" | "inativo";
   notes: string | null;
+  on_sale?: boolean;
   created_at: string;
 };
 
@@ -124,7 +125,7 @@ export async function getCourseDetail(id: string, wantedVersion?: string) {
   const supabase = await createClient();
   const { data: course } = await supabase
     .from("training_courses")
-    .select("id, course_code, title, price, access_days, status, notes, created_at")
+    .select("id, course_code, title, price, access_days, status, notes, on_sale, created_at")
     .eq("id", id)
     .maybeSingle();
   if (!course) notFound();

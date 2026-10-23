@@ -343,6 +343,7 @@ export default async function TreinamentoPage({
               access_days: course.access_days?.toString() ?? "",
               status: course.status,
               notes: course.notes ?? "",
+              on_sale: course.on_sale ? "on" : "",
             }}
           />
         </section>

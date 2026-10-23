@@ -21,6 +21,7 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "supabase/functions/**",
+      "supabase/functions-dev/**",
     ],
   },
 ];

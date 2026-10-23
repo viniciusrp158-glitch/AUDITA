@@ -95,8 +95,14 @@ export function CommercialForm({ action, initial }: { action: Action; initial: R
           ]}
         />
       </div>
+      <CheckboxField
+        name="on_sale"
+        label="Mostrar na vitrine e aceitar compras"
+        defaultChecked={v.on_sale === "on"}
+        hint="Precisa de versão publicada e preço. A vitrine e o pagamento são configurados em Treinamentos › Vendas."
+      />
       <TextAreaField label="Observações internas" name="notes" rows={2} maxLength={2000} defaultValue={v.notes} error={e.notes} />
-      <p className="text-xs text-muted">Preço e prazo valem para o treinamento (todas as versões) e podem ser ajustados a qualquer momento. A venda pública entra numa etapa seguinte.</p>
+      <p className="text-xs text-muted">Preço e prazo valem para o treinamento (todas as versões) e podem ser ajustados a qualquer momento; compras já feitas mantêm o valor pago.</p>
       <div className="sm:max-w-xs">
         <SubmitButton pendingText="Salvando…">Salvar</SubmitButton>
       </div>
