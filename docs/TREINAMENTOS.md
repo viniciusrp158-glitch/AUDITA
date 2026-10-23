@@ -27,7 +27,7 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | **2b** | **Player do curso:** apostila, vídeo do YouTube, progresso e módulos em sequência | **Em produção desde 22/10/2026 (branch `feat/t2b-curso-do-aluno`)** |
 | **2c** | **Banco de questões** lido dos gabaritos e **provas** com cronômetro, tentativas, nota mínima e retorno ao aluno | **Em produção** (o importador do `.zip` inteiro fica para depois; o L01 já está carregado) |
 | **2d** | **Certificado** com código e QR code de verificação pública | **Em produção** |
-| **2e** | **Importador do pacote `.zip`** e **histórico de tentativas** | **Entregue na branch `feat/t2e-importador` (22/10/2026)** |
+| **2e** | **Importador do pacote `.zip`** e **histórico de tentativas** | **Em produção desde 22/10/2026 (branch `feat/t2e-importador`)** |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
 | 5 | Vitrine pública e conta do aluno | — |

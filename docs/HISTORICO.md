@@ -778,3 +778,17 @@ Detalhes em `docs/TREINAMENTOS.md`.
     M07, ou, depois desta publicação, clicar de novo em "Ler os gabaritos";
   - sobre o tempo das videoaulas, o Plano Pedagógico já define: "Cronometrar a gravação e ajustar se passar de 20% do
     tempo-alvo".
+
+### Publicação em produção (22/10/2026, com o SIM do Leandro)
+
+- Backup antes (22:39). Migração `20261023150000_t2e_importador_pacote` aplicada (27 registradas); a função não é
+  executável por visitantes.
+- Imagens `audita-sistema:20261022-2240-t2e` e `audita-aluno:20261022-2240-t2e`, saudáveis.
+- Conferido:
+  - `/empresa/login` e `/treinamentos/entrar` 200;
+  - o importador pede login;
+  - a verificação do certificado responde;
+  - um envio de 6 MB à rota do importador passa pelos proxies (sem 413).
+- Disco: as imagens `…-1915-t2` e o cache de build foram apagados, ficando 7,5 GB livres. Ficaram as imagens
+  `…-2105-t2b` para voltar.
+- **Para voltar:** `.env.bak-20261022-t2e` e `docker compose up -d web aluno`.
