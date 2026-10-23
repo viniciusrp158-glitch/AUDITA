@@ -11,7 +11,7 @@ export default async function VideoPage({ params }: { params: Promise<{ matricul
   const done = m.done_steps.includes("video");
   const next = m.required_steps[m.required_steps.indexOf("video") + 1];
   return (
-    <StepPage>
+    <StepPage wide>
       <ModuleHeader m={m} />
       <VideoPlayer
         url={m.video_url!}

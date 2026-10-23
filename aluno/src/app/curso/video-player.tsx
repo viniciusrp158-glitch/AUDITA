@@ -103,15 +103,16 @@ export function VideoPlayer({
   const canFinish = watched || apiFailed;
   return (
     <>
-      <section className="overflow-hidden rounded-2xl border border-line bg-white">
-        <div className="relative aspect-video w-full bg-navy" data-testid="video-player">
+      <section className="overflow-hidden rounded-2xl border border-line bg-navy">
+        {/* O maior vídeo que cabe na tela: largura toda, limitada pela altura disponível */}
+        <div className="relative mx-auto aspect-video w-full max-w-[calc((100dvh-14rem)*16/9)] min-w-0 bg-navy" data-testid="video-player">
           {id ? (
             <div ref={host} className="absolute inset-0 size-full" title={title} />
           ) : (
             <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-white/80">O link desta videoaula não é válido. Avise a AUDITA.</p>
           )}
         </div>
-        <div className="px-5 py-4">
+        <div className="bg-white px-5 py-4">
           <p className="text-base font-bold text-ink">{title}</p>
           <p className="mt-1 text-[13px] text-muted">Use o botão “CC” do player para ativar as legendas.</p>
         </div>

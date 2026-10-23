@@ -804,3 +804,10 @@ Detalhes em `docs/TREINAMENTOS.md`.
 - `tests/e2e/t2f-link-video.spec.ts`, no ambiente de desenvolvimento, **1/1**: link inválido recusado, troca no M02 do
   L01 publicado e o link original restaurado.
 - Suíte completa: **103 testes passaram**.
+- Pedido do Diretor ao testar a área do aluno: aproveitar melhor a tela na apostila e na videoaula.
+  - Essas duas páginas passaram a usar a largura toda (até 1.700 px), e a apostila passou a abrir na largura da área
+    (100% = página inteira na largura), com altura pela tela.
+  - O vídeo fica o maior que couber na largura e na altura da tela.
+  - A prova e o resultado continuam na largura de leitura.
+  - Conferido no `t2b-curso-do-aluno` em 1920 × 1080 (página da apostila com mais de 1.200 px e vídeo com mais de
+    1.150 px), **2/2**, e no celular, sem rolagem horizontal.

@@ -27,6 +27,7 @@ export function ModuleHeader({ m }: { m: OutlineModule }) {
   );
 }
 
-export function StepPage({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-6 sm:px-8 sm:py-7">{children}</div>;
+/** wide: apostila e videoaula ocupam a largura toda; prova e resultado ficam na largura de leitura. */
+export function StepPage({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
+  return <div className={`mx-auto flex flex-col gap-5 px-4 py-6 sm:px-6 sm:py-7 ${wide ? "max-w-[1700px]" : "max-w-5xl"}`}>{children}</div>;
 }

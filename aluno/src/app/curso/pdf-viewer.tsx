@@ -58,8 +58,10 @@ export function PdfViewer({ src, downloadHref, title, meta }: { src: string; dow
     const host = box.current;
     (async () => {
       try {
-        const target = Math.min(width - 32, 760) * ZOOMS[zi];
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        // 100% = página na largura toda da área (só a margem do papel); o zoom aumenta ou diminui a partir daí
+        const target = Math.max(240, width - 24) * ZOOMS[zi];
+        // Nitidez de tela retina sem estourar a memória: no máximo ~1800 px de largura por página
+        const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 1800 / target));
         const canvases: HTMLCanvasElement[] = [];
         for (let n = 1; n <= doc.numPages; n++) {
           const page = await doc.getPage(n);
@@ -128,8 +130,8 @@ export function PdfViewer({ src, downloadHref, title, meta }: { src: string; dow
           </a>
         </div>
       </div>
-      <div ref={scroller} className="relative h-[min(72vh,720px)] overflow-auto bg-paper">
-        <div ref={box} className="flex w-max min-w-full flex-col items-center gap-4 px-4 py-5" />
+      <div ref={scroller} className="relative h-[calc(100dvh-15rem)] min-h-[420px] overflow-auto bg-paper">
+        <div ref={box} className="flex w-max min-w-full flex-col items-center gap-3 px-3 py-3" />
         {state !== "ok" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted">
             {state === "loading" ? (

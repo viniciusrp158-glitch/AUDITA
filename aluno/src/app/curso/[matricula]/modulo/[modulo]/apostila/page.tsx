@@ -15,7 +15,7 @@ export default async function ApostilaPage({ params }: { params: Promise<{ matri
   const nextLabel = next ? `Concluí a leitura · ${STEP_LABEL[next]}` : "Concluí a leitura";
   const file = m.apostila_file_id;
   return (
-    <StepPage>
+    <StepPage wide>
       <ModuleHeader m={m} />
       {file ? (
         <PdfViewer
