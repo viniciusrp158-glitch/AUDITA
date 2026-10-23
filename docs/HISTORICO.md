@@ -811,3 +811,17 @@ Detalhes em `docs/TREINAMENTOS.md`.
   - A prova e o resultado continuam na largura de leitura.
   - Conferido no `t2b-curso-do-aluno` em 1920 × 1080 (página da apostila com mais de 1.200 px e vídeo com mais de
     1.150 px), **2/2**, e no celular, sem rolagem horizontal.
+
+### Publicação em produção (23/10/2026, com o SIM do Leandro)
+
+- Backup antes (00:01). Migração `20261023170000_t2f_link_video` aplicada (28 registradas); a função de troca não é
+  executável por visitantes.
+- Imagens `audita-sistema:20261023-0005-t2f` e `audita-aluno:20261023-0005-t2f`, saudáveis; `/empresa/login`,
+  `/treinamentos/entrar` e a verificação do certificado responderam 200.
+- **Disco:**
+  - a geração das duas imagens levou o disco a 100% (711 MB livres) por alguns minutos;
+  - o cache de build foi apagado na hora e todos os 47 containers seguiram no ar;
+  - depois de apagar as imagens `…-2105-t2b`, ficaram 5,8 GB livres;
+  - cada publicação precisa de cerca de 6 GB temporários, então é preciso apagar o cache logo depois de cada geração e
+    reduzir o tamanho das imagens (pendência).
+- **Para voltar:** `.env.bak-20261023-t2f` e `docker compose up -d web aluno` (imagens `…-2240-t2e` guardadas).
