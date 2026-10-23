@@ -182,6 +182,20 @@ export async function updateModuleAction(courseId: string, moduleId: string, _pr
   return { ok: "Módulo salvo.", seq: Date.now() };
 }
 
+/** Troca do link da videoaula em versão publicada (única alteração permitida depois da publicação). */
+export async function replaceVideoLinkAction(courseId: string, moduleId: string, _prev: TrState, formData: FormData): Promise<TrState> {
+  await requireAppUser(ADMIN_ONLY);
+  if (!uuidRe.test(courseId) || !uuidRe.test(moduleId)) return { error: "Módulo inválido." };
+  const url = String(formData.get("video_url") ?? "").trim();
+  if (!YOUTUBE_RE.test(url)) return { values: { video_url: url }, fieldErrors: { video_url: "Cole o link do YouTube (youtube.com/watch?v=… ou youtu.be/…)." } };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("training_replace_video_url", { p_module_id: moduleId, p_url: url });
+  if (error) return { values: { video_url: url }, error: dbMessage(error, "Não foi possível trocar o link.") };
+  refresh(courseId);
+  revalidatePath(`/treinamentos/${courseId}/modulo/${moduleId}`);
+  return { ok: "Link da videoaula trocado. Os alunos já veem o novo vídeo.", seq: Date.now() };
+}
+
 export async function moveModuleAction(courseId: string, moduleId: string, direction: -1 | 1): Promise<{ error?: string }> {
   await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(courseId) || !uuidRe.test(moduleId)) return { error: "Módulo inválido." };

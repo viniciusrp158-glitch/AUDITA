@@ -792,3 +792,15 @@ Detalhes em `docs/TREINAMENTOS.md`.
 - Disco: as imagens `…-1915-t2` e o cache de build foram apagados, ficando 7,5 GB livres. Ficaram as imagens
   `…-2105-t2b` para voltar.
 - **Para voltar:** `.env.bak-20261022-t2e` e `docker compose up -d web aluno`.
+
+## T2f — Troca do link da videoaula com o curso publicado (22/10/2026) — em validação
+
+- `tests/integration/link-video-t2f.test.ts` (PGlite), **2/2**:
+  - troca aceita na versão publicada (e recusada no rascunho, onde vale o formulário do módulo);
+  - o resto do módulo continua congelado;
+  - não inclui nem retira videoaula;
+  - link inválido recusado;
+  - só administrador.
+- `tests/e2e/t2f-link-video.spec.ts`, no ambiente de desenvolvimento, **1/1**: link inválido recusado, troca no M02 do
+  L01 publicado e o link original restaurado.
+- Suíte completa: **103 testes passaram**.

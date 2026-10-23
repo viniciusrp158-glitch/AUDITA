@@ -7,10 +7,10 @@ import { ADMIN_ONLY } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { FILE_KINDS, MODULE_SLIDE_KINDS, MODULE_STAFF_KINDS, moduleCode, VERSION_STATUS, type FileKind } from "@/lib/training/labels";
 import { getAssessments, getCourseDetail, type TrainingFile } from "@/lib/training/queries";
-import { updateModuleAction } from "../../../actions";
+import { replaceVideoLinkAction, updateModuleAction } from "../../../actions";
 import { updateAssessmentAction } from "../../../avaliacoes-actions";
 import { AssessmentRulesForm, GabaritoReader, QuestionList } from "../../avaliacoes";
-import { FileSlot, ModuleControls, ModuleForm, VideoLink } from "../../forms";
+import { FileSlot, ModuleControls, ModuleForm, ReplaceVideoLinkForm, VideoLink } from "../../forms";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -102,7 +102,11 @@ export default async function ModuloPage({ params }: { params: Promise<{ id: str
         </Box>
         <Box step="2" title="Videoaula (YouTube)" audience="aluno">
           <VideoLink url={m.video_url} />
-          <p className="text-xs text-muted">O link é informado no formulário abaixo.</p>
+          {version.status === "publicada" && m.video_url ? (
+            <ReplaceVideoLinkForm action={replaceVideoLinkAction.bind(null, course.id, m.id)} current={m.video_url} />
+          ) : (
+            <p className="text-xs text-muted">{readOnly ? "Versão sem alterações." : "O link é informado no formulário abaixo."}</p>
+          )}
         </Box>
         <Box step="3" title="Avaliação" audience="aluno">
           {activeQs.length ? (

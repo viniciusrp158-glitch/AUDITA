@@ -211,3 +211,12 @@ Decisões do Diretor (22/10/2026):
 - **Histórico de tentativas:**
   - na gestão, a aba Alunos mostra cada tentativa: módulo, número, data, nota, aprovada/reprovada e tempo esgotado;
   - na área do aluno, a página da avaliação lista "Suas tentativas", com o resultado de cada uma.
+
+## Etapa 2f: troca do link da videoaula com o curso publicado
+
+Pedido do Diretor (22/10/2026). A versão publicada continua congelada, com uma exceção: **trocar um link do YouTube que
+já existe** (vídeo republicado, link quebrado). É feita na página do módulo ("Trocar o link"), só por administrador,
+pela função `training_replace_video_url` (migração `20261023170000_t2f_link_video.sql`), e fica na trilha de auditoria.
+
+Incluir videoaula onde não havia, ou retirar uma, mudaria as etapas de quem já está no curso; por isso continua exigindo
+uma nova versão.

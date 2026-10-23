@@ -365,6 +365,27 @@ export function VideoLink({ url }: { url: string | null }) {
   );
 }
 
+/** Na versão publicada: só a troca do link da videoaula (vídeo republicado ou link quebrado). */
+export function ReplaceVideoLinkForm({ action, current }: { action: Action; current: string }) {
+  const [state, formAction] = useAction(action);
+  return (
+    <form action={formAction} noValidate className="mt-2 flex flex-col gap-2 border-t border-line pt-2" data-testid="replace-video">
+      <Feedback state={state} />
+      <Field
+        label="Trocar o link"
+        name="video_url"
+        type="url"
+        defaultValue={state.values?.video_url ?? current}
+        error={state.fieldErrors?.video_url}
+        hint="Permitido com o curso publicado; a troca fica registrada."
+      />
+      <SubmitButton pendingText="Trocando…" full={false}>
+        Trocar link
+      </SubmitButton>
+    </form>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Versões
 // ---------------------------------------------------------------------------
