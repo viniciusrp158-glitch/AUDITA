@@ -2,8 +2,8 @@
  * T3 — Vitrine e vendas de ponta a ponta, no ambiente de desenvolvimento, com o Mercado Pago SIMULADO (função mp-mock,
  * só do desenvolvimento, e a página de pagamento interceptada no navegador):
  *   gestão: vendedor, termos e privacidade fictícios "[TESTE]", credenciais de teste, abrir as vendas e pôr o L01 à venda;
- *   visitante: vitrine → página do curso → compra (dados e aceite) → "Mercado Pago" → aviso de pagamento assinado
- *   (assinatura errada recusada) → página do pedido aprovada → convite → senha → Meus cursos com o L01;
+ *   visitante: vitrine → página do curso → compra (dados e aceite) → "Mercado Pago" → aviso de pagamento (aviso falso
+ *   de pagamento pendente ou com outro valor não libera nada) → página do pedido aprovada → convite → senha → Meus cursos com o L01;
  *   segunda compra do mesmo e-mail recusada; gestão vê o pedido pago com a matrícula; celular sem rolagem horizontal.
  * Requer DEV_MAILPIT_URL e as variáveis do .env.local (URL e chave publicável do desenvolvimento).
  */
@@ -144,8 +144,12 @@ test("visitante compra pela vitrine, o pagamento é aprovado e o acesso é liber
   await v.goto(back);
   await expect(v.getByTestId("order-status")).toContainText("Aguardando a confirmação do pagamento");
 
-  // Assinatura errada é recusada; a certa libera o acesso (e repetir o aviso não duplica)
-  expect((await webhook(`${ref}.19700.approved`, "assinatura-errada-0000000000")).status).toBe(401);
+  // O aviso é só um gatilho: o que vale é o pagamento consultado na API do Mercado Pago. Um aviso falso (assinatura
+  // errada) de um pagamento pendente ou com valor diferente não libera nada; o aviso certo libera, e repetir não duplica.
+  expect(await webhook(`${ref}.19700.pending`, "assinatura-errada-0000000000")).toEqual({ status: 200, body: "pendente" });
+  expect((await webhook(`${ref}.100.approved`, "assinatura-errada-0000000000")).status).toBe(422);
+  await v.reload();
+  await expect(v.getByTestId("order-status")).toContainText("Aguardando a confirmação do pagamento");
   expect(await webhook(`${ref}.19700.approved`)).toEqual({ status: 200, body: "aprovado" });
   expect((await webhook(`${ref}.19700.approved`)).status).toBe(200);
 

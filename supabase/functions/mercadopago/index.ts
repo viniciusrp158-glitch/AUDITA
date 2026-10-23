@@ -1,5 +1,6 @@
 // T3 — Aviso de pagamento do Mercado Pago (webhook), publicado em https://audita.seg.br/pagamentos/mercadopago.
-// 1) confere a assinatura (x-signature, HMAC-SHA256 com a "assinatura secreta" cadastrada na gestão);
+// 1) confere a assinatura (x-signature, HMAC-SHA256 com a "assinatura secreta" cadastrada na gestão) e registra no log
+//    quando ela não confere;
 // 2) busca o pagamento na API do Mercado Pago (a fonte da verdade, nunca o corpo do aviso);
 // 3) atualiza o pedido (valor e moeda conferidos no banco) e, se aprovado, cria a conta do aluno (convite por e-mail)
 //    e a matrícula. Repetições do mesmo aviso não duplicam nada.
@@ -48,13 +49,21 @@ Deno.serve(async (req) => {
   const token = tokenRes.data as string | null;
   if (!secret || !token) return new Response("Credenciais ausentes.", { status: 503 });
 
-  // Assinatura: "ts=<...>,v1=<hmac>" sobre "id:<data.id>;request-id:<x-request-id>;ts:<ts>;"
+  // Assinatura: "ts=<...>,v1=<hmac>" sobre "id:<data.id>;request-id:<x-request-id>;ts:<ts>;". Ela é uma proteção a
+  // mais: o aviso é só um gatilho, e a situação vem sempre da API do Mercado Pago com a credencial da conta (valor, moeda
+  // e pedido conferidos no banco). Por isso, sem assinatura válida (ex.: avisos "Feed" do topic=payment, que não são
+  // assinados) o pagamento é consultado do mesmo jeito, e o motivo fica no log para conferência.
   const sig = req.headers.get("x-signature") ?? "";
   const parts = Object.fromEntries(sig.split(",").map((p) => p.trim().split("=", 2) as [string, string]));
   const requestId = req.headers.get("x-request-id") ?? "";
-  if (!parts.ts || !parts.v1) return new Response("Assinatura ausente.", { status: 401 });
-  const manifest = `id:${/^[a-z0-9]+$/i.test(dataId) ? dataId.toLowerCase() : dataId};request-id:${requestId};ts:${parts.ts};`;
-  if (!safeEqual(await hmacHex(secret, manifest), parts.v1)) return new Response("Assinatura inválida.", { status: 401 });
+  let signed = false;
+  if (parts.ts && parts.v1) {
+    const manifest = `id:${/^[a-z0-9]+$/i.test(dataId) ? dataId.toLowerCase() : dataId};request-id:${requestId};ts:${parts.ts};`;
+    signed = safeEqual(await hmacHex(secret, manifest), parts.v1);
+    if (!signed) console.warn("mercadopago: assinatura não conferida", JSON.stringify({ dataId, requestId, ts: parts.ts, v1: parts.v1.slice(0, 12) }));
+  } else {
+    console.warn("mercadopago: aviso sem assinatura", JSON.stringify({ dataId, type, ua: req.headers.get("user-agent") }));
+  }
 
   const res = await fetch(`${MP_API}/v1/payments/${encodeURIComponent(dataId)}`, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) return new Response("Pagamento não encontrado no Mercado Pago.", { status: 502 });

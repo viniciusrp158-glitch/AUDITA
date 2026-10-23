@@ -976,3 +976,26 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
 - 23/10/2026, 11:44: o Diretor informou o CEP (18079-026) e o horário de atendimento (de segunda a sexta-feira, das
   7h às 21h), já incluídos nos termos e na privacidade em produção. Ele considera os textos revisados. Próximo passo:
   compra real de teste, que o Diretor faz.
+
+## T3c — Primeira compra real: aviso do Mercado Pago (23/10/2026)
+
+- **Primeira compra real do Diretor (L01, R$ 10,00):** o Pix só apareceu depois que ele cadastrou uma chave Pix na
+  conta do Mercado Pago. O pagamento foi aprovado, mas a página ficou "aguardando" e o convite não saiu.
+- **Causa:** o Mercado Pago enviou os avisos (às 19h05, 19h25 e 20h01 para o primeiro pedido; às 20h04 e 20h05 para o
+  segundo) e a função recusou todos com 401:
+  - os avisos "Feed" (`topic=payment`) não são assinados;
+  - os "WebHook" vieram com uma assinatura que não conferiu com a assinatura secreta cadastrada.
+- **Correção (`supabase/functions/mercadopago`):**
+  - o aviso passou a ser só um gatilho; a situação vem sempre da API do Mercado Pago com a credencial da conta, com
+    valor, moeda e pedido conferidos no banco;
+  - a assinatura continua conferida, e o motivo de quando ela não confere vai para o log;
+  - um aviso falso não aprova pagamento que o Mercado Pago não aprovou.
+- **Produção:**
+  - função publicada e os dois avisos reenviados pelo endereço público;
+  - **pedido das 20:04 (Pix) aprovado**, com matrícula ativa até 21/01/2027 e convite enviado (Auth 200);
+  - **pedido das 19:02 (cartão) "recusado"**, porque o Mercado Pago recusou o cartão por alto risco
+    (`cc_rejected_high_risk`).
+- **Teste:** `t3-vitrine-vendas` **2/2**. O aviso falso de pagamento pendente fica pendente, e o de valor diferente é
+  recusado (422).
+- **Pendência:** ver no log o motivo da assinatura no próximo aviso real e, se for o caso, recadastrar a assinatura
+  secreta (Webhooks da mesma aplicação do Access Token).

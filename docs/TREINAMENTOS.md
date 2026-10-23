@@ -246,9 +246,11 @@ página de pagamento é do Mercado Pago (Pix, cartão e boleto), e os dados de p
 - **Funções:**
   - `vitrine`: catálogo, curso, loja, comprar (cria o pedido e a preferência no Mercado Pago com
     `external_reference` = pedido) e pedido;
-  - `mercadopago`: confere a assinatura `x-signature` (HMAC-SHA256 com a assinatura secreta), busca o pagamento na
-    API (fonte da verdade), atualiza o pedido e, se aprovado, cria a conta (convite por e-mail) e a matrícula com
-    origem "compra".
+  - `mercadopago`: trata o aviso como gatilho e busca o pagamento na API do Mercado Pago com a credencial da conta (a
+    fonte da verdade). Atualiza o pedido (valor, moeda e pedido conferidos) e, se aprovado, cria a conta (convite por
+    e-mail) e a matrícula com origem "compra". A assinatura `x-signature` é conferida e, quando não confere ou falta
+    (os avisos "Feed" não são assinados), o motivo vai para o log. Um aviso falso não aprova nada que o Mercado Pago
+    não tenha aprovado (ajuste de 23/10/2026, depois da primeira compra real).
   - Só no desenvolvimento: `supabase/functions-dev/mp-mock`, um simulador da API e do envio do aviso. Nunca vai para a
     produção.
 - **Gestão `/empresa/treinamentos/vendas`:**
