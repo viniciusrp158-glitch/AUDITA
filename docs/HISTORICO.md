@@ -973,3 +973,6 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
 - A tentativa vencida do Diretor no M04 é encerrada quando ele clicar em "Continuar avaliação", e o M05 é liberado.
 - Disco: 17 GB livres, depois de apagar o cache e as imagens `…-0130-enxuta`.
 - **Para voltar:** `.env.bak-20261023-t3b` e `docker compose up -d web aluno` (imagens `…-0150-t3` guardadas).
+- 23/10/2026, 11:44: o Diretor informou o CEP (18079-026) e o horário de atendimento (de segunda a sexta-feira, das
+  7h às 21h), já incluídos nos termos e na privacidade em produção. Ele considera os textos revisados. Próximo passo:
+  compra real de teste, que o Diretor faz.
