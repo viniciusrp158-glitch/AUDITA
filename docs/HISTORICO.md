@@ -826,7 +826,7 @@ Detalhes em `docs/TREINAMENTOS.md`.
     reduzir o tamanho das imagens (pendência).
 - **Para voltar:** `.env.bak-20261023-t2f` e `docker compose up -d web aluno` (imagens `…-2240-t2e` guardadas).
 
-## Imagens enxutas na VPS (23/10/2026) — em validação
+## Imagens enxutas na VPS (23/10/2026)
 
 Motivo: cada publicação gerava imagens de 1,4 a 1,7 GB e precisava de cerca de 6 GB temporários, e em 23/10 o disco
 da VPS chegou a 100%. Os dois sites passaram a gerar o servidor "standalone" do Next: só o servidor e os arquivos que
@@ -854,3 +854,18 @@ ele usa.
   `TEST_MARKETING_*` e `TEST_OPERADOR_*`). É uma lacuna do ambiente, sem relação com esta mudança; a geração de PDF
   foi conferida direto no servidor.
 - O teste do curso agora espera a apostila e o vídeo redesenharem antes de medir a largura em 1920 × 1080.
+
+### Publicação em produção (23/10/2026, com o SIM do Leandro)
+
+- Backup antes (00:52). Sem migração.
+- Imagens `audita-sistema:20261023-0130-enxuta` (**402 MB**, com o Node e o `pdftotext`; antes, 1,86 GB) e
+  `audita-aluno:20261023-0130-enxuta` (**359 MB**; antes, 1,65 GB), ambas saudáveis.
+- **Conferido:**
+  - `/empresa/login` e `/treinamentos/entrar` 200;
+  - os redirecionamentos (login da equipe, área do aluno e link de convite inválido) ficam no endereço público;
+  - o logo otimizado sai em WebP;
+  - a verificação do certificado responde;
+  - `pdftotext` e um PDF do `pdfmake` gerado dentro do container.
+- **Disco:** com o cache apagado e as imagens `…-2240-t2e` removidas, ficaram **15 GB livres (85%)**. As imagens
+  `…-0005-t2f` foram guardadas para voltar.
+- **Para voltar:** `.env.bak-20261023-enxuta` e `docker compose up -d web aluno`.
