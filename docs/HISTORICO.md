@@ -703,3 +703,26 @@ lido dos gabaritos com as provas e o certificado com verificação. Detalhes em 
 - **Pendências:**
   - o Diretor definir o número de tentativas e o intervalo da avaliação final (hoje "sem limite");
   - aprovar a página pública de verificação do certificado antes da publicação.
+
+### Publicação em produção (22/10/2026, com o SIM do Leandro)
+
+- Backup antes (`audita-sistema-backup`, 21:03).
+- **Banco:** migração `20261023120000_t2b_curso_do_aluno` aplicada (26 migrações registradas). As 5 tabelas novas têm RLS.
+- **Função `certificado`** publicada. Sem login, um código inexistente devolve "não encontrado". `training_verify_certificate`
+  e a tabela de questões dão "permission denied" para visitantes.
+- **Imagens:** `audita-sistema:20261022-2105-t2b` (com `pdftotext` 25.12) e `audita-aluno:20261022-2105-t2b`, ambas saudáveis
+  (release `releases/20261022-2105-t2b`).
+- **Lock de dependências:** o `npm ci` da imagem falhou porque o lock gerado no Windows não tinha as dependências opcionais
+  do Linux (`@emnapi/*`, do leitor de PDF). Foi regerado num container Linux e conferido no Linux e no Windows (commit
+  84dbaf0).
+- **Conferido sem criar dados (regra 7):**
+  - `/empresa/login` 200; `/treinamentos/entrar` 200;
+  - curso, arquivo e Meus cursos sem login voltam para `/treinamentos/entrar`;
+  - a verificação pública de um código inexistente mostra "Certificado não encontrado";
+  - o leitor de PDF do aluno é servido;
+  - o gabarito do M07 do L01 de produção, lido dentro do container, traz as 10 questões.
+- **Para voltar:**
+  - `.env.bak-20261022-t2b` (tags `20261022-1915-t2`) e `docker compose up -d web aluno`;
+  - as tabelas novas podem ficar (aditivas).
+- **Para o L01 funcionar para alunos em produção:** o Diretor lê os gabaritos na versão 1.2 (rascunho), define as regras
+  da final, cola os links do YouTube e publica.

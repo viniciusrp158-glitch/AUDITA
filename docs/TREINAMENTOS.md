@@ -24,9 +24,9 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | 0 | Protótipo visual com o L01 e as decisões acima | Aprovado pelo Diretor (22/10/2026) |
 | **1** | **Aba Treinamentos:** cadastro, ficha técnica, versões, módulos e materiais (aluno, instrutor, slides), venda (preço/prazo) | **Entregue na branch `feat/t1-treinamentos-base` (22/10/2026)** |
 | **2a** | **Alunos e matrículas** (individual e em lote, convite por e-mail) e **área do aluno** em `/treinamentos`: entrar, criar senha, esqueci a senha e Meus cursos | **Em produção desde 22/10/2026 (branch `feat/t2-area-do-aluno`)** |
-| **2b** | **Player do curso:** apostila, vídeo do YouTube, progresso e módulos em sequência | **Entregue na branch `feat/t2b-curso-do-aluno` (22/10/2026)** |
-| **2c** | **Banco de questões** lido dos gabaritos e **provas** com cronômetro, tentativas, nota mínima e retorno ao aluno | **Entregue na mesma branch** (o importador do `.zip` inteiro fica para depois; o L01 já está carregado) |
-| **2d** | **Certificado** com código e QR code de verificação pública | **Entregue na mesma branch** |
+| **2b** | **Player do curso:** apostila, vídeo do YouTube, progresso e módulos em sequência | **Em produção desde 22/10/2026 (branch `feat/t2b-curso-do-aluno`)** |
+| **2c** | **Banco de questões** lido dos gabaritos e **provas** com cronômetro, tentativas, nota mínima e retorno ao aluno | **Em produção** (o importador do `.zip` inteiro fica para depois; o L01 já está carregado) |
+| **2d** | **Certificado** com código e QR code de verificação pública | **Em produção** |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
 | 5 | Vitrine pública e conta do aluno | — |
@@ -163,7 +163,7 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
   - certificado no modelo aprovado (A4 deitado, QR code, imprimir/salvar em PDF);
   - `/certificado/<código>`: verificação pública pela função `certificado`, que usa a chave de serviço só dentro do
     Supabase. **Nada é liberado para `anon` no banco.**
-- **Publicação na VPS (ainda não feita):**
+- **Publicação na VPS (feita em 22/10/2026, imagens `20261022-2105-t2b`):**
   1. aplicar a migração;
   2. copiar a função `certificado` para `volumes/functions` e reiniciar as funções;
   3. gerar a nova imagem do sistema (o `Dockerfile` agora instala `poppler-utils`);
