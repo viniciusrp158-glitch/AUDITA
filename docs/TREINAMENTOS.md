@@ -30,7 +30,7 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | **2e** | **Importador do pacote `.zip`** e **histórico de tentativas** | **Em produção desde 22/10/2026 (branch `feat/t2e-importador`)** |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
-| **5** | **Vitrine pública** e compra | **Entregue na branch `feat/t3-vitrine-vendas` (23/10/2026)** |
+| **5** | **Vitrine pública** e compra | **Em produção desde 23/10/2026, com as vendas fechadas até o Diretor preencher (branch `feat/t3-vitrine-vendas`)** |
 | **6** | **Vendas pelo Mercado Pago** (Pix, cartão e boleto) com liberação automática | **Entregue na mesma branch**; cupons e lançamento no Caixa ficam para depois |
 | 7 | Gestão do dia a dia e indicadores | — |
 

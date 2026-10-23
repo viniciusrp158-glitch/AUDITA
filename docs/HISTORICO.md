@@ -914,3 +914,24 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - cadastrar a URL de notificações;
   - marcar "Mostrar na vitrine" no L01.
 - **Fora desta etapa:** lançamento das vendas no Caixa do AUDITA e emissão de nota fiscal.
+
+### Publicação em produção (23/10/2026, com o SIM do Leandro)
+
+- Backup antes (01:48). Migração `20261023200000_t3_vitrine_vendas` aplicada (29 registradas).
+- **Vendas FECHADAS:** nenhum vendedor, texto ou credencial cadastrado; o Vinícius preenche em Treinamentos › Vendas.
+- **Funções** `vitrine` e `mercadopago` publicadas (o simulador `mp-mock` não foi copiado).
+- **Vault conferido:** uma credencial temporária gravada e lida dentro de uma transação desfeita; não ficou nada gravado.
+- **Aviso de pagamento:** `location = /pagamentos/mercadopago` no `audita-proxy`, direto para `audita-functions:9000`.
+  - GET é recusado (403);
+  - um aviso sem tipo é ignorado;
+  - um aviso de pagamento sem credenciais devolve 503.
+  - Cópia anterior: `proxy/audita.conf.bak-20261023-t3`.
+- **Imagens** `audita-sistema:20261023-0150-t3` e `audita-aluno:20261023-0150-t3`, saudáveis.
+- **Conferido:**
+  - `/treinamentos` leva o visitante à vitrine, que mostra "As inscrições abrem em breve";
+  - a página do L01 e os termos dão 404 enquanto não liberados;
+  - `/treinamentos/certificado` 200;
+  - a tela de Vendas pede login.
+- **Disco:** 18 GB livres, depois de apagar o cache e as imagens `…-0005-t2f`.
+- **Para voltar:** `.env.bak-20261023-t3`, `docker compose up -d web aluno` e restaurar o `audita.conf` do proxy
+  (imagens `…-0130-enxuta` guardadas). A migração é só de acréscimos.
