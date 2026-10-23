@@ -936,7 +936,7 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
 - **Para voltar:** `.env.bak-20261023-t3`, `docker compose up -d web aluno` e restaurar o `audita.conf` do proxy
   (imagens `…-0130-enxuta` guardadas). A migração é só de acréscimos.
 
-## T2g/T3b — Prova com tempo esgotado e alinhamento com os textos legais (23/10/2026) — em validação
+## T2g/T3b — Prova com tempo esgotado e alinhamento com os textos legais (23/10/2026)
 
 - **Relato do Diretor:** deixou o tempo da avaliação do M04 acabar, saiu e voltou; aparecia "Esta avaliação já foi
   concluída" e o módulo travava.
@@ -960,3 +960,16 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - `vendas-t3` **3/3**, agora com o certificado cancelado no estorno e o consentimento;
   - `t3-vitrine-vendas` **2/2**, com as duas caixas, o consentimento na gestão e os termos formatados;
   - suíte completa: **108 testes passaram**.
+
+### Publicação em produção (23/10/2026, com o SIM do Leandro)
+
+- Backup antes (11:06). Migrações `20261023220000_t2g_prova_tempo_esgotado` e `20261023230000_t3b_termos_alinhamento`
+  aplicadas (31 registradas). Função `vitrine` atualizada.
+- Imagens `audita-sistema:20261023-1110-t3b` e `audita-aluno:20261023-1110-t3b`, saudáveis.
+- **Conferido:**
+  - `/treinamentos/termos` e `/privacidade` 200, formatados (título, sem `**`, tabela na privacidade) e sem os
+    trechos do rascunho;
+  - vitrine, área do aluno e login da equipe 200.
+- A tentativa vencida do Diretor no M04 é encerrada quando ele clicar em "Continuar avaliação", e o M05 é liberado.
+- Disco: 17 GB livres, depois de apagar o cache e as imagens `…-0130-enxuta`.
+- **Para voltar:** `.env.bak-20261023-t3b` e `docker compose up -d web aluno` (imagens `…-0150-t3` guardadas).
