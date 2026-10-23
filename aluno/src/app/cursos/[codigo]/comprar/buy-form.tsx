@@ -55,15 +55,22 @@ export function BuyForm({ code, requireCpf }: { code: string; requireCpf: boolea
       <label className="flex items-start gap-2.5 text-sm text-ink">
         <input type="checkbox" name="aceite" required defaultChecked={v.aceite === "on"} className="mt-0.5 size-4 shrink-0 accent-navy" />
         <span>
-          Li e aceito os{" "}
+          Li e concordo com os{" "}
           <Link href="/termos" target="_blank" className="font-semibold text-navy underline">
-            Termos de uso e de compra
-          </Link>{" "}
-          e a{" "}
+            Termos de Uso e de Compra
+          </Link>
+          , incluindo a política de cancelamento e reembolso, e declaro estar ciente da{" "}
           <Link href="/privacidade" target="_blank" className="font-semibold text-navy underline">
-            Política de privacidade
+            Política de Privacidade
           </Link>
           .
+        </span>
+      </label>
+      <label className="flex items-start gap-2.5 text-sm text-ink">
+        <input type="checkbox" name="novidades" defaultChecked={v.novidades === "on"} className="mt-0.5 size-4 shrink-0 accent-navy" />
+        <span>
+          Quero receber novidades e ofertas de cursos da AUDITA por e-mail ou WhatsApp.{" "}
+          <span className="text-muted">(Opcional; posso cancelar quando quiser.)</span>
         </span>
       </label>
       <Submit />

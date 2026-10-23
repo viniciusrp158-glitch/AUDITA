@@ -160,12 +160,28 @@ describe("T3 — vitrine e vendas (PGlite)", () => {
       });
       // Com acesso ativo, não compra de novo
       expect((await err(create()))?.message).toContain("já tem acesso");
-      // Estorno suspende a matrícula comprada
+      // Certificado já emitido (como na conclusão do curso)
+      await db.exec(`reset role; select set_config('audita.training_flow', 'on', false);
+        insert into audita.training_certificates (enrollment_id, code, student_name, course_code, course_title, version_label, started_on, completed_on)
+        values ('${f.enrollment_id}', 'AAAA-BBBB-CCCC', '[TESTE] Comprador', 'T601', '[TESTE] Curso', '1.0', current_date, current_date);
+        select set_config('audita.training_flow', 'off', false); set role service_role;`);
+      // Estorno (ou reembolso do arrependimento) suspende a matrícula e cancela o certificado
       await q(`select audita.training_order_apply_payment($1, $2)`, [order.order_id, pay("refunded")]);
       expect((await one<{ status: string }>(`select status from audita.training_enrollments where id = $1`, [f.enrollment_id])).status).toBe("suspensa");
+      expect(await one(`select status, status_note from audita.training_certificates where enrollment_id = $1`, [f.enrollment_id])).toEqual({
+        status: "cancelado",
+        status_note: "Compra reembolsada ou estornada no Mercado Pago.",
+      });
+      // Consentimento para novidades: opcional e registrado no pedido
+      const withOptIn = (await one<{ r: { order_id: string } }>(`select audita.training_order_create('T601', '[TESTE] Outra Pessoa', 'optin@exemplo.test', '52998224725', null, true, true) r`)).r;
+      const without = (await one<{ r: { order_id: string } }>(`select audita.training_order_create('T601', '[TESTE] Mais Uma', 'semoptin@exemplo.test', '52998224725', null, true, false) r`)).r;
+      expect(await q(`select marketing_opt_in from audita.training_orders where id in ($1, $2) order by marketing_opt_in desc`, [withOptIn.order_id, without.order_id])).toEqual([
+        { marketing_opt_in: true },
+        { marketing_opt_in: false },
+      ]);
     });
     await admin(async () => {
-      expect(await q(`select status from audita.training_orders`)).toEqual([{ status: "estornado" }]);
+      expect(await q(`select status from audita.training_orders order by created_at limit 1`)).toEqual([{ status: "estornado" }]);
       await q(`update audita.training_sales_settings set sales_enabled = false`);
     });
     await service(async () => {

@@ -2,7 +2,7 @@
 
 import { KeyRound } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Alert, CheckboxField, Field, SubmitButton, TextAreaField } from "@/components/form";
 import type { TrState } from "../actions";
 import { setSalesOpenAction } from "./actions";
@@ -58,8 +58,13 @@ export function SalesSettingsForm({ action, initial }: { action: Action; initial
 
 export function SecretForm({ action, label, hint, current, testId }: { action: Action; label: string; hint: string; current: string | null; testId: string }) {
   const [state, formAction] = useActionState<TrState, FormData>(action, {});
+  const ref = useRef<HTMLFormElement>(null);
+  // A credencial nunca fica na tela depois de guardada
+  useEffect(() => {
+    if (state.ok) ref.current?.reset();
+  }, [state.ok, state.seq]);
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-2" data-testid={testId} autoComplete="off">
+    <form ref={ref} action={formAction} noValidate className="flex flex-col gap-2" data-testid={testId} autoComplete="off">
       <p className="flex items-center gap-2 text-sm font-semibold text-ink">
         <KeyRound size={15} aria-hidden /> {label}
         <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${current ? "bg-ok/10 text-ok" : "bg-warn/10 text-warn"}`}>{current ? `Cadastrado ${current}` : "Não cadastrado"}</span>

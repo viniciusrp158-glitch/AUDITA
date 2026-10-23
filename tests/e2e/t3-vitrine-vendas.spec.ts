@@ -19,7 +19,7 @@ const SHOTS = "test-results/telas";
 const SECRET = "segredo-de-teste-e2e-assinatura-0001";
 const stamp = Date.now().toString(36);
 const BUYER = { nome: "[TESTE] Comprador da Vitrine", email: `compra.${stamp}@teste.audita`, senha: `Teste${stamp}9` };
-const LEGAL = "[TESTE] Texto fictício do ambiente de desenvolvimento, usado apenas para verificar a vitrine e a compra.";
+const LEGAL = "# [TESTE] Termos fictícios\n\n## 1. Seção\nTexto **fictício** do ambiente de desenvolvimento, usado apenas para verificar a vitrine.\n\n| Coluna | Valor |\n|---|---|\n| A | B |\n\n- item um\n- item dois";
 
 async function login(page: Page) {
   await page.goto("/login");
@@ -130,7 +130,8 @@ test("visitante compra pela vitrine, o pagamento é aprovado e o acesso é liber
   await form.getByLabel("E-mail", { exact: true }).fill(BUYER.email);
   await form.getByLabel("Repita o e-mail").fill(BUYER.email.toUpperCase());
   await form.getByLabel("CPF").fill("529.982.247-25");
-  await form.getByRole("checkbox").check();
+  await form.getByRole("checkbox", { name: /Li e concordo com os Termos/ }).check();
+  await form.getByRole("checkbox", { name: /Quero receber novidades/ }).check();
   await v.screenshot({ path: `${SHOTS}/t3-03-compra.png`, fullPage: true });
   await v.getByTestId("go-pay").click();
   await v.waitForURL(/mercadopago\.simulado\/pagar/, { timeout: 30_000 });
@@ -165,9 +166,17 @@ test("visitante compra pela vitrine, o pagamento é aprovado e o acesso é liber
   await again.getByLabel("E-mail", { exact: true }).fill(BUYER.email);
   await again.getByLabel("Repita o e-mail").fill(BUYER.email);
   await again.getByLabel("CPF").fill("52998224725");
-  await again.getByRole("checkbox").check();
+  await again.getByRole("checkbox", { name: /Li e concordo com os Termos/ }).check();
   await v.getByTestId("go-pay").click();
   await expect(v.getByText("Este e-mail já tem acesso a este curso.", { exact: false })).toBeVisible({ timeout: 20_000 });
+
+  // Termos formatados (títulos, negrito, tabela e lista), sem os símbolos do Markdown
+  await v.goto(`${ALUNO}/termos`);
+  await expect(v.getByRole("heading", { level: 1, name: "[TESTE] Termos fictícios" })).toBeVisible();
+  await expect(v.getByTestId("legal-text").locator("strong")).toHaveText("fictício");
+  await expect(v.getByTestId("legal-text").locator("table td").first()).toHaveText("A");
+  await expect(v.getByTestId("legal-text").locator("ul li")).toHaveCount(2);
+  await expect(v.getByTestId("legal-text")).not.toContainText("**");
 
   // Celular
   await v.setViewportSize({ width: 390, height: 844 });
@@ -185,4 +194,5 @@ test("visitante compra pela vitrine, o pagamento é aprovado e o acesso é liber
   const row = page.getByTestId("orders").locator("li", { hasText: BUYER.email });
   await expect(row).toContainText("Pago");
   await expect(row).toContainText("matrícula liberada");
+  await expect(row).toContainText("aceita novidades");
 });

@@ -6,7 +6,7 @@
 //   "catalogo"            → { aberta, cursos: [...] }
 //   "curso"   { codigo }  → { aberta, curso | null }
 //   "loja"                → dados públicos do vendedor, termos e política de privacidade
-//   "comprar" { codigo, nome, email, cpf?, telefone?, aceite } → { ir_para: <URL do Mercado Pago> }
+//   "comprar" { codigo, nome, email, cpf?, telefone?, aceite, novidades? } → { ir_para: <URL do Mercado Pago> }
 //   "pedido"  { pedido, token } → situação do pedido (página de retorno)
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
       p_cpf: body.cpf ? String(body.cpf) : null,
       p_phone: body.telefone ? String(body.telefone) : null,
       p_accept: body.aceite === true,
+      p_marketing: body.novidades === true,
     });
     if (created.error || !created.data) return json(400, { erro: rule(created.error, "Não foi possível registrar o pedido.") });
     const o = created.data as { order_id: string; token: string; amount: number; code: string; title: string; email: string; name: string; cpf: string | null };

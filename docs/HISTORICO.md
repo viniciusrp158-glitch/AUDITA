@@ -935,3 +935,28 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
 - **Disco:** 18 GB livres, depois de apagar o cache e as imagens `…-0005-t2f`.
 - **Para voltar:** `.env.bak-20261023-t3`, `docker compose up -d web aluno` e restaurar o `audita.conf` do proxy
   (imagens `…-0130-enxuta` guardadas). A migração é só de acréscimos.
+
+## T2g/T3b — Prova com tempo esgotado e alinhamento com os textos legais (23/10/2026) — em validação
+
+- **Relato do Diretor:** deixou o tempo da avaliação do M04 acabar, saiu e voltou; aparecia "Esta avaliação já foi
+  concluída" e o módulo travava.
+  - **Causa:** `training_attempt_start` enviava e corrigia a tentativa vencida e, em seguida, levantava o aviso, o que
+    desfazia o próprio envio; a tentativa ficava "em andamento" para sempre.
+  - **Correção:** migração `20261023220000_t2g_prova_tempo_esgotado`. A tentativa vencida fica enviada e o aluno vai ao
+    resultado.
+  - **Teste:** `tests/integration/prova-vencida-t2g.test.ts` **2/2**, com a avaliação sem nota concluída e o próximo
+    módulo liberado, e a avaliação com nota abrindo nova tentativa. Sem a correção, o teste reproduz o travamento.
+- **Termos e política de privacidade** cadastrados pelo Diretor e revisados a pedido dele (CDC, Decreto 7.962/2013,
+  LGPD, Marco Civil):
+  - versão 1.1 gravada em produção;
+  - originais em `~/backups/textos-legais` e `D:\Audita-deploy\textos-legais\originais-22-10`.
+- **Sistema alinhado aos textos (migração `20261023230000_t3b_termos_alinhamento`):**
+  - o estorno ou reembolso no Mercado Pago cancela também o certificado;
+  - caixa opcional e separada de "novidades e ofertas", registrada no pedido (`marketing_opt_in`) e visível na gestão;
+  - novo texto da caixa de aceite, sugerido pelo Diretor;
+  - termos e privacidade exibidos formatados (títulos, negrito, listas e tabelas);
+  - o campo da credencial limpa depois de guardar.
+- **Testes:**
+  - `vendas-t3` **3/3**, agora com o certificado cancelado no estorno e o consentimento;
+  - `t3-vitrine-vendas` **2/2**, com as duas caixas, o consentimento na gestão e os termos formatados;
+  - suíte completa: **108 testes passaram**.

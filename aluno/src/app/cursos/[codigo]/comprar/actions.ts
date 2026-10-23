@@ -16,6 +16,7 @@ export async function startPurchaseAction(code: string, _prev: BuyState, formDat
     cpf: values.cpf || null,
     telefone: values.telefone || null,
     aceite: values.aceite === "on",
+    novidades: values.novidades === "on",
   });
   if (r.error || !r.data?.ir_para) return { values, error: r.error ?? "Não foi possível iniciar o pagamento." };
   redirect(r.data.ir_para);

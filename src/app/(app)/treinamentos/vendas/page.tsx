@@ -37,6 +37,7 @@ type Order = {
   mp_payment_method: string | null;
   enrollment_id: string | null;
   course_id: string;
+  marketing_opt_in: boolean;
 };
 
 const STATUS: Record<Order["status"], { label: string; cls: string }> = {
@@ -60,7 +61,7 @@ export default async function VendasPage() {
       .maybeSingle(),
     supabase
       .from("training_orders")
-      .select("id, created_at, course_code, buyer_name, buyer_email, amount, status, mp_payment_id, mp_payment_method, enrollment_id, course_id")
+      .select("id, created_at, course_code, buyer_name, buyer_email, amount, status, mp_payment_id, mp_payment_method, enrollment_id, course_id, marketing_opt_in")
       .order("created_at", { ascending: false })
       .limit(200),
     supabase.from("training_courses").select("course_code").eq("on_sale", true).eq("status", "ativo"),
@@ -177,6 +178,7 @@ export default async function VendasPage() {
                 <span className="text-xs text-muted">
                   {o.mp_payment_id ? `MP ${o.mp_payment_id}${o.mp_payment_method ? ` · ${o.mp_payment_method}` : ""}` : ""}
                   {o.enrollment_id ? " · matrícula liberada" : ""}
+                  {o.marketing_opt_in ? " · aceita novidades" : ""}
                 </span>
                 {o.enrollment_id && (
                   <Link href={`/treinamentos/${o.course_id}?aba=alunos`} className="text-xs font-semibold text-navy hover:underline">
