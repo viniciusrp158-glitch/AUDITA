@@ -162,8 +162,8 @@ test("aluno: curso completo em sequência, final com segunda tentativa e certifi
       // Tela cheia (1920 × 1080): apostila na largura toda da área
       await a.setViewportSize({ width: 1920, height: 1080 });
       await expect(a.locator("[data-testid=pdf-viewer] canvas").first()).toBeVisible();
-      const w = await a.locator("[data-testid=pdf-viewer] canvas").first().evaluate((c) => c.getBoundingClientRect().width);
-      expect(w).toBeGreaterThan(1200);
+      // espera a apostila redesenhar na nova largura
+      await expect.poll(() => a.locator("[data-testid=pdf-viewer] canvas").first().evaluate((c) => c.getBoundingClientRect().width), { timeout: 20_000 }).toBeGreaterThan(1200);
       await a.screenshot({ path: `${SHOTS}/t2b-04-apostila.png` });
       await a.setViewportSize({ width: 1280, height: 720 });
     }
@@ -176,8 +176,7 @@ test("aluno: curso completo em sequência, final com segunda tentativa e certifi
       await player.click();
       await expect(a.getByTestId("finish-video")).toBeEnabled({ timeout: 90_000 });
       await a.setViewportSize({ width: 1920, height: 1080 });
-      const vw = await a.getByTestId("video-player").evaluate((v) => v.getBoundingClientRect().width);
-      expect(vw).toBeGreaterThan(1150);
+      await expect.poll(() => a.getByTestId("video-player").evaluate((v) => v.getBoundingClientRect().width), { timeout: 10_000 }).toBeGreaterThan(1150);
       await a.screenshot({ path: `${SHOTS}/t2b-05-videoaula.png` });
       await a.setViewportSize({ width: 1280, height: 720 });
       await a.getByTestId("finish-video").click();

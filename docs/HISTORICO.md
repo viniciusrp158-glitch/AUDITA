@@ -825,3 +825,32 @@ Detalhes em `docs/TREINAMENTOS.md`.
   - cada publicação precisa de cerca de 6 GB temporários, então é preciso apagar o cache logo depois de cada geração e
     reduzir o tamanho das imagens (pendência).
 - **Para voltar:** `.env.bak-20261023-t2f` e `docker compose up -d web aluno` (imagens `…-2240-t2e` guardadas).
+
+## Imagens enxutas na VPS (23/10/2026) — em validação
+
+Motivo: cada publicação gerava imagens de 1,4 a 1,7 GB e precisava de cerca de 6 GB temporários, e em 23/10 o disco
+da VPS chegou a 100%. Os dois sites passaram a gerar o servidor "standalone" do Next: só o servidor e os arquivos que
+ele usa.
+- **Sistema:** `output: "standalone"`; o `Dockerfile` leva `.next/standalone`, `.next/static` e `public` e roda
+  `node server.js`.
+- **Área do aluno:** `output: "standalone"` com o rastreamento a partir da raiz do repositório; roda
+  `node aluno/server.js`.
+
+### Evidências de teste (23/10/2026)
+
+- **Tamanho dos servidores:**
+  - sistema **74 MB** (antes, imagem de 1,68 GB);
+  - área do aluno **64 MB** (antes, 1,43 GB).
+- **Dependências que ficam fora do pacote, conferidas:**
+  - `pdfmake` e `pdfkit` com os arquivos de fonte; um PDF gerado no servidor enxuto;
+  - `sharp`: o logo é otimizado em WebP.
+- **Servidores enxutos rodando no PC contra o ambiente de desenvolvimento:**
+  - `t2e-importador` **1/1** (pacote real do L01);
+  - `t2b-curso-do-aluno` **2/2**;
+  - `t1-treinamentos` **2/2**;
+  - `t2-alunos` **2/2**;
+  - `t2f-link-video` **1/1**.
+- `i10-comunicacao` não roda no ambiente de desenvolvimento: faltam os usuários de marketing e operador (variáveis
+  `TEST_MARKETING_*` e `TEST_OPERADOR_*`). É uma lacuna do ambiente, sem relação com esta mudança; a geração de PDF
+  foi conferida direto no servidor.
+- O teste do curso agora espera a apostila e o vídeo redesenharem antes de medir a largura em 1920 × 1080.

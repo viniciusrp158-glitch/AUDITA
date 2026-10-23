@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import type { NextConfig } from "next";
 
 /**
@@ -15,6 +16,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   basePath: "/treinamentos",
+  // Imagem enxuta: servidor com só os arquivos usados; as dependências ficam na raiz do repositório
+  output: "standalone",
+  outputFileTracingRoot: join(__dirname, ".."),
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

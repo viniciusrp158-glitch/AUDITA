@@ -11,6 +11,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Imagem enxuta na VPS: o build gera um servidor só com os arquivos usados (sem o node_modules inteiro)
+  output: "standalone",
   // Sistema em audita.seg.br/empresa (caderno I2.01); a raiz e caminhos antigos levam ao sistema
   basePath: BASE_PATH,
   async redirects() {
