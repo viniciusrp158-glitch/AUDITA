@@ -726,3 +726,55 @@ lido dos gabaritos com as provas e o certificado com verificação. Detalhes em 
   - as tabelas novas podem ficar (aditivas).
 - **Para o L01 funcionar para alunos em produção:** o Diretor lê os gabaritos na versão 1.2 (rascunho), define as regras
   da final, cola os links do YouTube e publica.
+
+## T2e — Importador do pacote .zip e histórico de tentativas (22/10/2026) — em validação
+
+Retorno do Diretor:
+- 45 questões gravadas no L01 v1.2;
+- sem limite de tentativas, com histórico;
+- dados de venda salvos;
+- vai publicar o L01 depois de colar os links;
+- verificação pública aprovada;
+- vitrine aprovada;
+- Mercado Pago no checkout;
+- pedido: executar o importador do pacote .zip inteiro.
+
+Detalhes em `docs/TREINAMENTOS.md`.
+
+### Evidências de teste (22/10/2026)
+
+- `tests/unit/pacote.test.ts`, **4/4**:
+  - classificação de todos os tipos e módulos;
+  - repetidos e arquivos fora do padrão de fora, lixo do sistema ignorado;
+  - avisos de gabarito e módulo faltando;
+  - título pela pasta;
+  - leitura completa de uma ficha fictícia (campos, módulos e minutos).
+- Conferido com o pacote real do L01:
+  - **141 arquivos** classificados (7 de cada tipo por módulo, 102 imagens e 4 documentos do curso), sem avisos;
+  - a ficha real lida por inteiro (título, versão 1.2, 240 min, instrutor, textos, 7 módulos com objetivos, conteúdos e
+    minutos).
+- `tests/integration/importador-t2e.test.ts` (PGlite), **3/3**:
+  - treinamento novo com ficha e módulos;
+  - recusa com rascunho aberto e com versão repetida, e nova versão depois da publicação;
+  - validações (código, versão, M01, ordem) e só administrador.
+- Suíte completa: **101 testes passaram**.
+- Durante o teste no navegador, o envio de 141 arquivos estava lento (105 em 8 min no ambiente de teste, que passa pelo
+  túnel até a VPS): as ações do servidor correm uma de cada vez. O envio passou a usar uma rota comum, com 4 arquivos
+  em paralelo.
+- `tests/e2e/t2e-importador.spec.ts`, com o pacote real do L01 no ambiente de desenvolvimento, **1/1** (4,1 min,
+  passando pelo túnel):
+  - conferência com 7 módulos, 141 arquivos e 45 questões, nota mínima 7 na final, carga e instrutor lidos, sem avisos;
+  - importação bloqueada para o L01 v1.2, que já existe;
+  - com outro código e título "[TESTE]", o rascunho foi criado com:
+    - apostilas 7 de 7 e avaliações com questões 7 de 7;
+    - carga de 4 h;
+    - "11 questões · nota 7" no M07;
+    - material da equipe e as 12 imagens do M01.
+- `tests/e2e/t2b-curso-do-aluno.spec.ts` (agora com o histórico de tentativas na gestão e em "Suas tentativas"),
+  `t1-treinamentos` e `t2-alunos`: **6/6**.
+- Prints em `D:\Audita-deploy\etapa2e-prints`.
+- **Avisos ao Diretor:**
+  - no L01 v1.2 de produção (rascunho), a avaliação final está sem nota mínima. Basta informar 7 em "Nota mínima" no
+    M07, ou, depois desta publicação, clicar de novo em "Ler os gabaritos";
+  - sobre o tempo das videoaulas, o Plano Pedagógico já define: "Cronometrar a gravação e ajustar se passar de 20% do
+    tempo-alvo".

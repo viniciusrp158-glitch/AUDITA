@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, Plus, Search } from "lucide-react";
+import { FileArchive, GraduationCap, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, CodeBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
@@ -23,9 +23,14 @@ export default async function TreinamentosPage({ searchParams }: { searchParams:
           title="Treinamentos"
           description="Cursos EAD da AUDITA: ficha técnica, módulos (Apostila → Videoaula → Avaliação) e materiais do aluno e da equipe, com versões preservadas."
         />
-        <ButtonLink href="/treinamentos/novo">
-          <Plus size={16} /> Novo treinamento
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink href="/treinamentos/importar" variant="secondary">
+            <FileArchive size={16} /> Importar pacote (.zip)
+          </ButtonLink>
+          <ButtonLink href="/treinamentos/novo">
+            <Plus size={16} /> Novo treinamento
+          </ButtonLink>
+        </div>
       </div>
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">

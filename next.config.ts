@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
   },
   // Geração de PDF no servidor (pdfmake/pdfkit carregados do node_modules, sem empacotamento)
   serverExternalPackages: ["pdfmake"],
+  // Importador de treinamentos: o PDF da ficha e dos gabaritos vai para a conferência (até 8 MB por envio)
+  experimental: { serverActions: { bodySizeLimit: "9mb" } },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

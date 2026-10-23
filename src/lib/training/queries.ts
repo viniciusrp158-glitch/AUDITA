@@ -211,3 +211,32 @@ export async function getEnrollmentProgress(courseId: string): Promise<Record<st
   for (const r of (data ?? []) as (EnrollmentProgress & { enrollment_id: string })[]) out[r.enrollment_id] = r;
   return out;
 }
+
+export type AttemptRow = {
+  enrollment_id: string;
+  attempt_number: number;
+  status: "em_andamento" | "enviada";
+  started_at: string;
+  submitted_at: string | null;
+  submitted_by_timeout: boolean;
+  score: number | null;
+  max_score: number | null;
+  passed: boolean | null;
+  training_assessments: { pass_score: number | null; training_modules: { position: number } | null } | null;
+};
+
+/** Histórico de tentativas de avaliação de cada matrícula do treinamento (todas ficam registradas). */
+export async function getAttemptHistory(courseId: string): Promise<Record<string, AttemptRow[]>> {
+  if (!uuidRe.test(courseId)) return {};
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("training_attempts")
+    .select(
+      "enrollment_id, attempt_number, status, started_at, submitted_at, submitted_by_timeout, score, max_score, passed, training_assessments(pass_score, training_modules(position)), training_enrollments!inner(course_id)",
+    )
+    .eq("training_enrollments.course_id", courseId)
+    .order("started_at");
+  const out: Record<string, AttemptRow[]> = {};
+  for (const r of (data ?? []) as unknown as AttemptRow[]) (out[r.enrollment_id] ??= []).push(r);
+  return out;
+}

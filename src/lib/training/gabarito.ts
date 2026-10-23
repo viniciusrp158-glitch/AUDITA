@@ -14,7 +14,8 @@ export type ParsedQuestion = {
   correct_key: string | null;
   feedback: string | null;
 };
-export type GabaritoResult = { questions: ParsedQuestion[]; warnings: string[] };
+/** passScore: nota mínima declarada no gabarito ("aprovação com no mínimo 7/10"), se houver. */
+export type GabaritoResult = { questions: ParsedQuestion[]; warnings: string[]; passScore: number | null };
 
 const HEADER = /^L\d{2,3}\s*•\s*(Uso exclusivo da equipe|Material do aluno)\b.*$/;
 const FOOTER = /^AUDITA \| SSMA & SGI\b.*$/;
@@ -83,5 +84,6 @@ export function parseGabarito(raw: string, expectedModule?: number): GabaritoRes
   for (const k of quick.keys()) if (!questions.some((q) => q.code === k)) warnings.push(`${k}: está na chave rápida, mas a questão não foi encontrada.`);
   if (!questions.length) warnings.push("Nenhuma questão encontrada. Confira se o arquivo é o gabarito comentado do módulo.");
   for (const q of questions) if (q.statement.length < 5) warnings.push(`${q.code}: enunciado não encontrado.`);
-  return { questions, warnings };
+  const pass = /aprovação com no mínimo (\d{1,3})\s*\/\s*\d{1,3}/i.exec(text);
+  return { questions, warnings, passScore: pass ? Number(pass[1]) : null };
 }

@@ -8,7 +8,7 @@ import { formatDateTime } from "@/lib/format";
 import { formatBRL } from "@/lib/pricing/engine";
 import { COURSE_KINDS, FILE_KINDS, formatMinutes, moduleCode, VERSION_STATUS } from "@/lib/training/labels";
 import { formatDay } from "@/lib/format";
-import { getAssessments, getCourseDetail, getEnrollmentProgress, listEnrollments, type Assessment, type TrainingFile, type TrainingModule } from "@/lib/training/queries";
+import { getAssessments, getAttemptHistory, getCourseDetail, getEnrollmentProgress, listEnrollments, type Assessment, type TrainingFile, type TrainingModule } from "@/lib/training/queries";
 import {
   addModuleAction,
   cancelVersionAction,
@@ -23,7 +23,12 @@ import { EnrollmentList, EnrollPanel, type EnrollmentView } from "./alunos";
 import { GabaritoReader } from "./avaliacoes";
 
 async function StudentsTab({ courseId, accessDays, published }: { courseId: string; accessDays: number | null; published: boolean }) {
-  const [{ rows }, invite, progress] = await Promise.all([listEnrollments(courseId), enrollmentInviteStatus(courseId), getEnrollmentProgress(courseId)]);
+  const [{ rows }, invite, progress, attempts] = await Promise.all([
+    listEnrollments(courseId),
+    enrollmentInviteStatus(courseId),
+    getEnrollmentProgress(courseId),
+    getAttemptHistory(courseId),
+  ]);
   const view: EnrollmentView[] = rows
     .filter((r) => r.training_students)
     .map((r) => ({
@@ -42,6 +47,15 @@ async function StudentsTab({ courseId, accessDays, published }: { courseId: stri
       lastAccess: invite[r.id]?.ultimo_acesso ? formatDateTime(invite[r.id].ultimo_acesso!) : null,
       note: r.status_note,
       progress: progress[r.id] ?? null,
+      attempts: (attempts[r.id] ?? []).map((t) => ({
+        module: moduleCode(t.training_assessments?.training_modules?.position ?? 0),
+        number: t.attempt_number,
+        when: formatDateTime(t.submitted_at ?? t.started_at),
+        result:
+          t.status === "em_andamento"
+            ? "em andamento"
+            : `${t.max_score ? `${t.score}/${t.max_score}` : "enviada"}${t.training_assessments?.pass_score ? (t.passed ? " · aprovada" : " · reprovada") : ""}${t.submitted_by_timeout ? " · tempo esgotado" : ""}`,
+      })),
     }));
   return (
     <div className="flex flex-col gap-4">

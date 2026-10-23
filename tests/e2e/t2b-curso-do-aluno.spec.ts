@@ -190,7 +190,10 @@ test("aluno: curso completo em sequência, final com segunda tentativa e certifi
       await expect(a.getByText(/aparece depois da aprovação/).first()).toBeVisible();
       await expect(a.getByTestId("quiz-feedback")).not.toContainText("Retorno:");
       await a.screenshot({ path: `${SHOTS}/t2b-08-final-reprovada.png` });
-      await a.getByTestId("retry-quiz").click();
+      await a.getByRole("link", { name: "Voltar à avaliação do módulo" }).click();
+      await expect(a.getByTestId("my-attempts")).toContainText("Tentativa 1");
+      await expect(a.getByTestId("my-attempts")).toContainText("não aprovada");
+      await a.getByTestId("start-quiz").click();
       await answerQuiz(a, (code) => finalKey[code] ?? "A");
       await expect(a.getByTestId("quiz-result")).toContainText("Parabéns, curso concluído!");
       await expect(a.getByTestId("quiz-result")).toContainText("Você acertou 10 de 10.");
@@ -232,4 +235,10 @@ test("aluno: curso completo em sequência, final com segunda tentativa e certifi
   const row = page.getByTestId("enrollment-list").locator("li", { hasText: ALUNA.email });
   await expect(row.getByTestId("enrollment-progress")).toContainText("7 de 7 módulos · nota final 10/10");
   await expect(row.getByTestId("enrollment-progress")).toContainText(code);
+  // Todas as tentativas ficam no histórico (a final reprovada e a aprovada)
+  const hist = row.getByTestId("attempt-history");
+  await hist.locator("summary").click();
+  await expect(hist).toContainText("M07 · tentativa 1");
+  await expect(hist).toContainText("0/10 · reprovada");
+  await expect(hist).toContainText("10/10 · aprovada");
 });

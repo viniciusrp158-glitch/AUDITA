@@ -34,13 +34,14 @@ export type GabaritoReading = {
   fileName: string | null;
   questions: ParsedQuestion[];
   warnings: string[];
+  passScore: number | null;
 };
 
 async function readModuleGabarito(moduleId: string): Promise<GabaritoReading> {
   const supabase = await createClient();
   const { data: m } = await supabase.from("training_modules").select("id, position, title").eq("id", moduleId).maybeSingle();
-  if (!m) return { moduleId, position: 0, title: "", fileName: null, questions: [], warnings: ["Módulo não encontrado."] };
-  const base = { moduleId, position: m.position as number, title: m.title as string };
+  if (!m) return { moduleId, position: 0, title: "", fileName: null, questions: [], warnings: ["Módulo não encontrado."], passScore: null };
+  const base = { moduleId, position: m.position as number, title: m.title as string, passScore: null };
   const { data: f } = await supabase
     .from("training_files")
     .select("storage_path, original_name")
@@ -91,6 +92,8 @@ export async function importGabaritosAction(courseId: string, moduleIds: string[
     if (!r.questions.length) continue;
     const { data, error } = await supabase.rpc("training_import_questions", { p_module_id: id, p_items: r.questions });
     if (error) return { error: `M${String(r.position).padStart(2, "0")}: ${dbMessage(error, "não foi possível gravar as questões.")}` };
+    // Nota mínima declarada no gabarito (ex.: avaliação final 7/10) entra se a avaliação ainda não tiver uma
+    if (r.passScore) await supabase.from("training_assessments").update({ pass_score: r.passScore }).eq("module_id", id).is("pass_score", null);
     total += Number(data ?? 0);
     mods += 1;
   }

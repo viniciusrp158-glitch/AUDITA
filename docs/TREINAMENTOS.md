@@ -27,6 +27,7 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
 | **2b** | **Player do curso:** apostila, vídeo do YouTube, progresso e módulos em sequência | **Em produção desde 22/10/2026 (branch `feat/t2b-curso-do-aluno`)** |
 | **2c** | **Banco de questões** lido dos gabaritos e **provas** com cronômetro, tentativas, nota mínima e retorno ao aluno | **Em produção** (o importador do `.zip` inteiro fica para depois; o L01 já está carregado) |
 | **2d** | **Certificado** com código e QR code de verificação pública | **Em produção** |
+| **2e** | **Importador do pacote `.zip`** e **histórico de tentativas** | **Entregue na branch `feat/t2e-importador` (22/10/2026)** |
 | 3 | Videoaulas: link do YouTube validado e player incorporado (o campo do link já existe na etapa 1) | — |
 | 4 | Área do aluno: progresso, travamento sequencial, prova com cronômetro, certificado com código de verificação | — |
 | 5 | Vitrine pública e conta do aluno | — |
@@ -168,3 +169,45 @@ Seguro", v1.2: 7 módulos, 39 PDFs e 102 slides em PNG, com 34 questões objetiv
   2. copiar a função `certificado` para `volumes/functions` e reiniciar as funções;
   3. gerar a nova imagem do sistema (o `Dockerfile` agora instala `poppler-utils`);
   4. gerar a nova imagem da área do aluno.
+
+## Etapa 2e: importador do pacote .zip e histórico de tentativas
+
+Decisões do Diretor (22/10/2026):
+- cursos complementares: **sem limite de tentativas**, com o histórico de todas as tentativas registrado;
+- verificação pública do certificado aprovada;
+- vitrine aprovada;
+- checkout de vendas pelo **Mercado Pago**.
+
+- **Migração `20261023150000_t2e_importador_pacote.sql`:** a função `training_import_package` cria de uma vez o
+  treinamento (ou a nova versão de um treinamento existente), a ficha técnica e os módulos.
+  - Só para administradores.
+  - Recusa se já houver rascunho ou se a versão já existir.
+  - Exige o M01 e os módulos em ordem.
+- **Tela `/treinamentos/importar`** (botão "Importar pacote (.zip)" na lista):
+  1. o navegador abre o .zip no próprio computador e classifica os arquivos pelo nome e pela pasta
+     (`src/lib/training/pacote.ts`):
+     - por módulo: apostila, avaliação em PDF, roteiro, gabarito, slides em PDF e imagens dos slides;
+     - do curso: ficha técnica, plano pedagógico, orientações e gabarito consolidado;
+     - repetidos, arquivos fora do padrão e lixo do sistema (`__MACOSX`, `.DS_Store`) ficam de fora, com aviso;
+  2. a ficha técnica e os gabaritos são lidos no servidor (`pdftotext`, também com `-layout` para a tabela de
+     minutos). A ficha traz título, versão, carga horária, instrutor, modalidade, público, pré-requisitos, objetivo
+     geral, metodologia, avaliação, aviso importante, recursos, referências e, por módulo, título, objetivo, conteúdo e
+     minutos de vídeo, leitura e atividades;
+  3. conferência antes de gravar:
+     - código, versão e título editáveis;
+     - "treinamento novo" ou "nova versão";
+     - por módulo, os arquivos encontrados, as questões e a nota mínima;
+     - avisos;
+     - bloqueio quando a versão já existe ou há rascunho aberto;
+  4. ao importar:
+     - cria o rascunho;
+     - envia cada arquivo pelo mesmo caminho do envio manual (link assinado, SHA-256 no servidor), 4 de cada vez,
+       pela rota `/treinamentos/importar/arquivo`, com barra de progresso e "Tentar de novo os que faltaram";
+     - lê as questões dos gabaritos enviados.
+- **Nota mínima:** quando o gabarito declara a aprovação ("aprovação com no mínimo 7/10"), ela entra na avaliação que
+  ainda não tem nota mínima. Vale para o importador e para "Ler os gabaritos".
+- **L01:** o pacote real tem 141 arquivos (31,1 MB). Foram classificados sem avisos: 7 módulos, 45 questões e nota
+  mínima 7 na final.
+- **Histórico de tentativas:**
+  - na gestão, a aba Alunos mostra cada tentativa: módulo, número, data, nota, aprovada/reprovada e tempo esgotado;
+  - na área do aluno, a página da avaliação lista "Suas tentativas", com o resultado de cada uma.

@@ -193,6 +193,7 @@ export type EnrollmentView = {
   lastAccess: string | null;
   note: string | null;
   progress: { modules_done: number; modules_total: number; final_score: number | null; final_max_score: number | null; certificate_code: string | null } | null;
+  attempts: { module: string; number: number; when: string; result: string }[];
 };
 
 function EnrollmentActions({ courseId, e }: { courseId: string; e: EnrollmentView }) {
@@ -294,6 +295,18 @@ export function EnrollmentList({ courseId, rows }: { courseId: string; rows: Enr
                   {e.progress.final_score != null ? ` · nota final ${e.progress.final_score}/${e.progress.final_max_score}` : ""}
                   {e.progress.certificate_code ? ` · certificado ${e.progress.certificate_code}` : ""}
                 </span>
+              )}
+              {e.attempts.length > 0 && (
+                <details className="mt-0.5" data-testid="attempt-history">
+                  <summary className="cursor-pointer font-semibold text-navy">Histórico de tentativas ({e.attempts.length})</summary>
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {e.attempts.map((t) => (
+                      <li key={`${t.module}-${t.number}`}>
+                        {t.module} · tentativa {t.number} · {t.when} · {t.result}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               )}
               {e.note && <span>Obs.: {e.note}</span>}
             </div>

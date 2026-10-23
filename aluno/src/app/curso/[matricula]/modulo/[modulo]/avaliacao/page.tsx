@@ -21,16 +21,24 @@ function Stat({ big, small }: { big: string; small: string }) {
 export default async function AvaliacaoPage({ params }: { params: Promise<{ matricula: string; modulo: string }> }) {
   const { c, m } = await loadStep(params, "avaliacao");
   const supabase = await createClient();
-  const [{ data: latestRows }, { count: used }] = await Promise.all([
+  const [{ data: latestRows }, { data: history }] = await Promise.all([
     supabase.rpc("training_attempt_latest", { p_enrollment_id: c.enrollmentId, p_module_id: m.module_id }),
-    supabase.from("training_attempts").select("id", { count: "exact", head: true }).eq("enrollment_id", c.enrollmentId).eq("assessment_id", m.assessment_id!).eq("status", "enviada"),
+    supabase
+      .from("training_attempts")
+      .select("id, attempt_number, submitted_at, score, max_score, passed, submitted_by_timeout")
+      .eq("enrollment_id", c.enrollmentId)
+      .eq("assessment_id", m.assessment_id!)
+      .eq("status", "enviada")
+      .order("attempt_number", { ascending: false }),
   ]);
   const latest = ((latestRows ?? []) as Latest[])[0] ?? null;
+  const sent = (history ?? []) as { id: string; attempt_number: number; submitted_at: string; score: number; max_score: number; passed: boolean; submitted_by_timeout: boolean }[];
+  const used = sent.length;
   const done = m.done_steps.includes("avaliacao");
   const open = m.question_count - m.objective_count;
   const graded = m.pass_score != null;
   const base = stepHref(c.enrollmentId, m.module_id, "avaliacao");
-  const exhausted = graded && m.max_attempts != null && (used ?? 0) >= m.max_attempts;
+  const exhausted = graded && m.max_attempts != null && used >= m.max_attempts;
 
   return (
     <StepPage>
@@ -56,7 +64,7 @@ export default async function AvaliacaoPage({ params }: { params: Promise<{ matr
         </p>
         {graded && (
           <p className="text-sm text-muted">
-            Tentativas: {used ?? 0} {m.max_attempts ? `de ${m.max_attempts}` : "(sem limite)"}
+            Tentativas: {used} {m.max_attempts ? `de ${m.max_attempts}` : "(sem limite)"}
           </p>
         )}
         <div className="flex flex-wrap items-center gap-3">
@@ -92,6 +100,27 @@ export default async function AvaliacaoPage({ params }: { params: Promise<{ matr
           )}
         </div>
       </section>
+      {sent.length > 0 && (
+        <section className="max-w-3xl rounded-2xl border border-line bg-white p-5 sm:p-6" data-testid="my-attempts">
+          <h3 className="text-sm font-bold text-navy">Suas tentativas</h3>
+          <ol className="mt-2 divide-y divide-line">
+            {sent.map((t) => (
+              <li key={t.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-sm">
+                <span className="font-semibold text-ink">Tentativa {t.attempt_number}</span>
+                <span className="text-muted">{new Date(t.submitted_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" })}</span>
+                <span className="text-ink">
+                  {t.max_score ? `${t.score} de ${t.max_score}` : "enviada"}
+                  {graded ? (t.passed ? " · aprovada" : " · não aprovada") : ""}
+                  {t.submitted_by_timeout ? " · tempo esgotado" : ""}
+                </span>
+                <Link href={`${base}/resultado/${t.id}`} className="ml-auto font-semibold text-navy hover:underline">
+                  Ver resultado
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
     </StepPage>
   );
 }
