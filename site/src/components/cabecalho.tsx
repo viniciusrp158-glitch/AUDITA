@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, Menu, MessageCircle, X } from "lucide-react";
 import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
 import { MENU } from "@/content/navegacao";
+import { Logo } from "./wireframe";
 
 /**
  * Barra superior + header. No topo fica transparente sobre a foto do hero (logo negativo); ao rolar vira branco e
@@ -52,7 +53,7 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
   return (
     <>
       <header className={rolado ? "cab cab--rolado" : "cab"}>
-        <p className="previa">Prévia do site em construção · Etapa 2: estrutura em cinza</p>
+        <p className="previa">Prévia do site em construção · Etapa 3</p>
         <div className="topo">
           <div className="container topo__linha">
             <a href={whatsapp()} target="_blank" rel="noopener">
@@ -73,8 +74,8 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
           </div>
         </div>
         <div className="container cab__linha">
-          <Link href="/" className="cab__logo logo-lugar" aria-label="AUDITA, página inicial">
-            Logo AUDITA {rolado ? "original" : "negativo"}
+          <Link href="/" className="cab__logo" aria-label="AUDITA, página inicial">
+            <Logo nome={rolado ? "audita-positiva" : "audita-negativa"} alt="" />
           </Link>
           <nav ref={navRef} aria-label="Principal">
             {MENU.map((grupo) => {
@@ -131,10 +132,8 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
 
 function MegaItem({ nome, texto, login }: { nome: string; texto: string; login: string }) {
   return (
-    <div className="mega-item">
-      <span className="logo-lugar" style={{ width: 320, height: 73 }}>
-        Logo {nome}
-      </span>
+    <div className={nome === "Audita PRO" ? "mega-item" : "mega-item mega-item--hub"}>
+      <Logo nome={nome === "Audita PRO" ? "pro" : "hub"} />
       <p>{texto}</p>
       <p className="links">
         <Link href="/#plataformas">Conhecer o {nome}</Link>
@@ -154,9 +153,7 @@ function MenuCelular({ fechar }: { fechar: () => void }) {
   return (
     <div className="menu-cel" role="dialog" aria-modal="true" aria-label="Menu">
       <div className="container menu-cel__topo">
-        <span className="logo-lugar" style={{ width: 180, height: 63 }}>
-          Logo AUDITA negativo
-        </span>
+        <Logo nome="audita-negativa" />
         <button type="button" className="hamburguer" style={{ marginLeft: 0 }} aria-label="Fechar menu" onClick={fechar} autoFocus>
           <X aria-hidden="true" />
         </button>

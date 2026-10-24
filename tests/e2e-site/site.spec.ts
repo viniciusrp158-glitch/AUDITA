@@ -99,3 +99,24 @@ test("header fica branco e fixo ao rolar", async ({ page }) => {
   await page.mouse.wheel(0, 1500);
   await expect(page.locator("header.cab")).toHaveClass(/cab--rolado/);
 });
+
+test("Etapa 3: textos da faixa de destaques, logos oficiais e conteúdo que aparece ao rolar", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Capacitação AUDITA: Cursos EAD")).toBeVisible();
+  await expect(page.getByText("A melhor escolha para sua empresa")).toBeVisible();
+  await expect(page.getByText("Atendimento no estado de São Paulo")).toHaveCount(0);
+  await expect(page.getByText("Cursos EAD com certificado")).toHaveCount(0);
+  // Logos oficiais carregados (largura mínima do manual: 180 px AUDITA, 320 px PRO/HUB no computador)
+  for (const img of await page.locator("img.logo").all()) {
+    await img.scrollIntoViewIfNeeded();
+    const natural = await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth);
+    expect(natural).toBeGreaterThan(0);
+  }
+  const larguraPro = await page.locator('.vidro img[alt="Audita PRO"]').evaluate((el) => el.getBoundingClientRect().width);
+  expect(larguraPro).toBeGreaterThanOrEqual(318);
+  // Tudo o que entra ao rolar fica visível depois de passar por ele
+  const total = await page.evaluate(() => document.body.scrollHeight);
+  for (let y = 0; y < total; y += 600) await page.mouse.wheel(0, 600);
+  await expect(page.locator(".revelar:not(.visivel)")).toHaveCount(0, { timeout: 5000 });
+  await semRolagemLateral(page);
+});

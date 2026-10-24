@@ -1,7 +1,7 @@
 import { EMPRESA, MAILTO, REDES_SOCIAIS_PUBLICADAS, whatsapp } from "@/content/empresa";
 import Link from "next/link";
 import { MENU } from "@/content/navegacao";
-import { Foto, LogoLugar, Tag } from "./wireframe";
+import { Foto, Logo, Tag } from "./wireframe";
 
 /** Rodapé (seção 14): dados oficiais, links, endosso dos produtos e o diagrama do ecossistema AUDITA. */
 export function Rodape() {
@@ -9,10 +9,10 @@ export function Rodape() {
   return (
     <footer className="rodape">
       <Tag>14 · Rodapé</Tag>
-      <Foto codigo="IMG-19" descricao="foto aérea de área industrial com vegetação, escurecida" className="foto--escura" style={{ position: "absolute", inset: 0, background: "var(--navy)", color: "#bdbdbd", alignItems: "flex-start", justifyContent: "flex-end", padding: "16px 24px" }} />
+      <Foto codigo="IMG-19" descricao="foto aérea de área industrial com vegetação, escurecida" className="foto--escura" style={{ position: "absolute", inset: 0, background: "var(--navy)", color: "rgba(255,255,255,0.45)", alignItems: "flex-end", justifyContent: "flex-start", padding: "16px 24px", flexDirection: "row" }} />
       <div className="container rodape__grade">
         <div>
-          <LogoLugar nome="Logo AUDITA negativo" />
+          <Logo nome="audita-negativa" />
           <p style={{ margin: "16px 0 0", fontWeight: 600 }}>{EMPRESA.slogan}</p>
           <address style={{ fontStyle: "normal", margin: "16px 0 0", fontSize: 14, lineHeight: 1.7, color: "#e6e6e6" }}>
             <a href={whatsapp()} target="_blank" rel="noopener">WhatsApp {EMPRESA.telefone}</a>

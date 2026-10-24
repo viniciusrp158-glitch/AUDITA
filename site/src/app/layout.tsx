@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
+import { Animacoes } from "@/components/animacoes";
 import { Flutuantes } from "@/components/flutuantes";
+import { VLibras } from "@/components/vlibras";
 import "./globals.css";
 
 const display = Montserrat({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display", display: "swap" });
@@ -22,6 +24,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <Flutuantes />
+        <Animacoes />
+        <VLibras />
       </body>
     </html>
   );

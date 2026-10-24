@@ -1050,3 +1050,38 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - no `~/audita/proxy`: `cp audita.conf.bak-20261024-site conf.d/audita.conf`, depois
     `docker exec audita-proxy nginx -t` e `docker exec audita-proxy nginx -s reload`;
   - o compose e o `.env` anteriores estão em `~/audita/audita-sistema/*.bak-20261024-site`.
+
+## S3 — Site institucional: home com a identidade visual (Etapa 3 do briefing) (24/10/2026)
+
+- **Pedido do Diretor:** a estrutura foi aprovada sem mudanças, com duas trocas de texto na faixa de destaques:
+  - "Cursos EAD com certificado" virou "Capacitação AUDITA: Cursos EAD";
+  - "Atendimento no estado de São Paulo" virou "A melhor escolha para sua empresa".
+- **Visual:**
+  - tokens do guia de UI (AUDDOC003) no lugar dos cinzas, com texto navy sobre verde e sobre azul PRO;
+  - `green-text` e `pro-text` só em texto pequeno;
+  - Montserrat e Inter.
+- **Logos oficiais** em WebP (`site/public/images/marca`, de 6 a 25 KB):
+  - AUDITA negativa no topo e no rodapé, positiva no header branco;
+  - PRO e HUB negativos nos cards de vidro, originais nas metades PRO/HUB e no mega-menu;
+  - tamanhos mínimos do manual respeitados.
+- **Linguagem visual:** marca-texto, curva verde, losangos com ícones Lucide (hover verde), kicker com traço verde,
+  cards de vidro com desfoque, metades PRO (faixa azul) e HUB (faixa verde) e diagrama do ecossistema no rodapé.
+- **Movimento:**
+  - zoom lento no fundo do hero e entradas ao rolar (500 ms, só transform e opacity);
+  - destaques e cards entram em sequência, mockups entram pelas laterais;
+  - os passos de "Como trabalhamos" acendem um a um;
+  - o fundo de "O que resolvemos" troca com o card ativo;
+  - com "reduzir movimento", nada se mexe.
+  - Optei por CSS e JavaScript próprios em vez de Framer Motion e Embla (citados no briefing): o efeito é o mesmo, com
+    menos peso para o Lighthouse ≥ 90 no celular.
+- **VLibras** (gov.br) carregado depois da página.
+- **Imagens:** continuam como lugares marcados IMG-xx, com a descrição do briefing, até o Diretor escolher as definitivas
+  (o briefing permite placeholders no protótipo).
+- **Correções achadas no teste:**
+  - numa rolagem rápida ou num salto pelo menu, blocos já ultrapassados podiam ficar invisíveis; agora a posição é
+    conferida a cada quadro;
+  - a entrada pela lateral empurrava a página 2 px no celular;
+  - o logo do HUB (fundo branco) aparecia como caixa sobre o cinza;
+  - no celular, o logo encostava na barra verde.
+- **Testes:** `playwright.site.config.ts`, **14/14** (7 no computador, 7 no celular). Além dos anteriores, cobrem os
+  textos novos, os logos carregados (PRO ≥ 318 px no vidro) e todo bloco visível depois de rolar a página.
