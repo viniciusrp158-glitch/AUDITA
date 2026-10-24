@@ -1034,3 +1034,19 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - header ao rolar;
   - barra superior numa linha;
   - nenhuma rolagem lateral.
+- **Produção (24/10/2026, 16:01):** publicado com o SIM do Leandro, a pedido do Diretor. O que mudou:
+  - imagem `audita-site:20261024-1558-site` (76 MB) e container `audita-site` no compose da VPS 1;
+  - `audita.conf` do `audita-proxy`: raiz e `www` vão para o site, `/empresa` para o sistema, endereços antigos com
+    302 para `/empresa/...`. Aplicado com `nginx -t` e reload.
+- **Conferido pelo endereço público:**
+  - `/`, `www`, `/solucoes/...`, `/robots.txt`, `/_next/static/...`, `/empresa/login`, `/treinamentos/entrar`,
+    `/treinamentos/cursos` e `/email-templates/...`: 200;
+  - `/login` e `/clientes`: 302 para `/empresa/...`;
+  - `/pagamentos/mercadopago` (GET): 403, igual a antes, porque o endereço só aceita POST;
+  - página inexistente: 404;
+  - Audita PRO e Audita HUB: sem mudança;
+  - cabeçalho `X-Robots-Tag: noindex, nofollow`.
+- **Para voltar:**
+  - no `~/audita/proxy`: `cp audita.conf.bak-20261024-site conf.d/audita.conf`, depois
+    `docker exec audita-proxy nginx -t` e `docker exec audita-proxy nginx -s reload`;
+  - o compose e o `.env` anteriores estão em `~/audita/audita-sistema/*.bak-20261024-site`.
