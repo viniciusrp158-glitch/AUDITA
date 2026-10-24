@@ -1085,3 +1085,15 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - no celular, o logo encostava na barra verde.
 - **Testes:** `playwright.site.config.ts`, **14/14** (7 no computador, 7 no celular). Além dos anteriores, cobrem os
   textos novos, os logos carregados (PRO ≥ 318 px no vidro) e todo bloco visível depois de rolar a página.
+- **Produção (24/10/2026, 17:20):** publicada com o SIM do Leandro.
+  - imagem `audita-site:20261024-1715-site3`, com `AUDITA_SITE_TAG` no `.env` da VPS 1;
+  - só o container `audita-site` foi trocado; proxy, sistema e área do aluno ficaram como estavam.
+- **Conferido pelo endereço público:**
+  - site, `www`, `/solucoes/...` e logos em WebP: 200;
+  - textos novos presentes e `noindex` mantido;
+  - `/empresa/login`, `/treinamentos/entrar`, `/treinamentos/cursos` e `/email-templates/...`: 200;
+  - `/login`: 302 para `/empresa/login`;
+  - `/pagamentos/mercadopago` (GET): 403, como antes;
+  - PRO e HUB: sem mudança.
+- **Para voltar:** `cp .env.bak-20261024-site3 .env && docker compose up -d site` em `~/audita/audita-sistema`
+  (a imagem `…-1558-site` continua guardada).
