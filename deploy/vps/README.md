@@ -54,6 +54,19 @@ cd /opt/audita-sistema && printf "AUDITA_WEB_TAG=$R\n" > .env && docker compose 
 Migração nova: copie o `.sql` para `/opt/audita-sistema/supabase/migrations/` e rode `sh /opt/audita-sistema/apply-migrations.sh`
 (antes, siga o procedimento do `CLAUDE.md`: aditiva, testada no PGlite).
 
+## Site institucional (raiz de audita.seg.br)
+
+- Código em `site/` (Next.js, páginas estáticas) e imagem em [`site/Dockerfile`](site/Dockerfile): Nginx enxuto
+  ([`site/nginx.conf`](site/nginx.conf)) servindo `site/out`, container `audita-site` (serviço `site` do
+  [`web/docker-compose.yml`](web/docker-compose.yml), tag em `AUDITA_SITE_TAG`, `127.0.0.1:3400`).
+- Gerar: `docker build -f deploy/vps/site/Dockerfile -t audita-site:$R .` na pasta da versão (sem variáveis de ambiente:
+  o site não fala com o banco). Depois, `docker compose up -d site`.
+- Nginx: a raiz vai para o site; `/empresa` para o sistema; os endereços antigos do sistema (`/login`, `/clientes`…)
+  são redirecionados para `/empresa/…`; `/treinamentos`, `/pagamentos/mercadopago` e `/email-templates` não mudam.
+- Enquanto for prévia, o site sai com `noindex` (cabeçalho, meta e `robots.txt`). Na publicação (Etapa 7 do briefing),
+  retirar os três.
+- Testes: `npx next build site` e `npx playwright test -c playwright.site.config.ts` (computador e celular, sem banco).
+
 ## Studio (painel do Supabase do AUDITA)
 
 Não fica exposto na internet. Túnel: `ssh -L 8100:127.0.0.1:8100 root@164.68.112.61` e abra `http://localhost:8100`

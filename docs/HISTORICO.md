@@ -999,3 +999,38 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   recusado (422).
 - **Pendência:** ver no log o motivo da assinatura no próximo aviso real e, se for o caso, recadastrar a assinatura
   secreta (Webhooks da mesma aplicação do Access Token).
+
+## S2 — Site institucional: estrutura (Etapa 2 do briefing) na raiz de audita.seg.br (24/10/2026)
+
+- **Pedido:** o Diretor quer acompanhar as etapas do site no endereço principal, sem senha. A equipe passa a entrar
+  direto por `audita.seg.br/empresa`, onde o sistema já está desde o caderno I2.01 (a raiz só redirecionava).
+- **Conferido antes:** nada do sistema depende da raiz.
+  - Auth: `SITE_URL=https://audita.seg.br/empresa`;
+  - convites e recuperação de senha usam `/empresa/...`;
+  - os pagamentos usam `/treinamentos/...` e `/pagamentos/mercadopago`.
+- **Código:**
+  - pasta `site/` (Next.js com páginas estáticas, mesmas dependências da raiz);
+  - conteúdo em `site/src/content`: dados oficiais, serviços do Anexo A com a flag `publicado` e o limite de cada um,
+    cursos (só o L01 publicado) e menu;
+  - home com as 15 seções na ordem do briefing;
+  - 5 páginas de famílias de serviço;
+  - menus com dropdown (clique, teclado e Esc) e menu do celular em tela cheia;
+  - botões de WhatsApp com mensagem pronta;
+  - logins do PRO e do HUB em nova aba.
+- **Visual:** wireframe em cinza (Etapa 2). Os tokens já têm os nomes da marca, e a Etapa 3 troca os valores para os do
+  AUDDOC003. Fotos são lugares marcados IMG-xx e os logos são lugares tracejados.
+- **Fora dos buscadores** até a publicação autorizada: meta `noindex`, `robots.txt` e cabeçalho `X-Robots-Tag`.
+- **Servidor:** container `audita-site` (Nginx com os arquivos estáticos). No `audita-proxy`:
+  - a raiz vai para o site;
+  - `/empresa` vai para o sistema;
+  - endereços antigos do sistema (`/login`, `/clientes`…) redirecionam para `/empresa/…`.
+- **Testes:** `playwright.site.config.ts`, **12/12** (6 no computador 1440 px, 6 no celular Pixel 7). Cobrem:
+  - textos aprovados e ordem das seções;
+  - aviso de curso livre e só o L01 publicado;
+  - frases proibidas ausentes;
+  - links de WhatsApp, logins e cursos;
+  - os 7 serviços com limite;
+  - dropdowns por teclado e menu do celular;
+  - header ao rolar;
+  - barra superior numa linha;
+  - nenhuma rolagem lateral.

@@ -36,3 +36,16 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  # Site institucional (raiz de https://audita.seg.br), imagem de deploy/vps/site/Dockerfile: páginas estáticas em Nginx
+  site:
+    container_name: audita-site
+    image: audita-site:${AUDITA_SITE_TAG:?defina AUDITA_SITE_TAG}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3400:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
