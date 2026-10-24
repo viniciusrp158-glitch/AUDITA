@@ -1135,3 +1135,16 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - o filtro de cursos;
   - os links do menu e do rodapé;
   - o mapa do site e os dados estruturados.
+- **Produção (24/10/2026, 19:25):** publicada com o SIM do Leandro.
+  - imagem `audita-site:20261024-1921-site4b` em `AUDITA_SITE_TAG`; só o container `audita-site` foi trocado;
+  - as 14 páginas, `sitemap.xml`, `robots.txt` e logos respondem 200;
+  - `/empresa/login`, `/treinamentos/...` e `/email-templates/...`: 200;
+  - `/login`: 302 para `/empresa/login`;
+  - `/pagamentos/mercadopago` (GET): 403, como antes;
+  - PRO e HUB: sem mudança.
+- **Defeito achado na conferência e corrigido (vinha desde a Etapa 2):** um endereço sem a barra final
+  (`/contato`) era redirecionado para `http://audita.seg.br:8080/contato/`, a porta interna do container.
+  - Correção: `absolute_redirect off` em `deploy/vps/site/nginx.conf`;
+  - imagem testada numa porta separada antes da troca;
+  - agora o redirecionamento vai para `https://audita.seg.br/contato/`.
+- **Para voltar:** `.env.bak-20261024-site4` (Etapa 3, imagem `…-1715-site3`). A imagem `…-1558-site` foi apagada.
