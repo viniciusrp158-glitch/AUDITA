@@ -18,6 +18,7 @@ import {
   Smile,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { Cabecalho } from "@/components/cabecalho";
 import { Resolvemos } from "@/components/resolvemos";
 import { Rodape } from "@/components/rodape";
@@ -138,7 +139,7 @@ export default function Home() {
                 <strong>Propósito:</strong> proporcionar tranquilidade às organizações, transformando a complexidade da gestão de Segurança, Saúde e Meio Ambiente em processos mais simples, preventivos, transparentes e confiáveis.
               </p>
               <div className="acoes">
-                <a className="btn btn--contorno btn--bloco" href="#missao-visao-valores">Conheça a AUDITA</a>
+                <Link className="btn btn--contorno btn--bloco" href="/a-audita/">Conheça a AUDITA</Link>
               </div>
             </div>
             <div className="foto--redonda" data-revelar="direita">
@@ -272,7 +273,7 @@ export default function Home() {
               </div>
               <div className="acoes">
                 <a className="btn btn--principal btn--bloco" href={`${EMPRESA.treinamentos}/cursos`}>Comprar na plataforma</a>
-                <a className="btn btn--contorno btn--bloco" href={`${EMPRESA.treinamentos}/cursos`}>Ver todos os cursos</a>
+                <Link className="btn btn--contorno btn--bloco" href="/cursos/">Ver todos os cursos</Link>
               </div>
               <p className="aviso" style={{ margin: "24px 0 0" }}>
                 <Info aria-hidden="true" size={20} style={{ flex: "none", marginTop: 1 }} />
@@ -333,7 +334,7 @@ function CardVidro({ nome, logo, texto, login }: { nome: string; logo: "pro-nega
       <p style={{ fontSize: 13, color: "#d9e2e9" }}>Uma solução AUDITA</p>
       <p style={{ fontSize: 14, lineHeight: 1.5 }}>{texto}</p>
       <p className="links">
-        <a href="#plataformas">Conhecer</a>
+        <Link href={nome === "Audita PRO" ? "/audita-pro/" : "/audita-hub/"}>Conhecer</Link>
         <a href={login} target="_blank" rel="noopener" className="externo" aria-label={`Acessar o ${nome} (abre em nova aba, área exclusiva para clientes)`}>
           Acessar
         </a>

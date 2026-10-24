@@ -25,12 +25,12 @@ export function Foto({ codigo, descricao, className = "", style }: { codigo: str
   );
 }
 
-/** Curva verde ampla na base de uma foto; `cor` é o fundo da seção seguinte. */
-export function Curva({ cor = "var(--white)" }: { cor?: string }) {
+/** Curva ampla na base de uma foto: verde AUDITA (ou a cor do produto nas páginas PRO e HUB); `cor` é o fundo da seção seguinte. */
+export function Curva({ cor = "var(--white)", traco = "var(--green)" }: { cor?: string; traco?: string }) {
   return (
     <svg className="curva" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 80 V58 C 420 2, 980 2, 1440 40 V80 Z" fill={cor} />
-      <path d="M0 52 C 420 -4, 980 -4, 1440 34" fill="none" stroke="var(--green)" strokeWidth={8} vectorEffect="non-scaling-stroke" />
+      <path d="M0 52 C 420 -4, 980 -4, 1440 34" fill="none" stroke={traco} strokeWidth={8} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
@@ -45,10 +45,11 @@ const LOGOS = {
   hub: { alt: "Audita HUB", w: 320, h: 74 },
 } as const;
 
-export function Logo({ nome, alt, className = "" }: { nome: keyof typeof LOGOS; alt?: string; className?: string }) {
+export function Logo({ nome, alt, className = "", largura }: { nome: keyof typeof LOGOS; alt?: string; className?: string; largura?: number }) {
   const l = LOGOS[nome];
+  const w = Math.max(largura ?? l.w, l.w);
   return (
     // eslint-disable-next-line @next/next/no-img-element -- site estático (export), imagem já otimizada em WebP
-    <img className={`logo ${className}`} src={`/images/marca/${nome}.webp`} alt={alt ?? l.alt} width={l.w} height={l.h} />
+    <img className={`logo ${className}`} src={`/images/marca/${nome}.webp`} alt={alt ?? l.alt} width={w} height={Math.round((w * l.h) / l.w)} />
   );
 }

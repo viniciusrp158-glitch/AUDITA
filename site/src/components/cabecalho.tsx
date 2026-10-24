@@ -53,7 +53,7 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
   return (
     <>
       <header className={rolado ? "cab cab--rolado" : "cab"}>
-        <p className="previa">Prévia do site em construção · Etapa 3</p>
+        <p className="previa">Prévia do site em construção · Etapa 4</p>
         <div className="topo">
           <div className="container topo__linha">
             <a href={whatsapp()} target="_blank" rel="noopener">
@@ -116,9 +116,9 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
                 </div>
               );
             })}
-            <a className="btn btn--principal" href={whatsapp()} target="_blank" rel="noopener">
+            <Link className="btn btn--principal" href="/contato/">
               Fale conosco
-            </a>
+            </Link>
           </nav>
           <button type="button" className="hamburguer" aria-label="Abrir menu" aria-expanded={celular} onClick={() => setCelular(true)}>
             <Menu aria-hidden="true" />
@@ -136,7 +136,7 @@ function MegaItem({ nome, texto, login }: { nome: string; texto: string; login: 
       <Logo nome={nome === "Audita PRO" ? "pro" : "hub"} />
       <p>{texto}</p>
       <p className="links">
-        <Link href="/#plataformas">Conhecer o {nome}</Link>
+        <Link href={nome === "Audita PRO" ? "/audita-pro/" : "/audita-hub/"}>Conhecer o {nome}</Link>
         <a href={login} target="_blank" rel="noopener" className="externo">
           Acessar
         </a>

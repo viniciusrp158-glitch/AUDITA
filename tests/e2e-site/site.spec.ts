@@ -120,3 +120,77 @@ test("Etapa 3: textos da faixa de destaques, logos oficiais e conteúdo que apar
   await expect(page.locator(".revelar:not(.visivel)")).toHaveCount(0, { timeout: 5000 });
   await semRolagemLateral(page);
 });
+
+test("Etapa 4: páginas internas abrem, sem rolagem lateral e sem frases proibidas", async ({ page }) => {
+  const paginas: [string, string | RegExp][] = [
+    ["/a-audita/", "Conheça a AUDITA"],
+    ["/solucoes/", "Nossas soluções"],
+    ["/audita-pro/", "Audita PRO"],
+    ["/audita-hub/", "Audita HUB"],
+    ["/cursos/", "Cursos EAD"],
+    ["/contato/", "Fale conosco"],
+    ["/privacidade/", "Política de privacidade do site"],
+  ];
+  for (const [rota, h1] of paginas) {
+    const r = await page.goto(rota);
+    expect(r?.status(), rota).toBe(200);
+    const titulo = page.getByRole("heading", { level: 1 });
+    if (typeof h1 === "string" && rota.startsWith("/audita-")) await expect(titulo.getByRole("img", { name: h1 })).toBeVisible();
+    else await expect(titulo).toHaveText(h1);
+    await expect(page.locator("nav.migalhas")).toBeVisible();
+    const texto = await page.locator("main").innerText();
+    for (const p of PROIBIDOS) expect(texto, `${rota} ${p}`).not.toMatch(p);
+    await semRolagemLateral(page);
+  }
+});
+
+test("Etapa 4: conteúdo obrigatório de cada página", async ({ page }) => {
+  await page.goto("/a-audita/");
+  await expect(page.getByText("Proporcionar tranquilidade às organizações")).toBeVisible();
+  await expect(page.getByText("Integridade, respeito às atribuições profissionais")).toBeVisible();
+  await page.goto("/solucoes/");
+  await expect(page.locator("article.card")).toHaveCount(5);
+  await expect(page.getByText("Audita HUB por assinatura mensal")).toBeVisible();
+  await page.goto("/audita-pro/");
+  await expect(page.getByText("não emite certificação")).toBeVisible();
+  await expect(page.getByText("não é certificado ISO")).toBeVisible();
+  await expect(page.locator('a[href*="Audita%20PRO"]').first()).toHaveAttribute("href", /wa\.me/);
+  await page.goto("/audita-hub/");
+  await expect(page.getByText("A consultoria é um serviço separado da assinatura.")).toBeVisible();
+  await expect(page.getByText("não assume a responsabilidade técnica")).toBeVisible();
+  await page.goto("/contato/");
+  await expect(page.locator('main a[href="mailto:engenharia.audita@outlook.com"]')).toHaveCount(1);
+  await expect(page.locator('a[href*="google.com/maps"]')).toHaveAttribute("target", "_blank");
+  await page.goto("/privacidade/");
+  await expect(page.getByText("não tem formulário, não cria contas")).toBeVisible();
+  await expect(page.locator('a[href="/treinamentos/privacidade"]')).toHaveCount(1);
+});
+
+test("Etapa 4: filtro de cursos por área", async ({ page }) => {
+  await page.goto("/cursos/");
+  await expect(page.getByText("Não substituem capacitação obrigatória de NR")).toBeVisible();
+  await expect(page.locator('a[href="/treinamentos/cursos/L01"]')).toHaveCount(1);
+  await page.getByRole("button", { name: "Meio Ambiente" }).click();
+  await expect(page.getByRole("button", { name: "Meio Ambiente" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('a[href="/treinamentos/cursos/L01"]')).toHaveCount(0);
+  await expect(page.getByText("Ainda não há curso publicado nesta área")).toBeVisible();
+  await page.getByRole("button", { name: "Segurança" }).click();
+  await expect(page.locator('a[href="/treinamentos/cursos/L01"]')).toHaveCount(1);
+});
+
+test("Etapa 4: menu e rodapé levam às páginas internas; mapa do site e dados da empresa", async ({ page, request, isMobile }) => {
+  await page.goto("/");
+  if (!isMobile) {
+    await page.getByRole("button", { name: "Plataformas" }).click();
+    await page.getByRole("link", { name: "Conhecer o Audita PRO" }).click();
+    await expect(page).toHaveURL(/\/audita-pro\/$/);
+    await page.getByRole("link", { name: "Fale conosco" }).click();
+    await expect(page).toHaveURL(/\/contato\/$/);
+  }
+  await expect(page.locator('footer a[href="/privacidade/"]')).toHaveCount(1);
+  const mapa = await (await request.get("/sitemap.xml")).text();
+  for (const r of ["/a-audita/", "/audita-pro/", "/audita-hub/", "/cursos/", "/contato/", "/privacidade/", "/solucoes/meio-ambiente/"]) expect(mapa).toContain(`https://audita.seg.br${r}`);
+  const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}");
+  expect(ld.taxID).toBe("69.563.249/0001-01");
+  expect(ld.address.postalCode).toBe("18079-026");
+});

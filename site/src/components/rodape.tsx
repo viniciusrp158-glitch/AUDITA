@@ -36,9 +36,9 @@ export function Rodape() {
           <div>
             <h2>Plataformas e cursos</h2>
             <ul>
-              <li><Link href="/#plataformas">Audita PRO — Uma solução AUDITA</Link></li>
-              <li><Link href="/#plataformas">Audita HUB — Uma solução AUDITA</Link></li>
-              <li><Link href="/#cursos">Cursos EAD</Link></li>
+              <li><Link href="/audita-pro/">Audita PRO — Uma solução AUDITA</Link></li>
+              <li><Link href="/audita-hub/">Audita HUB — Uma solução AUDITA</Link></li>
+              <li><Link href="/cursos/">Cursos EAD</Link></li>
               <li><a href={EMPRESA.treinamentos}>Acessar a plataforma de cursos</a></li>
             </ul>
           </div>
@@ -56,7 +56,8 @@ export function Rodape() {
       </div>
       <div className="container rodape__base">
         <span>© {EMPRESA.assinatura} · CNPJ {EMPRESA.cnpj}</span>
-        {/* Política de privacidade do site: página da Etapa 4 */}
+        <Link href="/privacidade/">Política de privacidade</Link>
+        <Link href="/contato/">Contato</Link>
         {REDES_SOCIAIS_PUBLICADAS ? <span>Redes sociais</span> : null}
       </div>
     </footer>

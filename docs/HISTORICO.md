@@ -1097,3 +1097,41 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - PRO e HUB: sem mudança.
 - **Para voltar:** `cp .env.bak-20261024-site3 .env && docker compose up -d site` em `~/audita/audita-sistema`
   (a imagem `…-1558-site` continua guardada).
+
+## S4 — Site institucional: páginas internas (Etapa 4 do briefing) (24/10/2026)
+
+- **Páginas novas**, todas com hero menor, curva, migalhas e chamada de contato:
+  - `/a-audita`: quem somos, público, propósito, missão, visão, os 7 valores com descrição, por que a AUDITA, o que
+    resolvemos e como trabalhamos (textos do AUDDOC002, sem mudar o sentido);
+  - `/solucoes`: os 3 pilares com as 5 famílias e seus serviços, as plataformas e os formatos de contratação do Anexo A
+    1.8 (sem preços), com o aviso de que nenhuma oferta é certificação acreditada;
+  - `/audita-pro` e `/audita-hub`: a marca do produto predomina (logo negativo grande, cor do produto na curva e nos
+    botões, com texto navy), com o texto-base do AUDDOC006, para quem é, o que resolve, funcionalidades do briefing,
+    telas (IMG-24/25 e IMG-06/07), como contratar, "Quero conhecer" (WhatsApp) e "Acessar" (área exclusiva para
+    clientes). Os limites estão nas duas páginas:
+    - PRO não emite certificação e o selo não é certificado ISO;
+    - HUB é licença de software e não assume a responsabilidade técnica;
+    - o HUB mostra as duas jornadas, sendo a consultoria um serviço separado;
+  - `/cursos`: grade dos cursos publicados com filtro por área, aviso fixo de curso livre e links para `/treinamentos`;
+  - `/contato`: WhatsApp, e-mail, endereço com "Abrir no mapa" (Google Maps em nova aba, sem mapa embutido, para não
+    gravar cookies de terceiros) e acessos de cliente e de aluno;
+  - `/privacidade`: política do site, que não tem formulário nem cookies próprios. Cita registros de acesso por 6 meses,
+    Cloudflare, VLibras, Contabo e os direitos do art. 18, e remete à política da plataforma de cursos.
+- **Menu, header ("Fale conosco" vai para `/contato`), home e rodapé** passaram a apontar para as páginas novas.
+- **`sitemap.xml`** com as 14 páginas. Dados estruturados `Organization` + `LocalBusiness` com CNPJ, endereço, telefone e
+  e-mail. O `robots.txt` continua bloqueando os buscadores até a publicação final.
+- **Logos** refeitos em WebP sem perdas (9 a 45 KB): a compressão com perdas deixava um véu claro no fundo.
+- **Pendências para o Diretor (Etapa 5):**
+  - confirmar as funcionalidades homologadas do PRO e do HUB;
+  - enviar prints e imagens;
+  - informar a razão social para o rodapé, a política e os dados estruturados (o site usa "AUDITA | SSMA & SGI" e o
+    CNPJ, sem nome pessoal);
+  - dizer se haverá `/termos`;
+  - validar os textos de apoio que escrevi a partir do briefing: os "o que resolve" do PRO/HUB e as frases de
+    contratação.
+- **Testes:** `playwright.site.config.ts`, **22/22** (11 no computador, 11 no celular). Os novos cobrem:
+  - as 7 páginas (200, migalhas, sem rolagem lateral, sem frases proibidas);
+  - o conteúdo obrigatório de cada uma;
+  - o filtro de cursos;
+  - os links do menu e do rodapé;
+  - o mapa do site e os dados estruturados.
