@@ -271,3 +271,52 @@ página de pagamento é do Mercado Pago (Pix, cartão e boleto), e os dados de p
     que vai direto a `audita-functions:9000/mercadopago`. Não passa pelo gateway do Supabase, porque o gateway troca o
     `x-request-id`, que entra na assinatura (`FUNCTIONS_VERIFY_JWT=false` na VPS 1);
   - o simulador não é copiado para a produção.
+
+## Regras de segurança da área do aluno e das vendas (auditoria de 25/10/2026)
+
+Migrações `20261025120100_seg2_acesso_do_aluno.sql`, `20261025120200_seg3_pedidos_da_vitrine.sql` e
+`20261025120300_seg4_tipo_dos_arquivos.sql`; evidências em `docs/HISTORICO.md`.
+
+- **Acesso ao conteúdo, sempre pela mesma condição** (RLS, armazenamento e funções do aluno): matrícula ativa ou
+  concluída, dentro do prazo e sem acesso encerrado. `training_outline` e as consultas de prova recusam matrícula
+  suspensa, cancelada, vencida ou encerrada (o administrador continua consultando).
+- **Apostila no armazenamento:** só de módulo ativo e liberado (módulos anteriores concluídos) para uma matrícula do
+  aluno; a ficha técnica segue liberada com a matrícula em vigor.
+- **Estorno ou reembolso no Mercado Pago:** só mexe na matrícula criada pelo próprio pedido
+  (`training_enrollments.order_id`). Ativa ⇒ suspensa (o administrador pode reativar); concluída ⇒ acesso ao conteúdo
+  encerrado (`access_revoked_at`, definitivo, gravado só pelo sistema). O certificado é cancelado nos dois casos.
+- **Pedido da vitrine:**
+  - vale **3 dias** (`audita.training_order_validity()`); a preferência do Mercado Pago recebe o mesmo vencimento
+    (`expires`, `expiration_date_to` e `date_of_expiration` para Pix e boleto);
+  - na aprovação, o banco confere de novo vencimento (pela data de criação do pagamento), vendas abertas, curso ativo e
+    na vitrine, versão publicada, preço (valor pago não pode ser menor que o preço atual) e se o e-mail já tem
+    matrícula em aberto no curso;
+  - se algo não confere, o pedido fica **aprovado, sem matrícula e marcado para reembolso manual**
+    (`manual_refund_reason`): aparece em destaque na tela de vendas, e a página do pedido avisa o comprador que o valor
+    será devolvido. Nenhuma conta é criada. O administrador devolve o valor no Mercado Pago;
+  - a liberação só cria matrícula nova (nunca reaproveita a de outra origem), na versão publicada no momento.
+- **Compra anônima (limites no banco):**
+  - até **5 tentativas por e-mail** e **20 por endereço IP** por hora (constantes em `training_order_create`);
+  - o IP chega como HMAC (a função `vitrine` resume com a chave de serviço; o banco nunca guarda o IP) e o e-mail é
+    guardado só como SHA-256 em `training_purchase_attempts`, descartado após 2 dias;
+  - o mesmo comprador (mesmo e-mail, curso, nome e CPF) que tenta de novo recebe o **mesmo pedido pendente** e o mesmo
+    link de pagamento, sem nova chamada ao Mercado Pago;
+  - e-mail do comprador com até 254 caracteres (também como restrição na tabela);
+  - acima do limite, a função `vitrine` responde 429 com "Muitas tentativas de compra em pouco tempo".
+- **IP do comprador:** a compra sai do servidor da área do aluno, que repassa o IP do visitante (`cf-connecting-ip` ou
+  `x-forwarded-for`) no cabeçalho `x-audita-ip-cliente`. Para a função `vitrine` só aceitar esse cabeçalho vindo da
+  área do aluno, configure o mesmo valor aleatório em **`VITRINE_CHAVE_INTERNA`** no `web.env` (container `audita-aluno`)
+  e no `.env` da pilha `supabase-audita` (container `audita-functions`, ver `docker-compose.vps.yml`). Sem a chave, o
+  cabeçalho é aceito como vem (o limite por IP pode ser contornado por quem chama a função direto; o limite por e-mail
+  continua valendo).
+- **Oráculo residual (decisão de experiência do comprador):** a mensagem "Este e-mail já tem acesso a este curso" foi
+  mantida. Ela continua revelando, a quem chama a compra anônima, se um e-mail tem matrícula ativa ou suspensa num curso
+  à venda. Agora cada consulta conta nos limites acima (5 por e-mail e 20 por IP por hora), então a enumeração em massa
+  fica lenta e visível, mas não impossível para quem usa muitos endereços IP. Para eliminar o oráculo, a alternativa é
+  sempre seguir para o pagamento e tratar a duplicidade depois (o pedido já fica marcado para reembolso manual) ou
+  avisar só por e-mail; decisão do Diretor.
+- **Arquivos do aluno:** o banco só aceita PDF, PNG, JPEG ou WebP para apostila e ficha técnica (DOCX e PPTX só nos
+  arquivos da equipe). A rota `/treinamentos/arquivo/<id>` só exibe na página PDF e imagens; qualquer outro tipo sai
+  como download `application/octet-stream`, sempre com `nosniff` e `Content-Security-Policy` com `sandbox`.
+- **Sessões:** cookies `audita-aluno` (em `/treinamentos`) e `audita-equipe` (em `/empresa`) são HttpOnly. O VLibras
+  do site só é carregado quando o visitante clica em "Libras".

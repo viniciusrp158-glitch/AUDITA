@@ -1254,3 +1254,74 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
 - **Para voltar:**
   - site: `.env.bak-20261025-site8` (imagem `…-1240-site7`);
   - `www`: `~/audita/proxy/audita.conf.bak-20261025-www`, depois `nginx -t` e reload.
+
+## Correções da auditoria de segurança (25/10/2026)
+
+Branch `fix/seguranca-auditoria` (a partir de `chore/migracao-vps-propria`). Base: registros da auditoria em
+`D:/Audita-deploy/seguranca/auditoria/AUDITA/run-1/findings.json` e fatos de produção observados pelo dono (somente
+leitura) em `D:/Audita-deploy/seguranca/auditoria/fatos-servidor.md`. **Nada foi publicado e a VPS não foi tocada.**
+Testes só locais (PGlite e unidade), nunca contra a produção (regra 7).
+
+- **Migrações novas (só acréscimos; funções substituídas com a mesma assinatura):**
+  - `20261025120000_seg1_precos_do_item.sql`;
+  - `20261025120100_seg2_acesso_do_aluno.sql`;
+  - `20261025120200_seg3_pedidos_da_vitrine.sql`;
+  - `20261025120300_seg4_tipo_dos_arquivos.sql`.
+- **Achados e correções:**
+  1. **Operador lia margem, contingência e desconto do item** (`quote_items`) pela API. Privilégio de coluna: o
+     `authenticated` só lê as colunas que o operador prepara; o administrador lê os ajustes pela função
+     `audita.quote_item_pricing` (só admin). A tela não manda mais esses campos ao navegador do operador
+     (`src/lib/pricing/item-columns.ts`, `getQuoteOr404(id, { pricing })`). Produção: 0 operadores ativos (latente).
+  2. **`training_outline` e as consultas de prova ignoravam situação e prazo da matrícula.** `training_enrollment_of_caller`
+     aplica ao aluno a mesma condição da RLS (ativa ou concluída, no prazo, acesso não encerrado).
+  3. **Estorno de matrícula concluída não tirava o acesso.** Nova marca `training_enrollments.access_revoked_at`
+     (gravada só pelo fluxo, definitiva), honrada pela RLS, pelo armazenamento, pelas funções e pela área do aluno; o
+     certificado continua sendo cancelado.
+  4. **Apostila de módulo bloqueado ou inativo saía direto do armazenamento.** `training_student_can_read_object` exige
+     módulo ativo e liberado para uma matrícula do aluno (ficha técnica sem mudança).
+  5. **Pedido de estranho pendurado na matrícula da vítima, e o estorno suspendia/cancelava a dela.** A liberação só cria
+     (e só é dona de) matrícula nova (`training_enrollments.order_id`); se o e-mail já tem matrícula em aberto, o pedido
+     fica aprovado, sem matrícula, **marcado para reembolso manual** (`manual_refund_reason`, em destaque na tela de
+     vendas). O estorno só mexe na matrícula criada pelo pedido. Pedidos antigos: vínculo preenchido pela nota da
+     liberação.
+  6. **Pedidos não venciam e eram liberados depois de fechar a venda ou mudar o preço.** Pedido vale 3 dias
+     (`training_order_validity()`), com o mesmo vencimento na preferência do Mercado Pago; na aprovação o banco confere de
+     novo vencimento, vendas, curso, vitrine, versão e preço (se falhar: reembolso manual, sem conta nem matrícula).
+  7. e 8. **Compra anônima sem limite e oráculo "já tem acesso".** Limite de 5 tentativas por e-mail e 20 por IP por
+     hora (IP como HMAC, e-mail como SHA-256, descartados após 2 dias), reaproveitamento do pedido pendente do mesmo
+     comprador (sem nova chamada ao Mercado Pago) e e-mail com até 254 caracteres. O aviso "já tem acesso" foi mantido e
+     conta nos limites; o oráculo residual está descrito em `docs/TREINAMENTOS.md`.
+  9. **Sessões legíveis por script na mesma origem do VLibras.** Cookie da equipe `audita-equipe` (HttpOnly, Secure em
+     produção, SameSite=Lax, path `/empresa`; o antigo `sb-*-auth-token` em `/` é apagado pelo middleware, então **a
+     equipe precisa entrar de novo uma vez** depois da publicação) e `audita-aluno` HttpOnly. VLibras carregado só no
+     clique em "Libras". Rota `/caixa-de-testes/` (Mailpit) retirada de `deploy/servidor/proxy/conf.d/audita.conf`.
+  10. **Desfazer da matrícula ("alunos") podia apagar conta que já existia.** Só apaga a conta criada pela própria
+      requisição (`created_at` do GoTrue ≥ início do convite) e sem aluno vinculado (conferido com a chave de serviço).
+  11. **Arquivo do aluno exibido com o tipo gravado no banco.** A rota só exibe PDF/PNG/JPEG/WebP; o resto vai como
+      `application/octet-stream` em anexo, sempre com `nosniff` e CSP com `sandbox`. Restrição
+      `training_files_mime_allowed` (NOT VALID e depois VALIDATE; produção: 0 arquivos fora da lista).
+  - **MFA (registro "rejected"):** proteção a mais em `startEnrollAction`/`confirmEnrollAction`: quem já tem fator
+    verificado só cadastra outro em aal2, como na desativação (o GoTrue v2.196.0 já exige).
+- **Evidências (25/10/2026, PC Leandro, worktree da branch):**
+  - `npx vitest run tests/integration` (PGlite; variáveis do banco remoto vazias, então os testes que usam o banco de
+    desenvolvimento ficaram pulados): **12 arquivos passaram, 11 pulados; 50 testes passaram, 92 pulados**. Novo
+    `tests/integration/seguranca-auditoria.test.ts` **9/9** (achados 1 a 8 e 11); sem as quatro migrações, os 9
+    falham. `alunos-t2` ajustado (apostila do módulo 2 bloqueada até concluir o 1) e `vendas-t3` (resposta com
+    `manual_refund`).
+  - `npx vitest run tests/unit`: **73 passaram, 1 falhou**; novo `tests/unit/seguranca-auditoria.test.ts` **7/7**
+    (achados 1, 10 e 11). A falha é anterior a esta branch: `ca12-escopo` acusa `tests/e2e-site/site.spec.ts` (links de
+    login do PRO/HUB do site institucional), arquivo não alterado aqui.
+  - `npx tsc --noEmit` (sistema), `-p aluno/tsconfig.json` e `-p site/tsconfig.json`: sem erros.
+  - `npx next build` (sistema), `npx next build aluno` e `npx next build site`: concluídos; o HTML do site não traz mais
+    o script do VLibras (só o botão "Libras").
+  - Não executados aqui: e2e (Playwright) e os testes de integração do banco de desenvolvimento (`emissao-i6`,
+    `precificacao-i5`, `indicadores-i8`, `niveis-i9-1`, já ajustados para ler os preços pela função do administrador);
+    as funções do Supabase (Deno) não foram compiladas (Deno não instalado neste PC).
+- **Para publicar (com o SIM do Diretor/Leandro):**
+  - aplicar as 4 migrações (backup antes);
+  - publicar as funções `vitrine`, `mercadopago` e `alunos` (a `alunos` agora importa `conta-criada.ts`);
+  - gerar um valor aleatório para `VITRINE_CHAVE_INTERNA` e colocá-lo no `web.env` (área do aluno) e no `.env` da
+    pilha `supabase-audita` (função; ver `docker-compose.vps.yml`);
+  - novas imagens do sistema, da área do aluno e do site; recarregar o proxy (`nginx -t && systemctl reload nginx` ou o
+    reload do `audita-proxy`) para tirar `/caixa-de-testes/`;
+  - avisar a equipe de que vai precisar entrar de novo (cookie novo).
