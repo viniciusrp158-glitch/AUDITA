@@ -2,12 +2,14 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
+import { STAFF_COOKIE } from "./cookies";
 
 /** Cliente Supabase no servidor, com a sessão do usuário (RLS aplicada). Schema padrão: `audita`. */
 export async function createClient() {
   const cookieStore = await cookies();
   return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     db: { schema: "audita" },
+    cookieOptions: STAFF_COOKIE,
     cookies: {
       getAll() {
         return cookieStore.getAll();

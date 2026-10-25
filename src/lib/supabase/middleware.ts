@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { LEGACY_SESSION_COOKIE, STAFF_COOKIE } from "./cookies";
 
 const PUBLIC_PATHS = ["/login", "/recuperar-senha", "/auth/confirm", "/sem-acesso", "/cadastro"];
 
@@ -15,6 +16,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: STAFF_COOKIE,
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -39,8 +41,19 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/login";
     url.search = "";
     if (pathname !== "/") url.searchParams.set("motivo", "sessao");
-    return NextResponse.redirect(url);
+    return expireLegacySession(request, NextResponse.redirect(url));
   }
 
+  return expireLegacySession(request, response);
+}
+
+/**
+ * Apaga do navegador a sessão no formato antigo (cookie sb-*-auth-token em path=/, legível por script), se ainda
+ * existir (auditoria de segurança, 25/10/2026).
+ */
+function expireLegacySession(request: NextRequest, response: NextResponse) {
+  for (const { name } of request.cookies.getAll()) {
+    if (LEGACY_SESSION_COOKIE.test(name)) response.cookies.set(name, "", { path: "/", maxAge: 0 });
+  }
   return response;
 }

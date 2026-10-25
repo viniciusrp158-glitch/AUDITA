@@ -57,8 +57,8 @@ export default function Privacidade() {
                 A <strong>Cloudflare</strong>, que protege e entrega o site, pode gravar cookies técnicos de segurança (proteção contra robôs).
               </li>
               <li>
-                O botão do <strong>VLibras</strong> (tradutor de Libras do Governo Federal) é carregado dos servidores do gov.br, que recebem dados
-                técnicos de acesso, como o IP.
+                O <strong>VLibras</strong> (tradutor de Libras do Governo Federal) só é carregado quando você clica no botão “Libras”; a partir daí,
+                vem dos servidores do gov.br, que recebem dados técnicos de acesso, como o IP.
               </li>
               <li>
                 Links para o WhatsApp, o e-mail e o mapa abrem serviços de terceiros (Meta, Microsoft e Google), com políticas próprias.

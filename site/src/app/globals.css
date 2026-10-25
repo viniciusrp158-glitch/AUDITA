@@ -171,6 +171,16 @@ main, footer { overflow-x: clip; }
 .fundos > .ativo { opacity: 1; }
 .fundos::after { content: ""; position: absolute; inset: 0; background: var(--photo-overlay); }
 
+/* Botão que carrega o VLibras só quando pedido (mesma posição do botão do VLibras: lateral direita, meio da tela) */
+.vlibras-ativar {
+  position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 40;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 48px; min-height: 48px; padding: 8px 6px; border: 0; border-radius: 8px 0 0 8px; cursor: pointer;
+  background: var(--navy); color: var(--white); font: 700 11px/1.1 var(--font-body), Arial, sans-serif;
+  box-shadow: 0 6px 18px rgba(3, 27, 53, 0.25);
+}
+.vlibras-ativar svg { width: 22px; height: 22px; }
+
 /* Botões flutuantes */
 .flutuantes { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .flutuante { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 0; cursor: pointer; box-shadow: 0 6px 18px rgba(3, 27, 53, 0.25); text-decoration: none; }
