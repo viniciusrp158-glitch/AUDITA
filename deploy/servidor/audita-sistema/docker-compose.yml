@@ -1,0 +1,60 @@
+# Sistema AUDITA — site na VPS 1 (adaptado de deploy/vps/web/docker-compose.yml). O Nginx interno (audita-proxy)
+# fala com este container pela rede supabase-audita_default. Imagem escolhida por AUDITA_WEB_TAG (.env ao lado).
+name: audita-sistema
+
+services:
+  web:
+    container_name: audita-web
+    image: audita-sistema:${AUDITA_WEB_TAG:?defina AUDITA_WEB_TAG}
+    restart: unless-stopped
+    env_file: web.env
+    ports:
+      - "127.0.0.1:3200:3200"
+    extra_hosts:
+      - "api.audita.seg.br:host-gateway"
+    networks:
+      - supabase-audita_default
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3200/empresa/login > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Área do aluno dos treinamentos (https://audita.seg.br/treinamentos), imagem de deploy/vps/aluno/Dockerfile
+  aluno:
+    container_name: audita-aluno
+    image: audita-aluno:${AUDITA_ALUNO_TAG:?defina AUDITA_ALUNO_TAG}
+    restart: unless-stopped
+    env_file: web.env
+    environment:
+      ALUNO_PUBLIC_URL: https://audita.seg.br/treinamentos
+    ports:
+      - "127.0.0.1:3300:3300"
+    extra_hosts:
+      - "api.audita.seg.br:host-gateway"
+    networks:
+      - supabase-audita_default
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3300/treinamentos/entrar > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Site institucional (raiz de https://audita.seg.br), imagem de deploy/vps/site/Dockerfile: páginas estáticas em Nginx
+  site:
+    container_name: audita-site
+    image: audita-site:${AUDITA_SITE_TAG:?defina AUDITA_SITE_TAG}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3400:8080"
+    networks:
+      - supabase-audita_default
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  supabase-audita_default:
+    external: true

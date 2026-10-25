@@ -1,0 +1,28 @@
+# Nginx interno dos 3 sistemas Audita. Recebe em HTTP o que a borda (../borda) recebe em HTTPS e aplica as regras de
+# cada sistema (só as APIs públicas do Supabase, caixa de testes com senha, registro de acesso do PRO etc.).
+# O arquivo htpasswd/ (senhas das caixas de teste) NÃO vai para o Git: criar no servidor com `htpasswd -c`.
+name: audita-proxy
+
+services:
+  nginx:
+    container_name: audita-proxy
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d:ro
+      - ./htpasswd:/etc/nginx/htpasswd:ro
+      - /home/deploy/audita/auditapro:/home/deploy/audita/auditapro:ro
+      - /home/deploy/audita/audita-sistema/email:/srv/audita-email:ro
+      - /home/deploy/audita/logs/auditapro:/var/log/nginx/auditapro
+    networks:
+      - audita-borda
+      - supabase_default
+      - supabase-audita_default
+
+networks:
+  audita-borda:
+    external: true
+  supabase_default:
+    external: true
+  supabase-audita_default:
+    external: true

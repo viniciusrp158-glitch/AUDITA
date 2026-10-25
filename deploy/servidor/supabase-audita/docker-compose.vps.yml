@@ -1,0 +1,46 @@
+# Sistema AUDITA de Operação — overrides do Supabase self-hosted na VPS (/opt/supabase-audita).
+# A VPS também roda o Audita PRO (/opt/supabase): nomes de containers, rede, volumes e portas são próprios do AUDITA.
+# Portas só em loopback: API 8100, Postgres 5442 e pooler 6553 (o PRO usa 8000, 5432 e 6543).
+name: supabase-audita
+
+services:
+  studio:
+    container_name: audita-studio
+  api-gw:
+    container_name: audita-api-gw
+    ports: !override
+      - "127.0.0.1:8100:8000/tcp"
+  auth:
+    container_name: audita-auth
+    # E-mail de recuperação de senha em português, servido pelo Nginx do próprio host (deploy/vps/email-templates)
+    extra_hosts:
+      - "audita.seg.br:host-gateway"
+    environment:
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: "Redefinição de senha — Sistema AUDITA"
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: https://audita.seg.br/email-templates/recuperacao.html
+      GOTRUE_MAILER_SUBJECTS_INVITE: "Seu acesso aos treinamentos AUDITA"
+      GOTRUE_MAILER_TEMPLATES_INVITE: https://audita.seg.br/email-templates/convite-aluno.html
+  rest:
+    container_name: audita-rest
+  realtime:
+    # O realtime deduz o tenant do primeiro rótulo do nome ("realtime-dev"); o apelido mantém a rota do gateway original
+    container_name: realtime-dev.audita-realtime
+    networks:
+      default:
+        aliases:
+          - realtime-dev.supabase-realtime
+  storage:
+    container_name: audita-storage
+  imgproxy:
+    container_name: audita-imgproxy
+  meta:
+    container_name: audita-meta
+  functions:
+    container_name: audita-functions
+  db:
+    container_name: audita-db
+  supavisor:
+    container_name: audita-pooler
+    ports: !override
+      - "127.0.0.1:5442:5432"
+      - "127.0.0.1:6553:6543"

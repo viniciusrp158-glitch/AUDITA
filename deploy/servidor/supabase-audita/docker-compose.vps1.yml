@@ -1,0 +1,16 @@
+# VPS 1 (Leandro): caixa de e-mails de teste do AUDITA (modo teste, nada sai para a internet).
+services:
+  mailpit:
+    container_name: audita-mailpit
+    image: axllent/mailpit:v1.31.5
+    restart: unless-stopped
+    environment:
+      MP_WEBROOT: /caixa-de-testes/
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: 1000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    volumes:
+      - mailpit-data:/data
+volumes:
+  mailpit-data:

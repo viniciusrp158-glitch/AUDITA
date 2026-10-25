@@ -1,0 +1,5 @@
+# Audita (sistemas do Vinicius) - backups, envio de avisos do HUB e renovacao dos certificados
+10 4 * * * $HOME/audita/bin/auditapro-backup >> $HOME/backups/auditapro-backup.log 2>&1
+20 4 * * * $HOME/audita/bin/audita-sistema-backup >> $HOME/backups/audita-sistema-backup.log 2>&1
+*/2 * * * * python3 $HOME/audita/bin/auditahub-notificacoes >> $HOME/backups/auditahub-notificacoes.log 2>&1
+30 4 1,15 * * $HOME/audita/bin/renovar-certificados >> $HOME/backups/audita-certificados.log 2>&1

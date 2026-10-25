@@ -1,0 +1,52 @@
+#!/bin/sh
+# E-mail do Sistema AUDITA de Operação (Supabase Auth em /home/deploy/audita/supabase-audita), instalado como /usr/local/bin/audita-email.
+#
+#   audita-email status     mostra a configuração atual (sem exibir usuário completo nem senha)
+#   audita-email producao   pede os dados do SMTP do Brevo (a chave é digitada sem aparecer na tela) e reinicia o Auth
+#
+# Brevo: servidor smtp-relay.brevo.com, porta 587; o "usuário" é o Login SMTP (…@smtp-brevo.com), não a chave.
+set -e
+ENV=/home/deploy/audita/supabase-audita/.env
+
+setv() { # grava VAR=valor no .env sem interpretar caracteres especiais do valor (mesmo método do Audita PRO)
+  python3 - "$ENV" "$1" "$2" <<'PY'
+import sys, re
+path, key, val = sys.argv[1:4]
+if re.search(r"[\s#$'\"\\]", val):
+    if "'" in val: sys.exit(f'{key}: aspas simples não são suportadas no valor.')
+    val = f"'{val}'"
+lines = open(path).read().splitlines()
+out, done = [], False
+for l in lines:
+    if l.startswith(key + '='):
+        out.append(f'{key}={val}'); done = True
+    else:
+        out.append(l)
+if not done: out.append(f'{key}={val}')
+open(path, 'w').write('\n'.join(out) + '\n')
+PY
+}
+getv() { grep "^$1=" "$ENV" | cut -d= -f2- | sed "s/^'\(.*\)'$/\1/"; }
+
+case "${1:-status}" in
+  status)
+    u=$(getv SMTP_USER)
+    echo "Servidor: $(getv SMTP_HOST):$(getv SMTP_PORT)  usuário: $(printf %s "$u" | cut -c1-4)…$(printf %s "$u" | grep -o "@.*" || true)"
+    echo "Remetente: $(getv SMTP_SENDER_NAME) <$(getv SMTP_ADMIN_EMAIL)>"
+    ;;
+  producao)
+    printf "Servidor SMTP [smtp-relay.brevo.com]: "; read -r host; host=${host:-smtp-relay.brevo.com}
+    printf "Porta [587]: "; read -r port; port=${port:-587}
+    printf "Login SMTP do Brevo (termina em @smtp-brevo.com): "; read -r user
+    printf "Chave SMTP do Brevo (não aparece): "; stty -echo; read -r pass; stty echo; echo
+    printf "E-mail remetente [nao-responda@audita.seg.br]: "; read -r from; from=${from:-nao-responda@audita.seg.br}
+    printf "Nome do remetente [AUDITA]: "; read -r name; name=${name:-AUDITA}
+    [ -n "$user" ] && [ -n "$pass" ] || { echo "Login e chave SMTP são obrigatórios. Nada foi alterado."; exit 1; }
+    setv SMTP_HOST "$host"; setv SMTP_PORT "$port"; setv SMTP_USER "$user"; setv SMTP_PASS "$pass"
+    setv SMTP_ADMIN_EMAIL "$from"; setv SMTP_SENDER_NAME "$name"
+    pass=""
+    cd /home/deploy/audita/supabase-audita && docker compose up -d auth >/dev/null 2>&1
+    echo "Pronto. Teste: na tela de login, use 'Esqueci minha senha' com o seu e-mail."
+    ;;
+  *) sed -n 2,7p "$0"; exit 1 ;;
+esac

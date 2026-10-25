@@ -1,0 +1,21 @@
+# Site do Audita HUB (Next.js) — mesmo container da VPS 1 (auditahub-web). O código compilado fica em
+# /home/deploy/audita/auditahub/releases/<rel>, com o link "current" apontando para a versão em uso
+# (roteiro de publicação em ../README.md). Sem porta no host: o audita-proxy fala com ele pela rede supabase_default.
+name: auditahub
+
+services:
+  web:
+    container_name: auditahub-web
+    image: node:24-alpine
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /home/deploy/audita/auditahub/current
+    command: ["node", "node_modules/next/dist/bin/next", "start", "-H", "0.0.0.0", "-p", "3300"]
+    volumes:
+      - /home/deploy/audita/auditahub:/home/deploy/audita/auditahub
+    networks:
+      - supabase_default
+
+networks:
+  supabase_default:
+    external: true

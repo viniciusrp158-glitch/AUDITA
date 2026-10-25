@@ -1,0 +1,70 @@
+#!/bin/sh
+# Modo de e-mail do Audita PRO (Supabase Auth em /home/deploy/audita/supabase).
+#
+#   auditapro-email status     mostra o modo atual (sem exibir senha)
+#   auditapro-email teste      e-mails vão para a caixa de testes (https://auditapro.app.br/caixa-de-testes/)
+#                              e o cadastro público entra direto, sem confirmar e-mail
+#   auditapro-email producao   pede os dados do provedor SMTP (a senha é digitada sem aparecer na tela)
+#                              e volta a exigir confirmação de e-mail no cadastro
+set -e
+ENV=/home/deploy/audita/supabase/.env
+
+setv() { # grava VAR=valor no .env sem interpretar caracteres especiais do valor
+  python3 - "$ENV" "$1" "$2" <<'PY'
+import sys, re
+path, key, val = sys.argv[1:4]
+# Aspas simples: o Docker Compose lê o valor literalmente (sem interpolar $ nem cortar em #).
+if re.search(r"[\s#$'\"\\]", val):
+    if "'" in val: sys.exit(f'{key}: aspas simples não são suportadas no valor.')
+    val = f"'{val}'"
+lines = open(path).read().splitlines()
+out, done = [], False
+for l in lines:
+    if l.startswith(key + '='):
+        out.append(f'{key}={val}'); done = True
+    else:
+        out.append(l)
+if not done: out.append(f'{key}={val}')
+open(path, 'w').write('\n'.join(out) + '\n')
+PY
+}
+getv() { grep "^$1=" "$ENV" | cut -d= -f2- | sed "s/^'\(.*\)'$/\1/"; }
+
+restart_auth() {
+  cd /home/deploy/audita/supabase && docker compose up -d auth mailpit >/dev/null 2>&1
+  echo "Auth reiniciado com a nova configuração."
+}
+
+case "${1:-status}" in
+  status)
+    if [ "$(getv SMTP_HOST)" = "mailpit" ]; then echo "Modo: TESTE (caixa de testes; cadastro sem confirmação de e-mail)"
+    else echo "Modo: PRODUÇÃO"; fi
+    u=$(getv SMTP_USER); echo "Servidor: $(getv SMTP_HOST):$(getv SMTP_PORT)  usuário: $(printf %s "$u" | cut -c1-4)…$(printf %s "$u" | grep -o "@.*" || true)"  # nunca exibe o usuário inteiro
+    echo "Remetente: $(getv SMTP_SENDER_NAME) <$(getv SMTP_ADMIN_EMAIL)>"
+    echo "Confirmação automática do cadastro: $(getv ENABLE_EMAIL_AUTOCONFIRM)"
+    ;;
+  teste)
+    setv SMTP_HOST mailpit; setv SMTP_PORT 1025; setv SMTP_USER ""; setv SMTP_PASS ""  # Mailpit sem autenticação (o Auth recusa senha em SMTP sem TLS)
+    setv SMTP_ADMIN_EMAIL nao-responda@auditapro.app.br; setv SMTP_SENDER_NAME "AUDITA SSMA & SGI (teste)"
+    setv ENABLE_EMAIL_AUTOCONFIRM true
+    restart_auth
+    echo "Caixa de testes: https://auditapro.app.br/caixa-de-testes/ (acesso em ~/audita/ACESSOS-INICIAIS.txt)"
+    ;;
+  producao)
+    printf "Servidor SMTP (ex.: smtp.resend.com): "; read -r host
+    printf "Porta [587]: "; read -r port; port=${port:-587}
+    printf "Usuário SMTP: "; read -r user
+    printf "Senha SMTP (não aparece): "; stty -echo; read -r pass; stty echo; echo
+    printf "E-mail remetente [nao-responda@auditapro.app.br]: "; read -r from; from=${from:-nao-responda@auditapro.app.br}
+    printf "Nome do remetente [AUDITA SSMA & SGI]: "; read -r name; name=${name:-AUDITA SSMA & SGI}
+    [ -n "$host" ] && [ -n "$user" ] && [ -n "$pass" ] || { echo "Servidor, usuário e senha são obrigatórios."; exit 1; }
+    setv SMTP_HOST "$host"; setv SMTP_PORT "$port"; setv SMTP_USER "$user"; setv SMTP_PASS "$pass"
+    setv SMTP_ADMIN_EMAIL "$from"; setv SMTP_SENDER_NAME "$name"
+    setv ENABLE_EMAIL_AUTOCONFIRM false
+    pass=""
+    restart_auth
+    echo "Teste: use 'Esqueci minha senha' na tela de login com um e-mail cadastrado."
+    echo "Erros de envio: cd /home/deploy/audita/supabase && docker compose logs auth --since 10m | grep -i smtp"
+    ;;
+  *) sed -n 2,9p "$0"; exit 1 ;;
+esac

@@ -1,0 +1,23 @@
+# Borda HTTPS dos 3 sistemas Audita na VPS própria (substitui o Nginx Proxy Manager da VPS 1 do Leandro).
+# Termina o TLS dos domínios audita.seg.br, auditapro.app.br e auditahub.app.br e repassa tudo, em HTTP, para o
+# container audita-proxy (../proxy) pela rede Docker "audita-borda". Certificados Let's Encrypt emitidos e renovados por
+# DNS do Cloudflare (../bin/renovar-certificados), guardados em ./letsencrypt (fora do Git).
+name: audita-borda
+
+services:
+  nginx:
+    container_name: audita-borda
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d:ro
+      - ./letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - audita-borda
+
+networks:
+  audita-borda:
+    name: audita-borda

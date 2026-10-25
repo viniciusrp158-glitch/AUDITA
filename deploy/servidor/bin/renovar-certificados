@@ -1,0 +1,10 @@
+#!/bin/sh
+# Renova os certificados dos 3 sistemas Audita (validação por DNS do Cloudflare) e recarrega a borda.
+# Token do Cloudflare em $HOME/.config/secrets/cloudflare-audita.ini (600): Zone:Read + DNS:Edit nas 3 zonas, sem validade.
+B=$HOME/audita/borda
+for c in audita-pro audita-hub audita-sistema; do
+  docker run --rm -v $B/letsencrypt:/etc/letsencrypt -v $HOME/.config/secrets/cloudflare-audita.ini:/cf.ini:ro \
+    certbot/dns-cloudflare:v5.3.0 renew -q --cert-name $c --dns-cloudflare-credentials /cf.ini </dev/null
+done
+docker exec audita-borda nginx -s reload
+echo "$(date -Is) renovação concluída"

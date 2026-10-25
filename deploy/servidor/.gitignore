@@ -1,0 +1,5 @@
+# Segredos e dados do servidor nunca entram no Git
+proxy/htpasswd/
+borda/letsencrypt/
+**/.env
+**/web.env

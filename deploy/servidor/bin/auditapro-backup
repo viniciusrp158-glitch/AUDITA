@@ -1,0 +1,11 @@
+#!/bin/sh
+# Backup diário do Audita PRO + HUB na VPS 1 (adaptado de deploy/vps/auditapro-backup.sh): banco completo (inclui auth
+# e o schema hub), arquivos do Storage e .env. Mantém 14 dias em ~/backups/auditapro. Cron do usuário deploy.
+set -e
+umask 077
+D=$HOME/backups/auditapro; T=$(date +%F_%H%M); mkdir -p $D
+docker exec supabase-db pg_dumpall -U supabase_admin --clean --if-exists | gzip -9 > $D/db_$T.sql.gz
+docker exec supabase-storage tar -czf - -C /var/lib storage > $D/storage_$T.tar.gz
+cp $HOME/audita/supabase/.env $D/env_$T
+find $D -maxdepth 1 -type f -mtime +14 -delete
+echo "$(date -Is) ok $(du -sh $D | cut -f1)" >> $HOME/backups/auditapro-backup.log

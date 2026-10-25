@@ -1,0 +1,53 @@
+# AuditaPRO: overrides da VPS (portas so em loopback; functions com URL publica para URLs assinadas).
+services:
+  api-gw:
+    ports: !override
+      - "127.0.0.1:8000:8000/tcp"
+  supavisor:
+    ports: !override
+      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:6543:6543"
+  functions:
+    extra_hosts:
+      - "api.auditapro.app.br:host-gateway"
+    environment:
+      SUPABASE_URL: https://api.auditapro.app.br
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY}
+      AUDITA_PRO_PUBLIC_URL: https://auditapro.app.br
+  auth:
+    # Modelos de e-mail em portugues servidos pelo Nginx do proprio host (deploy/vps/email-templates).
+    extra_hosts:
+      - "auditapro.app.br:host-gateway"
+    environment:
+      GOTRUE_MAILER_SUBJECTS_INVITE: "Convite para o AUDITA SSMA & SGI"
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: "Redefinição de senha — AUDITA SSMA & SGI"
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: "Confirme seu e-mail — AUDITA SSMA & SGI"
+      GOTRUE_MAILER_SUBJECTS_EMAIL_CHANGE: "Confirme o novo e-mail — AUDITA SSMA & SGI"
+      GOTRUE_MAILER_TEMPLATES_INVITE: https://auditapro.app.br/email-templates/convite.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: https://auditapro.app.br/email-templates/recuperacao.html
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: https://auditapro.app.br/email-templates/confirmacao.html
+      GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: https://auditapro.app.br/email-templates/troca-email.html
+      # Senha forte (decisão do Diretor, 16/10/2026; vale para o PRO e o HUB em novas senhas e trocas): 12+ caracteres com
+      # minúscula, maiúscula, número e símbolo. "$$" = "$" para o Compose; "\:" = ":" literal no grupo de símbolos.
+      GOTRUE_PASSWORD_MIN_LENGTH: "12"
+      GOTRUE_PASSWORD_REQUIRED_CHARACTERS: 'abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$$%^&*()_+-=[]{};''\:"|<>?,./`~'
+  # Caixa de e-mails de teste: no modo "teste" (auditapro-email teste) todo e-mail do sistema cai aqui,
+  # visivel em https://auditapro.app.br/caixa-de-testes/ (senha do Nginx). Nada sai para a internet.
+  mailpit:
+    container_name: auditapro-mailpit
+    image: axllent/mailpit:v1.31.5
+    restart: unless-stopped
+    environment:
+      MP_WEBROOT: /caixa-de-testes/
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: 1000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "127.0.0.1:8025:8025"
+    volumes:
+      - mailpit-data:/data
+
+volumes:
+  mailpit-data:

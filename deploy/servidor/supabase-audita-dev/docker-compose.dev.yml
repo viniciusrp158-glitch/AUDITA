@@ -1,0 +1,36 @@
+# AUDITA — ambiente de DESENVOLVIMENTO (dados fictícios). Só em 127.0.0.1:8200, acesso por túnel SSH.
+name: supabase-audita-dev
+services:
+  studio: { container_name: auditadev-studio }
+  api-gw:
+    container_name: auditadev-api-gw
+    ports: !override
+      - "127.0.0.1:8200:8000/tcp"
+  auth:
+    container_name: auditadev-auth
+    environment:
+      GOTRUE_MAILER_SUBJECTS_INVITE: "Seu acesso aos treinamentos AUDITA"
+      GOTRUE_MAILER_TEMPLATES_INVITE: https://audita.seg.br/email-templates/convite-aluno.html
+  rest: { container_name: auditadev-rest }
+  realtime:
+    container_name: realtime-dev.auditadev-realtime
+    networks: { default: { aliases: [realtime-dev.supabase-realtime] } }
+  storage: { container_name: auditadev-storage }
+  imgproxy: { container_name: auditadev-imgproxy }
+  meta: { container_name: auditadev-meta }
+  functions:
+    container_name: auditadev-functions
+    environment:
+      AUDITA_ALUNO_URL: http://localhost:3001/treinamentos
+      MP_API_URL: http://functions:9000/mp-mock
+      MP_WEBHOOK_URL: http://functions:9000/mercadopago
+  db: { container_name: auditadev-db }
+  supavisor:
+    container_name: auditadev-pooler
+    ports: !override []
+  mailpit:
+    container_name: auditadev-mailpit
+    image: axllent/mailpit:v1.31.5
+    restart: unless-stopped
+    environment: { MP_SMTP_AUTH_ACCEPT_ANY: 1, MP_SMTP_AUTH_ALLOW_INSECURE: 1 }
+    ports: ["127.0.0.1:8225:8025"]

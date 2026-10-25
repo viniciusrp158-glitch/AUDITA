@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""Envio por e-mail das notificações do Audita HUB (F0c/F0d).
+
+Roda na VPS pelo timer systemd `auditahub-notificacoes.timer` (a cada 2 minutos):
+reserva um lote na fila (hub_private.notifications_email_claim), envia pelo SMTP já configurado no Supabase Auth
+(/opt/supabase/.env: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_ADMIN_EMAIL, SMTP_SENDER_NAME) e registra o
+resultado (hub_private.notifications_email_result). Acessa o banco como operador local (docker exec), sem chave da API.
+Credenciais nunca são impressas.
+
+Uso:
+  auditahub-notificacoes            envia o lote pendente (uso do timer)
+  auditahub-notificacoes status     mostra a fila (contagens) e o servidor de envio, sem senha
+  auditahub-notificacoes teste EMAIL  envia um e-mail de teste para EMAIL (não usa a fila)
+"""
+import fcntl
+import json
+import smtplib
+import subprocess
+import sys
+from email.message import EmailMessage
+from email.utils import formataddr, formatdate, make_msgid
+
+ENV_FILE = "/home/deploy/audita/supabase/.env"
+APP_URL = "https://auditahub.app.br"
+LOCK_FILE = "/tmp/auditahub-notificacoes.lock"
+BATCH = 20
+PSQL = ["docker", "exec", "-i", "supabase-db", "psql", "-X", "-q", "-tA", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1"]
+
+
+def read_env():
+    env = {}
+    with open(ENV_FILE, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            if len(v) >= 2 and v[0] == v[-1] and v[0] in "'\"":
+                v = v[1:-1]
+            env[k] = v
+    return env
+
+
+def psql(sql, variables=None):
+    cmd = list(PSQL)
+    for k, v in (variables or {}).items():
+        cmd += ["-v", f"{k}={v}"]
+    res = subprocess.run(cmd, input=sql, capture_output=True, text=True, timeout=60)
+    if res.returncode != 0:
+        raise RuntimeError(f"psql: {res.stderr.strip()[:300]}")
+    return res.stdout
+
+
+def smtp_config(env):
+    return {
+        "host": env.get("SMTP_HOST", ""),
+        "port": int(env.get("SMTP_PORT") or 587),
+        "user": env.get("SMTP_USER", ""),
+        "password": env.get("SMTP_PASS", ""),
+        "from_email": env.get("SMTP_ADMIN_EMAIL", ""),
+        "from_name": env.get("SMTP_SENDER_NAME", "AUDITA SSMA & SGI"),
+    }
+
+
+def connect(cfg):
+    smtp = smtplib.SMTP(cfg["host"], cfg["port"], timeout=30)
+    smtp.ehlo()
+    if cfg["port"] != 465:
+        smtp.starttls()
+        smtp.ehlo()
+    if cfg["user"]:
+        smtp.login(cfg["user"], cfg["password"])
+    return smtp
+
+
+def build(cfg, to_email, to_name, subject, text):
+    msg = EmailMessage()
+    msg["From"] = formataddr((cfg["from_name"], cfg["from_email"]))
+    msg["To"] = formataddr((to_name or "", to_email))
+    msg["Subject"] = subject
+    msg["Date"] = formatdate(localtime=False)
+    msg["Message-ID"] = make_msgid(domain=cfg["from_email"].split("@")[-1] or "auditahub.app.br")
+    msg["Auto-Submitted"] = "auto-generated"
+    msg.set_content(text, charset="utf-8")
+    return msg
+
+
+def notification_text(n):
+    first = (n.get("full_name") or "").split(" ")[0] or "Olá"
+    link = n.get("link") or "/notificacoes"
+    lines = [f"Olá, {first}." if first != "Olá" else "Olá.", "", n["title"]]
+    if n.get("body"):
+        lines.append(n["body"])
+    lines += ["", f"Abrir no Audita HUB: {APP_URL}{link}"]
+    if n.get("org_name"):
+        lines.append(f"Empresa: {n['org_name']}")
+    lines += [
+        "",
+        "—",
+        "Aviso automático do Audita HUB (AUDITA SSMA & SGI). Não responda este e-mail.",
+        "Para receber os avisos só no sistema, desligue o e-mail em Configurações > Notificações.",
+    ]
+    return "\n".join(lines)
+
+
+def ready(cfg):
+    if not cfg["host"] or not cfg["from_email"]:
+        return "SMTP não configurado em /opt/supabase/.env"
+    if cfg["host"] == "mailpit":
+        return "Auth em modo teste (caixa de testes do PRO): o HUB não envia e-mails nesse modo"
+    return None
+
+
+def send_batch():
+    cfg = smtp_config(read_env())
+    why = ready(cfg)
+    if why:
+        print(f"envio suspenso: {why}")
+        return 0
+    rows = [json.loads(l) for l in psql(f"select row_to_json(t) from hub_private.notifications_email_claim({BATCH}) t;").splitlines() if l.strip()]
+    if not rows:
+        return 0
+    sent = failed = 0
+    smtp = None
+    try:
+        smtp = connect(cfg)
+    except Exception as e:  # servidor fora: todas voltam para nova tentativa
+        for n in rows:
+            psql("select hub_private.notifications_email_result(:'id'::uuid, false, :'err');", {"id": n["id"], "err": f"conexão SMTP: {type(e).__name__}"})
+        print(f"falha de conexão SMTP ({type(e).__name__}); {len(rows)} aviso(s) voltam à fila")
+        return 1
+    try:
+        for n in rows:
+            try:
+                smtp.send_message(build(cfg, n["email"], n.get("full_name"), f"[Audita HUB] {n['title']}", notification_text(n)))
+                psql("select hub_private.notifications_email_result(:'id'::uuid, true, null);", {"id": n["id"]})
+                sent += 1
+            except Exception as e:
+                psql("select hub_private.notifications_email_result(:'id'::uuid, false, :'err');", {"id": n["id"], "err": f"{type(e).__name__}: {str(e)[:200]}"})
+                failed += 1
+    finally:
+        try:
+            smtp.quit()
+        except Exception:
+            pass
+    print(f"lote: {sent} enviado(s), {failed} com erro")
+    return 0 if failed == 0 else 1
+
+
+def status():
+    cfg = smtp_config(read_env())
+    print(f"Servidor: {cfg['host']}:{cfg['port']}  remetente: {cfg['from_name']} <{cfg['from_email']}>")
+    why = ready(cfg)
+    print(f"Envio: {'SUSPENSO — ' + why if why else 'ativo'}")
+    print(psql("select email_status || ': ' || count(*) from hub.notifications group by email_status order by 1;").strip() or "fila vazia")
+    return 0
+
+
+def test(to_email):
+    cfg = smtp_config(read_env())
+    why = ready(cfg)
+    if why:
+        print(f"não enviado: {why}")
+        return 1
+    smtp = connect(cfg)
+    try:
+        smtp.send_message(build(cfg, to_email, None, "[Audita HUB] E-mail de teste das notificações",
+                                "Este é um e-mail de teste do Audita HUB.\n\nSe você recebeu, os avisos por e-mail estão funcionando.\n\n—\nAUDITA SSMA & SGI · Audita HUB"))
+    finally:
+        smtp.quit()
+    print(f"e-mail de teste enviado para {to_email}")
+    return 0
+
+
+def main():
+    args = sys.argv[1:]
+    if args[:1] == ["status"]:
+        return status()
+    if args[:1] == ["teste"] and len(args) == 2 and "@" in args[1]:
+        return test(args[1])
+    if args:
+        print(__doc__)
+        return 2
+    with open(LOCK_FILE, "w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("envio anterior ainda em andamento; pulando")
+            return 0
+        return send_batch()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
