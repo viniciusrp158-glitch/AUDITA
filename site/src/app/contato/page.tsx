@@ -4,8 +4,8 @@ import { Cabecalho } from "@/components/cabecalho";
 import { HeroInterno } from "@/components/pagina";
 import { Rodape } from "@/components/rodape";
 import { Foto } from "@/components/wireframe";
-import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
-import { EmailTexto } from "@/components/email";
+import { EMPRESA, whatsapp } from "@/content/empresa";
+import { EmailTexto, LinkEmail } from "@/components/email";
 
 export const metadata: Metadata = {
   title: "Contato",
@@ -44,13 +44,13 @@ export default function Contato() {
                   <span className="mutado" style={{ display: "block", fontSize: 14 }}>Abre o WhatsApp com uma mensagem pronta</span>
                 </span>
               </a>
-              <a className="card com-losango" href={MAILTO} style={{ textDecoration: "none", padding: 24, display: "flex", gap: 20, alignItems: "center" }}>
+              <LinkEmail className="card com-losango" style={{ textDecoration: "none", padding: 24, display: "flex", gap: 20, alignItems: "center" }}>
                 <span className="losango" aria-hidden="true"><Mail /></span>
                 <span style={{ minWidth: 0 }}>
                   <span className="t3" style={{ display: "block" }}>E-mail</span>
                   <span style={{ fontSize: 17, overflowWrap: "anywhere" }}><EmailTexto /></span>
                 </span>
-              </a>
+              </LinkEmail>
               <a className="card com-losango" href={MAPA} target="_blank" rel="noopener" style={{ textDecoration: "none", padding: 24, display: "flex", gap: 20, alignItems: "center" }}>
                 <span className="losango" aria-hidden="true"><MapPin /></span>
                 <span>

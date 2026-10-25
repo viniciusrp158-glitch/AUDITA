@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Menu, MessageCircle, X } from "lucide-react";
-import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
+import { EMPRESA, whatsapp } from "@/content/empresa";
 import { MENU } from "@/content/navegacao";
 import { Logo } from "./wireframe";
-import { EmailTexto } from "./email";
+import { EmailTexto, LinkEmail } from "./email";
 
 /**
  * Barra superior + header. No topo fica transparente sobre a foto do hero (logo negativo); ao rolar vira branco e
@@ -60,9 +60,9 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
             <a href={whatsapp()} target="_blank" rel="noopener">
               <MessageCircle aria-hidden="true" size={16} /> WhatsApp {EMPRESA.telefone}
             </a>
-            <a className="topo__email" href={MAILTO}>
+            <LinkEmail className="topo__email">
               <EmailTexto />
-            </a>
+            </LinkEmail>
             <span className="topo__dir">
               <a href={EMPRESA.proLogin} target="_blank" rel="noopener" className="externo">
                 Acessar Audita PRO

@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { MAILTO, whatsapp } from "@/content/empresa";
+import { whatsapp } from "@/content/empresa";
 import { Curva } from "./wireframe";
 import { imagemDefinitiva } from "@/lib/imagens";
+import { LinkEmail } from "./email";
 
 /**
  * Peças das páginas internas (briefing, seção 9 "Páginas internas"): hero menor com foto e curva verde na base,
@@ -70,7 +71,7 @@ export function ChamadaContato({ mensagem }: { mensagem?: string }) {
         <h2 id="cta-titulo" className="t2" style={{ flex: "1 1 420px" }}>Vamos organizar a segurança da sua empresa?</h2>
         <div className="acoes" style={{ marginTop: 0 }}>
           <a className="btn btn--principal btn--grande btn--bloco" href={whatsapp(mensagem)} target="_blank" rel="noopener">Fale pelo WhatsApp</a>
-          <a className="btn btn--contorno-claro btn--grande btn--bloco" href={MAILTO}>Enviar e-mail</a>
+          <LinkEmail className="btn btn--contorno-claro btn--grande btn--bloco">Enviar e-mail</LinkEmail>
         </div>
       </div>
     </section>
