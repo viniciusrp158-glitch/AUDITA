@@ -6,6 +6,7 @@
 //   "situacao"    { curso_id } → por matrícula: convite pendente ou senha criada, e último acesso
 //   "reenviar"    { aluno_id }  → reenvia o convite a quem ainda não criou a senha
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
+import { contaCriadaNestaRequisicao, podeApagarConta } from "./conta-criada.ts";
 
 const URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -94,10 +95,12 @@ Deno.serve(async (req) => {
       if (!studentId) {
         let userId: string | undefined;
         let created = false;
+        const inicio = Date.now();
         const inv = await admin.auth.admin.inviteUserByEmail(email, { data: { full_name: nome }, redirectTo: `${PORTAL}/auth/confirm` });
         if (!inv.error && inv.data.user) {
           userId = inv.data.user.id;
-          created = true;
+          // O convite também devolve uma conta já existente (não confirmada): só é "criada aqui" se nasceu agora
+          created = contaCriadaNestaRequisicao(inv.data.user.created_at, inicio);
           situacao = "convidado";
         } else if (/already|registered|exists/i.test(inv.error?.message ?? "")) {
           // Já existe uma conta com este e-mail (ex.: alguém da equipe): reaproveita, sem enviar e-mail
@@ -119,7 +122,14 @@ Deno.serve(async (req) => {
           .select("id")
           .single();
         if (ins.error || !ins.data) {
-          if (created) await admin.auth.admin.deleteUser(userId); // nada fica pela metade
+          // Nada fica pela metade, mas só se apaga a conta que esta requisição criou e que nenhum aluno usa
+          // (ex.: matrícula simultânea do mesmo e-mail ou compra liberada no mesmo instante)
+          if (created) {
+            const ref = await admin.schema("audita").from("training_students").select("id").eq("user_id", userId).maybeSingle();
+            if (podeApagarConta({ criadaNestaRequisicao: created, referenciadaPorAluno: Boolean(ref.error) || Boolean(ref.data) })) {
+              await admin.auth.admin.deleteUser(userId);
+            }
+          }
           erro(ins.error?.code === "23505" ? "Esta conta já pertence a outro aluno." : "Não foi possível registrar o aluno.");
           continue;
         }

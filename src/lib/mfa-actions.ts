@@ -11,10 +11,20 @@ export type MfaState = { ok?: string; error?: string; factorId?: string; qr?: st
 
 const codeRe = /^\d{6}$/;
 
+/**
+ * Quem já tem a verificação ativa só cadastra outro fator depois de entrar com o código (aal2), como na desativação.
+ * O servidor de autenticação já exige isso; a conferência aqui é uma proteção a mais (auditoria de segurança, 25/10/2026).
+ */
+async function needsSecondFactor(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  return aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2";
+}
+
 export async function startEnrollAction(_prev: MfaState): Promise<MfaState> {
   const user = await getAppUser();
   if (!user) return { error: "Sessão inválida." };
   const supabase = await createClient();
+  if (await needsSecondFactor(supabase)) return { error: "Entre com o código do aplicativo antes de cadastrar outro." };
   // Remove tentativas anteriores não confirmadas (o Supabase não aceita duas pendentes com o mesmo nome)
   const { data: list } = await supabase.auth.mfa.listFactors();
   for (const f of list?.all ?? []) if (f.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: f.id });
@@ -28,6 +38,7 @@ export async function confirmEnrollAction(prev: MfaState, formData: FormData): P
   if (!prev.factorId) return { error: "Inicie a ativação novamente." };
   if (!codeRe.test(code)) return { ...prev, error: "Digite os 6 números do aplicativo." };
   const supabase = await createClient();
+  if (await needsSecondFactor(supabase)) return { error: "Entre com o código do aplicativo antes de cadastrar outro." };
   const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: prev.factorId, code });
   if (error) return { ...prev, error: "Código inválido ou expirado. Confira o horário do celular e tente de novo." };
   revalidatePath("/conta");
