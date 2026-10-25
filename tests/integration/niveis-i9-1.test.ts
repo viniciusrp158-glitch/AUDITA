@@ -96,6 +96,11 @@ describe.skipIf(!ready)("I9.1 — níveis de acesso (modo mais restritivo) e usu
     const hours = await operador.from("quote_items").update({ hours_execution: 12 }).eq("id", it.data!.id).select("id");
     expect(hours.error).toBeNull();
     expect(hours.data).toHaveLength(1);
+    // Leitura: contingência, margem e desconto também são negados ao operador (auditoria de segurança, 25/10/2026)
+    const priced = await operador.from("quote_items").select("margin, contingency, discount, discount_reason, discount_authorized").eq("id", it.data!.id);
+    expect(priced.error?.code).toBe("42501");
+    expect((await operador.rpc("quote_item_pricing", { p_quote_id: q.data!.id })).error?.code).toBe("42501");
+    expect((await mestre.rpc("quote_item_pricing", { p_quote_id: q.data!.id })).error).toBeNull();
 
     // Não conclui revisão nem adota parâmetros
     const freeze = await operador.rpc("freeze_quote_revision", { p_quote_id: q.data!.id, p_results: [], p_reason: null });

@@ -22,7 +22,7 @@ export default async function EditarItemPage({
   const user = await requireAppUser(OPERATE);
   const { id, itemId } = await params;
   const sp = await searchParams;
-  const [{ quote, items }, services] = await Promise.all([getQuoteOr404(id), getServiceOptions()]);
+  const [{ quote, items }, services] = await Promise.all([getQuoteOr404(id, { pricing: user.role === "admin" }), getServiceOptions()]);
   const item = items.find((i) => i.id === itemId);
   if (!item) notFound();
   if (quote.status !== "rascunho") redirect(`/orcamentos/${id}`);

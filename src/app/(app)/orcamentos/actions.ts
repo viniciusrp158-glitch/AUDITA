@@ -211,7 +211,7 @@ export async function reviewQuoteAction(quoteId: string, _prev: FlowState, formD
   await requireAppUser(ADMIN_ONLY);
   if (!uuidRe.test(quoteId)) return { error: "Cotação inválida." };
   const reason = String(formData.get("reason") ?? "").trim() || null;
-  const { quote, items } = await getQuoteOr404(quoteId);
+  const { quote, items } = await getQuoteOr404(quoteId, { pricing: true });
   const ps = quote.pricing_parameter_sets;
   if (!ps) return { error: "Nenhuma versão de parâmetros financeiros adotada." };
   const { results, allReady } = buildResults(ps.id, ps, items.map((i) => ({ ...i, services: i.services })));

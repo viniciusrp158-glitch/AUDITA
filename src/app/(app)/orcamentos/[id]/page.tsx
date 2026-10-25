@@ -93,7 +93,7 @@ export default async function OrcamentoPage({
   const isAdmin = user.role === "admin";
   const { id } = await params;
   const sp = await searchParams;
-  const [{ quote, items }, vigente, revisions] = await Promise.all([getQuoteOr404(id), getVigenteParameterSet(), listRevisions(id)]);
+  const [{ quote, items }, vigente, revisions] = await Promise.all([getQuoteOr404(id, { pricing: isAdmin }), getVigenteParameterSet(), listRevisions(id)]);
   const contract = quote.status === "aceita" && user.role === "admin" ? await getContractByQuote(quote.id) : null;
   const ps = quote.pricing_parameter_sets;
   const editable = quote.status === "rascunho";

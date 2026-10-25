@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { normalizeSearch } from "@/lib/clients/queries";
 import { createClient } from "@/lib/supabase/server";
 import type { QuoteSnapshot } from "@/lib/documents/snapshot";
+import { ITEM_BASE_COLS, withItemPricing, type ItemPricingFields, type ItemPricingRow } from "./item-columns";
 import type { ParamStatus, Periodicity, QuoteStatus, RevisionStatus } from "./labels";
 import type { ParameterValues, ServiceInfo } from "./quote";
 
@@ -71,6 +72,7 @@ export type QuoteItem = {
   discount_reason: string | null;
   discount_authorized: boolean;
   discount_authorized_at: string | null;
+  discount_authorized_by: string | null;
   scope_notes: string | null;
   services: (NonNullable<ServiceInfo> & { service_code: string; name: string }) | null;
 };
@@ -111,13 +113,18 @@ export type Quote = {
 export const CONTENT_COLS =
   "document_model, objective, scope_included, scope_excluded, location_modality, schedule, methodology, deliverables, completion_criteria, additional_expenses, cancellation_terms, next_step, contract_start_on, contract_months";
 
-const ITEM_COLS =
-  "id, position, service_id, description, periodicity, quantity_ref, hours_preparation, hours_execution, hours_delivery, hours_followup, hours_travel, cost_travel, cost_materials, cost_external, cost_other, contingency, margin, discount, discount_reason, discount_authorized, discount_authorized_at, scope_notes, services(service_code, name, pricing_model, commercial_status, catalog_status)";
+// Contingência, margem e desconto NÃO estão aqui: o banco nega essas colunas a "authenticated" e o administrador as lê
+// por audita.quote_item_pricing (auditoria de segurança, 25/10/2026). Assim nada disso é serializado para o operador.
+const ITEM_COLS = `${ITEM_BASE_COLS}, services(service_code, name, pricing_model, commercial_status, catalog_status)`;
 
-export async function getQuoteOr404(id: string): Promise<{ quote: Quote; items: QuoteItem[] }> {
+/**
+ * Cotação e itens. `pricing: true` (somente telas e ações do administrador) junta os ajustes de preço de cada item;
+ * sem ele os campos de preço vêm vazios.
+ */
+export async function getQuoteOr404(id: string, opts: { pricing?: boolean } = {}): Promise<{ quote: Quote; items: QuoteItem[] }> {
   if (!uuidRe.test(id)) notFound();
   const supabase = await createClient();
-  const [q, items] = await Promise.all([
+  const [q, items, pricing] = await Promise.all([
     supabase
       .from("quotes")
       .select(
@@ -130,9 +137,11 @@ export async function getQuoteOr404(id: string): Promise<{ quote: Quote; items: 
       .eq("id", id)
       .maybeSingle(),
     supabase.from("quote_items").select(ITEM_COLS).eq("quote_id", id).order("position").order("created_at"),
+    opts.pricing ? supabase.rpc("quote_item_pricing", { p_quote_id: id }) : Promise.resolve({ data: null }),
   ]);
   if (!q.data) notFound();
-  return { quote: q.data as unknown as Quote, items: (items.data ?? []) as unknown as QuoteItem[] };
+  const rows = (items.data ?? []) as unknown as Omit<QuoteItem, keyof ItemPricingFields>[];
+  return { quote: q.data as unknown as Quote, items: withItemPricing(rows, (pricing.data ?? null) as ItemPricingRow[] | null) as QuoteItem[] };
 }
 
 export async function getQuoteByDemand(demandId: string): Promise<{ id: string; quote_code: string; status: QuoteStatus } | null> {

@@ -4,6 +4,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
+import { ITEM_BASE_COLS, withItemPricing } from "@/lib/pricing/item-columns";
 import { calculateItem } from "@/lib/pricing/quote";
 import { uniqueSuffix } from "../helpers/br";
 
@@ -183,18 +184,19 @@ describe.skipIf(!ready)("I5 — parâmetros e cotações", () => {
         cost_external: 0,
         cost_other: 20,
       })
-      .select("*, services(pricing_model, commercial_status, catalog_status)")
+      .select(`${ITEM_BASE_COLS}, services(pricing_model, commercial_status, catalog_status)`)
       .single();
     expect(item.error).toBeNull();
 
     // Valores gravados → motor: custo/hora 100; 19 h; custo base 2.150; c/ contingência 2.365
-    const calc = calculateItem(vig, item.data!, item.data!.services);
+    const [withPricing] = withItemPricing([item.data!], (await admin.rpc("quote_item_pricing", { p_quote_id: q.id })).data);
+    const calc = calculateItem(vig, withPricing as unknown as Parameters<typeof calculateItem>[1], item.data!.services as unknown as Parameters<typeof calculateItem>[2]);
     expect(calc.result.costWithContingency!.toString()).toBe("2365");
     expect(calc.status).toBe("PRONTO");
     expect(calc.notReleased).toBe(true); // TRN-NR35 ainda não liberado (AUDDOC004)
     expect(calc.result.effectiveMargin!.toDecimalPlaces(4).toString()).toBe("0.25");
 
-    const moved = await admin.from("quote_items").update({ quote_id: crypto.randomUUID() }).eq("id", item.data!.id).select();
+    const moved = await admin.from("quote_items").update({ quote_id: crypto.randomUUID() }).eq("id", item.data!.id).select("id");
     expect(moved.error).not.toBeNull();
     expect((await admin.from("quote_items").update({ discount: 0.05 }).eq("id", item.data!.id)).error).toBeNull();
     expect((await admin.from("quote_items").delete().eq("id", item.data!.id)).error).toBeNull();

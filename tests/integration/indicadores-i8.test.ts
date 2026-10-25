@@ -12,6 +12,7 @@ import { buildDocument } from "@/lib/documents/proposal";
 import { renderDocx } from "@/lib/documents/render-docx";
 import { renderPdf } from "@/lib/documents/render-pdf";
 import { buildResults, type QuoteSnapshot } from "@/lib/documents/snapshot";
+import { ITEM_BASE_COLS, withItemPricing } from "@/lib/pricing/item-columns";
 import { randomCnpj, uniqueSuffix } from "../helpers/br";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -85,7 +86,10 @@ describe.skipIf(!ready)("I8 — indicadores", () => {
 
   async function freeze(quoteId: string, reason: string | null = null) {
     const q = (await admin.from("quotes").select("parameter_set_id, pricing_parameter_sets!quotes_parameter_set_id_fkey(*)").eq("id", quoteId).single()).data!;
-    const items = (await admin.from("quote_items").select("*, services(pricing_model, commercial_status, catalog_status)").eq("quote_id", quoteId)).data!;
+    const items = withItemPricing(
+      (await admin.from("quote_items").select(`${ITEM_BASE_COLS}, services(pricing_model, commercial_status, catalog_status)`).eq("quote_id", quoteId)).data as unknown as { id: string; services: null }[],
+      (await admin.rpc("quote_item_pricing", { p_quote_id: quoteId })).data,
+    ) as unknown as Parameters<typeof buildResults>[2];
     const { results } = buildResults(q.parameter_set_id!, q.pricing_parameter_sets as unknown as Parameters<typeof buildResults>[1], items.map((i) => ({ ...i, services: i.services })));
     const r = await admin.rpc("freeze_quote_revision", { p_quote_id: quoteId, p_results: results, p_reason: reason });
     if (r.error) throw new Error(r.error.message);
