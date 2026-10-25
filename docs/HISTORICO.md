@@ -1230,3 +1230,27 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - `/treinamentos` continua servido pela plataforma;
   - fica para a autorização: tirar `noindex` e `robots.txt` e cadastrar no Search Console (passo a passo em
     `docs/SITE-CONTEUDO.md`, seção 4).
+- **Achado em produção: a "proteção de e-mail" da Cloudflare.**
+  - Ela reescrevia todo `mailto:` e todo e-mail do HTML e injetava `email-decode.min.js`, que segurava a primeira pintura
+    da home (~0,5 s).
+  - Correção: o texto do e-mail leva `<wbr>` antes do @, e o link sai apontando para `/contato/` e vira `mailto:` no
+    navegador (`site/src/components/email.tsx`).
+  - Conferido em produção: nenhuma reescrita, nenhum script da Cloudflare, os 3 links de e-mail da página de Contato
+    viram `mailto:` e o console fica sem erros.
+- **Cache:** logos, telas e ícones agora têm 7 dias de cache e as fotos definitivas, 1 dia (antes eram buscados de novo a
+  cada visita).
+- **Produção (25/10/2026, 12:50):** publicada com a autorização do Leandro ("avance até o fim, sem aguardar").
+  - imagem `audita-site:20261025-1247-site8`; no proxy, `www` → `audita.seg.br` (301, mantendo o caminho);
+  - conferido: páginas, ícones, `sitemap.xml`, trava (`robots.txt` e `X-Robots-Tag`), `/empresa/login`,
+    `/treinamentos/...`, `/email-templates/...`, `/login` (302), webhook (403 no GET), PRO e HUB;
+  - todos os arquivos referenciados pelas páginas em produção respondem.
+- **Lighthouse no celular em produção** (5 páginas):
+  - desempenho de 85 a 94, acessibilidade 100, boas práticas 96 e SEO 69 (só pela trava);
+  - a primeira resposta do HTML vem da França a cada visita (0,3 a 0,7 s), porque a Cloudflare não guarda páginas HTML
+    em cache.
+  - **Recomendação**, a fazer no painel da Cloudflare (sem acesso daqui): uma regra de cache para `audita.seg.br`
+    exceto `/empresa*`, `/treinamentos*`, `/pagamentos*`, `/email-templates*` e `/caixa-de-testes*`, com limpeza do cache
+    a cada publicação.
+- **Para voltar:**
+  - site: `.env.bak-20261025-site8` (imagem `…-1240-site7`);
+  - `www`: `~/audita/proxy/audita.conf.bak-20261025-www`, depois `nginx -t` e reload.
