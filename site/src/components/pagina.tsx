@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MAILTO, whatsapp } from "@/content/empresa";
 import { Curva } from "./wireframe";
+import { imagemDefinitiva } from "@/lib/imagens";
 
 /**
  * Peças das páginas internas (briefing, seção 9 "Páginas internas"): hero menor com foto e curva verde na base,
@@ -25,13 +26,16 @@ export function HeroInterno({
   traco?: string;
   children?: React.ReactNode;
 }) {
+  const definitiva = foto.src ? undefined : imagemDefinitiva(foto.codigo);
+  const fundo = foto.src ?? definitiva;
   return (
     <section className="hero hero--interna" aria-labelledby={id}>
-      {foto.src ? (
+      {fundo ? (
         <div className="hero__foto" aria-hidden="true" style={{ padding: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
-          <img src={foto.src} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-          <span style={{ position: "absolute", inset: 0, background: "rgba(3, 27, 53, 0.92)" }} />
+          <img src={fundo} alt="" fetchPriority={definitiva ? "high" : "low"} decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: definitiva ? "center" : "top" }} />
+          {/* Tela de sistema ao fundo: quase toda coberta; foto definitiva: camada navy do guia (photo-overlay) */}
+          <span style={{ position: "absolute", inset: 0, background: definitiva ? "var(--photo-overlay)" : "rgba(3, 27, 53, 0.92)" }} />
         </div>
       ) : (
         <div className="hero__foto" aria-hidden="true">

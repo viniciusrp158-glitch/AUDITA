@@ -9,6 +9,7 @@ import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
 export const metadata: Metadata = {
   title: "Contato",
   description: "Fale com a AUDITA pelo WhatsApp (15) 99689-1049 ou pelo e-mail engenharia.audita@outlook.com. Sorocaba/SP.",
+  alternates: { canonical: "/contato/" },
 };
 
 const MAPA = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Rua Oswaldo de Barros, 219, Sorocaba - SP, 18079-026")}`;

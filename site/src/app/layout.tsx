@@ -3,11 +3,13 @@ import { Inter, Montserrat } from "next/font/google";
 import { Animacoes } from "@/components/animacoes";
 import { Flutuantes } from "@/components/flutuantes";
 import { VLibras } from "@/components/vlibras";
-import { EMPRESA } from "@/content/empresa";
+import { EMPRESA, REDES_SOCIAIS, REDES_SOCIAIS_PUBLICADAS } from "@/content/empresa";
 import "./globals.css";
 
-const display = Montserrat({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display", display: "swap" });
-const body = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body", display: "swap" });
+// "optional" nas duas fontes: só entram se chegarem a tempo (vêm pré-carregadas). Sem troca tardia, o texto não
+// muda depois de aparecer: nada pula (CLS) e o LCP não é recontado (Lighthouse).
+const display = Montserrat({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display", display: "optional" });
+const body = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-body", display: "optional" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://audita.seg.br"),
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
   description: "Soluções em Segurança, Saúde, Meio Ambiente e Sistemas de Gestão para pequenas e médias empresas.",
   // Prévia: fora dos buscadores até a publicação autorizada pelo Vinicius (briefing, Etapa 7)
   robots: { index: false, follow: false },
+  openGraph: { type: "website", locale: "pt_BR", siteName: "AUDITA | SSMA & SGI" },
 };
 
 /** Dados estruturados (briefing 10.6): Organization + LocalBusiness com os dados oficiais. */
@@ -37,6 +40,7 @@ const DADOS_ESTRUTURADOS = {
     addressCountry: "BR",
   },
   areaServed: "Estado de São Paulo",
+  ...(REDES_SOCIAIS_PUBLICADAS ? { sameAs: REDES_SOCIAIS.filter((r) => r.url).map((r) => r.url) } : {}),
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };

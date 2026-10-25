@@ -9,6 +9,7 @@ import { HUB } from "@/content/plataformas";
 export const metadata: Metadata = {
   title: "Audita HUB",
   description: "Audita HUB, uma solução AUDITA: trabalhadores, EPIs, inspeções, ações, documentos, CIPA, emergências, capacitações e meio ambiente em um só lugar.",
+  alternates: { canonical: "/audita-hub/" },
 };
 
 /** O HUB ainda não foi liberado comercialmente (nota 2 do material): a chamada é "Solicitar demonstração", sem preço. */

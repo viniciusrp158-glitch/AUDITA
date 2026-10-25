@@ -1190,3 +1190,43 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - sem barra final, 301 para `https://audita.seg.br/.../`.
 - **Para voltar:** `.env.bak-20261025-site5` (imagem `…-1921-site4b`). Imagens antigas do site apagadas: `…-site3` e
   `…-site4`.
+
+## S6 — Site institucional: fechamento das Etapas 5, 6 e 7 (menos a trava dos buscadores) (25/10/2026)
+
+- **Pedido do Diretor (via Leandro):** terminar todas as etapas sem esperar. Imagens definitivas e redes sociais entram
+  depois; a trava dos buscadores continua.
+- **Etapa 5 (conteúdo):**
+  - **Cursos:** a vitrine em `/treinamentos/cursos` tem só o L01 à venda, igual ao site.
+  - **Imagens definitivas:** basta colocar o arquivo em `site/public/images/site/` com o código no nome (`img-02…`,
+    `img-01m…`, `capa-l01…`, vídeo `img-01.mp4`). O `next.config.ts` monta a lista no build e o espaço marcado vira a
+    foto, com camada escura onde há texto por cima (hero, páginas internas, rodapé, "O que resolvemos" e véu claro em
+    MVV). Testado com arquivos temporários: com o arquivo a foto entra, sem ele volta o espaço marcado.
+  - **Vídeo do hero:** não toca com "reduzir movimento" nem em conexão lenta ou economia de dados.
+  - **Redes sociais:** `REDES_SOCIAIS` com as URLs vazias e a chave desligada; quando ligadas, entram no rodapé e nos dados
+    estruturados.
+  - **Guia:** `docs/SITE-CONTEUDO.md`.
+- **Etapa 6 (qualidade):**
+  - **Lighthouse 12.6 no celular**, 9 páginas, servidor local com gzip como o nginx de produção:
+    - desempenho de 90 a 97;
+    - acessibilidade 100;
+    - boas práticas 96, por causa da imagem do VLibras (gov.br, terceiro);
+    - SEO 69, só pela trava `noindex`; sem ela, nenhum item de SEO falha.
+  - **Correções feitas:**
+    - contraste: kicker sobre fundo provisório e texto cinza sobre cinza (agora navy-2);
+    - área de toque das bolinhas do carrossel: 24 px;
+    - deslocamento na home (CLS 0,14 para 0): cards do topo alinhados em cima e fontes `optional` pré-carregadas;
+    - LCP recontado pela troca de fonte;
+    - imagem de fundo das páginas PRO/HUB com prioridade baixa.
+  - **Medições com o PC carregado** (CPU em 73%) variaram muito: foram repetidas até estabilizar.
+  - **Links:** 15 páginas, 64 links internos e 50 externos distintos, todos funcionando (WhatsApp com o número oficial,
+    e-mail oficial, logins do PRO e do HUB, Google Maps, ANPD, `/treinamentos`).
+  - **Testes:** `playwright.site.config.ts` agora roda em computador, Android (Pixel 7) e iPhone 13 (emulado no
+    Chromium; o WebKit não está instalado): **39/39**.
+- **Etapa 7 (publicação, exceto a trava):**
+  - endereço canônico em todas as páginas e imagem de compartilhamento (Open Graph);
+  - favicon e ícone da Apple a partir da folha do logo oficial, sobre o azul-marinho, a validar pelo Diretor;
+  - `www.audita.seg.br` redireciona para `audita.seg.br` no proxy;
+  - DNS e HTTPS já estavam no ar desde a Etapa 2;
+  - `/treinamentos` continua servido pela plataforma;
+  - fica para a autorização: tirar `noindex` e `robots.txt` e cadastrar no Search Console (passo a passo em
+    `docs/SITE-CONTEUDO.md`, seção 4).

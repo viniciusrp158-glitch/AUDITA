@@ -1,6 +1,7 @@
-import { EMPRESA, MAILTO, REDES_SOCIAIS_PUBLICADAS, whatsapp } from "@/content/empresa";
+import { EMPRESA, MAILTO, REDES_SOCIAIS, REDES_SOCIAIS_PUBLICADAS, whatsapp } from "@/content/empresa";
 import Link from "next/link";
 import { MENU } from "@/content/navegacao";
+import { imagemDefinitiva } from "@/lib/imagens";
 import { Foto, Logo, Tag } from "./wireframe";
 
 /** Rodapé (seção 14): dados oficiais, links, endosso dos produtos e o diagrama do ecossistema AUDITA. */
@@ -10,6 +11,7 @@ export function Rodape() {
     <footer className="rodape">
       <Tag>14 · Rodapé</Tag>
       <Foto codigo="IMG-19" descricao="foto aérea de área industrial com vegetação, escurecida" className="foto--escura" style={{ position: "absolute", inset: 0, background: "var(--navy)", color: "rgba(255,255,255,0.45)", alignItems: "flex-end", justifyContent: "flex-start", padding: "16px 24px", flexDirection: "row" }} />
+      {imagemDefinitiva("IMG-19") ? <span aria-hidden="true" style={{ position: "absolute", inset: 0, background: "rgba(3, 27, 53, 0.85)" }} /> : null}
       <div className="container rodape__grade">
         <div>
           <Logo nome="audita-negativa" />
@@ -58,7 +60,15 @@ export function Rodape() {
         <span>© {EMPRESA.assinatura} · CNPJ {EMPRESA.cnpj}</span>
         <Link href="/privacidade/">Política de privacidade</Link>
         <Link href="/contato/">Contato</Link>
-        {REDES_SOCIAIS_PUBLICADAS ? <span>Redes sociais</span> : null}
+        {REDES_SOCIAIS_PUBLICADAS ? (
+          <span style={{ marginLeft: "auto", display: "flex", flexWrap: "wrap", gap: 8 }} aria-label="Redes sociais">
+            {REDES_SOCIAIS.filter((r) => r.url).map((r) => (
+              <a key={r.nome} href={r.url} target="_blank" rel="noopener" className="externo" style={{ border: "1px solid rgba(255,255,255,0.4)", borderRadius: 999, padding: "4px 12px", textDecoration: "none" }}>
+                {r.nome}
+              </a>
+            ))}
+          </span>
+        ) : null}
       </div>
     </footer>
   );

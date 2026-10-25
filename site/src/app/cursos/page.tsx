@@ -11,6 +11,7 @@ import { EMPRESA } from "@/content/empresa";
 export const metadata: Metadata = {
   title: "Cursos EAD",
   description: "Cursos livres de capacitação da AUDITA, EAD e com certificado de conclusão. Compra e acesso na plataforma de treinamentos.",
+  alternates: { canonical: "/cursos/" },
 };
 
 /** /cursos: vitrine dos cursos publicados, com filtro por área, e links para a plataforma em /treinamentos. */

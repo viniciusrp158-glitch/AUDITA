@@ -226,3 +226,23 @@ test("PRO e HUB: conteúdo do material dos sistemas e telas reais", async ({ pag
   expect(plataformas).not.toMatch(/por assinatura|treinamento/i);
   await expect(page.locator("#plataformas").getByRole("link", { name: "Solicitar demonstração" })).toHaveCount(1);
 });
+
+test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes escondidas e toque", async ({ page, request }) => {
+  await page.goto("/audita-hub/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://audita.seg.br/audita-hub/");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /opengraph-image\.png/);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  for (const arquivo of ["/favicon.ico", "/icon.png", "/apple-icon.png", "/opengraph-image.png"]) {
+    expect((await request.get(arquivo)).status(), arquivo).toBe(200);
+  }
+  expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /");
+  // Redes sociais só entram quando o Diretor confirmar os perfis
+  await expect(page.locator('footer [aria-label="Redes sociais"]')).toHaveCount(0);
+  // Bolinhas do carrossel com área de toque de pelo menos 24 px
+  await page.goto("/");
+  const ponto = page.locator(".ponto").first();
+  await ponto.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  const caixa = await ponto.boundingBox();
+  expect(caixa?.width).toBeGreaterThanOrEqual(24);
+  expect(caixa?.height).toBeGreaterThanOrEqual(24);
+});

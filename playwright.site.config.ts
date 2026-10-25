@@ -16,6 +16,8 @@ export default defineConfig({
   projects: [
     { name: "computador", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, launchOptions } },
     { name: "celular", use: { ...devices["Pixel 7"], launchOptions } },
+    // iPhone emulado no Chromium (tela, toque e user agent do iPhone 13); o motor do Safari (WebKit) não está instalado
+    { name: "iphone", use: { ...devices["iPhone 13"], defaultBrowserType: "chromium", launchOptions } },
   ],
   webServer: {
     command: `python -m http.server ${PORT} --bind 127.0.0.1 --directory site/out`,

@@ -9,6 +9,7 @@ import { PRO } from "@/content/plataformas";
 export const metadata: Metadata = {
   title: "Audita PRO",
   description: "Audita PRO, uma solução AUDITA: planejamento, execução e relatórios de auditorias de SSMA e SGI, com acompanhamento da empresa em tempo real.",
+  alternates: { canonical: "/audita-pro/" },
 };
 
 export default function AuditaPro() {

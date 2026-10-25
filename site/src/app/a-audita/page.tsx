@@ -9,6 +9,7 @@ import { DIFERENCIAIS, MISSAO, NECESSIDADES, PASSOS, PROPOSITO, PUBLICO, QUEM_SO
 export const metadata: Metadata = {
   title: "A AUDITA",
   description: "Quem somos, propósito, missão, visão, valores e como a AUDITA trabalha com pequenas e médias empresas.",
+  alternates: { canonical: "/a-audita/" },
 };
 
 /** /a-audita: quem somos, propósito, missão, visão, valores, por que a AUDITA e como trabalhamos (briefing, seção 8). */

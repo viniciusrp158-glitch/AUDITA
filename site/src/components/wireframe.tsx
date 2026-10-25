@@ -1,4 +1,5 @@
 import { ImageIcon } from "lucide-react";
+import { imagemDefinitiva } from "@/lib/imagens";
 
 /**
  * Peças de apoio da prévia: rótulo de seção (só no wireframe da Etapa 2), imagem provisória com o código IMG-xx do
@@ -16,6 +17,13 @@ export function Tag({ children }: { children: React.ReactNode }) {
 }
 
 export function Foto({ codigo, descricao, className = "", style }: { codigo: string; descricao: string; className?: string; style?: React.CSSProperties }) {
+  const src = imagemDefinitiva(codigo);
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- site estático (export)
+      <img className={`foto ${className}`} src={src} alt={descricao} loading="lazy" style={{ ...style, padding: 0, objectFit: "cover", width: "100%" }} />
+    );
+  }
   return (
     <div className={`foto ${className}`} style={style} role="img" aria-label={`Imagem provisória ${codigo}: ${descricao}`}>
       <ImageIcon aria-hidden="true" />

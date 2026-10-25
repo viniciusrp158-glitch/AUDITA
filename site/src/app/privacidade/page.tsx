@@ -7,6 +7,7 @@ import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
 export const metadata: Metadata = {
   title: "Política de privacidade",
   description: "Como o site da AUDITA trata dados pessoais, conforme a LGPD.",
+  alternates: { canonical: "/privacidade/" },
 };
 
 /**

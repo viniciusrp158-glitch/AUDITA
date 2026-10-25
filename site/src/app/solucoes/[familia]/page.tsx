@@ -17,7 +17,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ familia: string }> }): Promise<Metadata> {
   const f = buscarFamilia((await params).familia);
-  return f ? { title: f.nome, description: f.resumo } : {};
+  return f ? { title: f.nome, description: f.resumo, alternates: { canonical: `/solucoes/${f.slug}/` } } : {};
 }
 
 export default async function PaginaFamilia({ params }: { params: Promise<{ familia: string }> }) {
@@ -79,7 +79,7 @@ export default async function PaginaFamilia({ params }: { params: Promise<{ fami
                 <a className="btn btn--escuro btn--bloco" href={whatsapp(`Olá! Quero uma proposta de ${f.nome}.`)} target="_blank" rel="noopener">Solicitar proposta</a>
               </div>
             </div>
-            <Foto codigo="IMG-2x" descricao={`foto de apoio: ${f.pilar.toLowerCase()}`} className="foto--redonda" style={{ height: 320 }} />
+            <Foto codigo={{ "Segurança e Saúde do Trabalho": "IMG-03", "Meio Ambiente": "IMG-04", "Sistemas de Gestão (SGI)": "IMG-05" }[f.pilar]} descricao={{ "Segurança e Saúde do Trabalho": "inspeção de campo com EPI", "Meio Ambiente": "coleta seletiva ou resíduos em ambiente industrial", "Sistemas de Gestão (SGI)": "auditoria com checklist e documentos" }[f.pilar]} className="foto--redonda" style={{ height: 320 }} />
           </div>
         </section>
 

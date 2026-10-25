@@ -18,13 +18,18 @@ import {
   Smile,
   Users,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Cabecalho } from "@/components/cabecalho";
+import { HeroMidia } from "@/components/hero-midia";
 import { Resolvemos } from "@/components/resolvemos";
 import { Rodape } from "@/components/rodape";
 import { Curva, Foto, Logo } from "@/components/wireframe";
 import { AVISO_CURSO_LIVRE, cursosPublicados } from "@/content/cursos";
 import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
+import { imagemDefinitiva } from "@/lib/imagens";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 /** Home: seções 1 a 15 do briefing (seção 9), na ordem. Textos da seção 4 (AUDDOC002). */
 
@@ -88,10 +93,7 @@ export default function Home() {
       <main>
         {/* 3 Hero (1 Barra e 2 Header ficam no Cabecalho) */}
         <section className="hero" aria-labelledby="hero-titulo">
-          <div className="hero__foto" aria-hidden="true">
-            <span style={{ fontWeight: 700 }}>IMG-01 · imagem provisória</span>
-            <span>vídeo de 10 a 15 s em loop, mudo: profissional de capacete conferindo um tablet (no celular, IMG-01m vertical)</span>
-          </div>
+          <HeroMidia />
           <div className="container hero__conteudo">
             <div>
               <p className="kicker">SSMA &amp; SGI</p>
@@ -285,7 +287,9 @@ export default function Home() {
 
         {/* 12 Missão, visão e valores */}
         <section id="missao-visao-valores" className="secao" style={{ background: "var(--gray-bg)" }} aria-labelledby="mvv-titulo">
-          <Foto codigo="IMG-17" descricao="paisagem com indústria e vegetação, fundo suave" style={{ position: "absolute", inset: 0, background: "#e8eef2", alignItems: "flex-end", justifyContent: "flex-start", flexDirection: "row", padding: "20px 24px" }} />
+          <Foto codigo="IMG-17" descricao="paisagem com indústria e vegetação, fundo suave" style={{ position: "absolute", inset: 0, height: "100%", background: "var(--gray-bg)", alignItems: "flex-end", justifyContent: "flex-start", flexDirection: "row", padding: "20px 24px" }} />
+          {/* Véu claro sobre a foto de fundo: mantém o contraste do kicker e dos títulos */}
+          {imagemDefinitiva("IMG-17") ? <span aria-hidden="true" style={{ position: "absolute", inset: 0, background: "rgba(243, 244, 246, 0.86)" }} /> : null}
           <div className="container" style={{ position: "relative" }}>
             <p className="kicker">Identidade</p>
             <h2 id="mvv-titulo" className="t2">Missão, visão e valores</h2>
