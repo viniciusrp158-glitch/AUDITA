@@ -6,6 +6,7 @@ import { ChevronDown, Menu, MessageCircle, X } from "lucide-react";
 import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
 import { MENU } from "@/content/navegacao";
 import { Logo } from "./wireframe";
+import { EmailTexto } from "./email";
 
 /**
  * Barra superior + header. No topo fica transparente sobre a foto do hero (logo negativo); ao rolar vira branco e
@@ -60,7 +61,7 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
               <MessageCircle aria-hidden="true" size={16} /> WhatsApp {EMPRESA.telefone}
             </a>
             <a className="topo__email" href={MAILTO}>
-              {EMPRESA.email}
+              <EmailTexto />
             </a>
             <span className="topo__dir">
               <a href={EMPRESA.proLogin} target="_blank" rel="noopener" className="externo">

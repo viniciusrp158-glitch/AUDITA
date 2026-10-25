@@ -5,10 +5,11 @@ import { HeroInterno } from "@/components/pagina";
 import { Rodape } from "@/components/rodape";
 import { Foto } from "@/components/wireframe";
 import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
+import { EmailTexto } from "@/components/email";
 
 export const metadata: Metadata = {
   title: "Contato",
-  description: "Fale com a AUDITA pelo WhatsApp (15) 99689-1049 ou pelo e-mail engenharia.audita@outlook.com. Sorocaba/SP.",
+  description: "Fale com a AUDITA pelo WhatsApp (15) 99689-1049 ou por e-mail. Sorocaba/SP.",
   alternates: { canonical: "/contato/" },
 };
 
@@ -47,7 +48,7 @@ export default function Contato() {
                 <span className="losango" aria-hidden="true"><Mail /></span>
                 <span style={{ minWidth: 0 }}>
                   <span className="t3" style={{ display: "block" }}>E-mail</span>
-                  <span style={{ fontSize: 17, overflowWrap: "anywhere" }}>{EMPRESA.email}</span>
+                  <span style={{ fontSize: 17, overflowWrap: "anywhere" }}><EmailTexto /></span>
                 </span>
               </a>
               <a className="card com-losango" href={MAPA} target="_blank" rel="noopener" style={{ textDecoration: "none", padding: 24, display: "flex", gap: 20, alignItems: "center" }}>

@@ -28,6 +28,7 @@ import { Curva, Foto, Logo } from "@/components/wireframe";
 import { AVISO_CURSO_LIVRE, cursosPublicados } from "@/content/cursos";
 import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
 import { imagemDefinitiva } from "@/lib/imagens";
+import { EmailTexto } from "@/components/email";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -315,7 +316,7 @@ export default function Home() {
               <h2 id="contato-titulo" className="t2">Vamos organizar a segurança da sua empresa?</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 28, maxWidth: 440 }}>
                 <a className="btn btn--principal btn--grande" href={whatsapp()} target="_blank" rel="noopener">WhatsApp {EMPRESA.telefone}</a>
-                <a className="btn btn--contorno btn--grande" href={MAILTO}>{EMPRESA.email}</a>
+                <a className="btn btn--contorno btn--grande" href={MAILTO}><EmailTexto /></a>
               </div>
               <p className="mutado" style={{ margin: "20px 0 0", fontSize: 14, display: "flex", gap: 8 }}>
                 <MapPin aria-hidden="true" size={18} style={{ flex: "none", marginTop: 2, color: "var(--green-text)" }} />

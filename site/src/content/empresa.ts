@@ -30,4 +30,9 @@ export function whatsapp(mensagem = "Olá! Quero falar com a AUDITA."): string {
   return `https://wa.me/${EMPRESA.whatsapp}?text=${encodeURIComponent(mensagem)}`;
 }
 
-export const MAILTO = `mailto:${EMPRESA.email}`;
+/**
+ * A Cloudflare do domínio tem a "proteção de e-mail" ligada: ela reescreve endereços que encontra no HTML e injeta um
+ * script que segura a primeira pintura (~0,5 s). O @ como %40 no link (RFC 6068) e o texto quebrado por <wbr> em
+ * EmailTexto evitam a reescrita; o visitante vê e usa o endereço normalmente.
+ */
+export const MAILTO = `mailto:${EMPRESA.email.replace("@", "%40")}`;

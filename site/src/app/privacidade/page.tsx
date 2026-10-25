@@ -3,6 +3,7 @@ import { Cabecalho } from "@/components/cabecalho";
 import { HeroInterno } from "@/components/pagina";
 import { Rodape } from "@/components/rodape";
 import { EMPRESA, MAILTO, whatsapp } from "@/content/empresa";
+import { EmailTexto } from "@/components/email";
 
 export const metadata: Metadata = {
   title: "Política de privacidade",
@@ -33,7 +34,7 @@ export default function Privacidade() {
             <h2>1. Quem é o responsável pelos dados</h2>
             <p>
               O controlador dos dados pessoais tratados neste site é a {EMPRESA.assinatura}, CNPJ {EMPRESA.cnpj}, com endereço na {EMPRESA.endereco}.
-              Para assuntos de privacidade, fale pelo e-mail <a href={MAILTO}>{EMPRESA.email}</a>, com o assunto &quot;Privacidade&quot;, ou pelo{" "}
+              Para assuntos de privacidade, fale pelo e-mail <a href={MAILTO}><EmailTexto /></a>, com o assunto &quot;Privacidade&quot;, ou pelo{" "}
               <a href={whatsapp("Olá! Tenho uma dúvida sobre privacidade.")} target="_blank" rel="noopener">WhatsApp {EMPRESA.telefone}</a>.
             </p>
 

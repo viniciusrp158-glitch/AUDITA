@@ -53,7 +53,7 @@ Em `site/src/content/empresa.ts`: preencha a `url` de cada perfil oficial em `RE
 
 1. `site/public/robots.txt`: trocar `Disallow: /` por `Allow: /` e acrescentar `Sitemap: https://audita.seg.br/sitemap.xml`.
 2. `site/src/app/layout.tsx`: trocar `robots: { index: false, follow: false }` por `robots: { index: true, follow: true }`.
-3. `deploy/vps/site/nginx.conf`: apagar as três linhas `add_header X-Robots-Tag "noindex, nofollow" always;`.
+3. `deploy/vps/site/nginx.conf`: apagar todas as linhas `add_header X-Robots-Tag "noindex, nofollow" always;`.
 4. Tirar a faixa "Prévia do site em construção" em `site/src/components/cabecalho.tsx`.
 5. Publicar. Depois, cadastrar `https://audita.seg.br` no Google Search Console (verificação por registro TXT na
    Cloudflare) e enviar o `sitemap.xml`.

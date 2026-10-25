@@ -159,7 +159,7 @@ test("Etapa 4: conteúdo obrigatório de cada página", async ({ page }) => {
   await expect(page.getByText("A consultoria é um serviço separado.")).toBeVisible();
   await expect(page.getByText("não assume a responsabilidade técnica")).toBeVisible();
   await page.goto("/contato/");
-  await expect(page.locator('main a[href="mailto:engenharia.audita@outlook.com"]')).toHaveCount(1);
+  await expect(page.locator('main a[href="mailto:engenharia.audita%40outlook.com"]')).toHaveCount(1);
   await expect(page.locator('a[href*="google.com/maps"]')).toHaveAttribute("target", "_blank");
   await page.goto("/privacidade/");
   await expect(page.getByText("não tem formulário, não cria contas")).toBeVisible();

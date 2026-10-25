@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MENU } from "@/content/navegacao";
 import { imagemDefinitiva } from "@/lib/imagens";
 import { Foto, Logo, Tag } from "./wireframe";
+import { EmailTexto } from "./email";
 
 /** Rodapé (seção 14): dados oficiais, links, endosso dos produtos e o diagrama do ecossistema AUDITA. */
 export function Rodape() {
@@ -19,7 +20,7 @@ export function Rodape() {
           <address style={{ fontStyle: "normal", margin: "16px 0 0", fontSize: 14, lineHeight: 1.7, color: "#e6e6e6" }}>
             <a href={whatsapp()} target="_blank" rel="noopener">WhatsApp {EMPRESA.telefone}</a>
             <br />
-            <a href={MAILTO}>{EMPRESA.email}</a>
+            <a href={MAILTO}><EmailTexto /></a>
             <br />
             {EMPRESA.endereco}
             <br />
