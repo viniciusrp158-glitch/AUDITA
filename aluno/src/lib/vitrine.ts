@@ -46,11 +46,15 @@ export type StoreInfo = {
  * Chamada à função "vitrine" com a chave publicável: visitantes nunca leem o banco direto (a função usa a chave de
  * serviço, que só existe dentro do Supabase).
  */
-export async function vitrine<T>(acao: string, payload: Record<string, unknown> = {}): Promise<{ data?: T; error?: string }> {
+export async function vitrine<T>(
+  acao: string,
+  payload: Record<string, unknown> = {},
+  extraHeaders: Record<string, string> = {},
+): Promise<{ data?: T; error?: string }> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/vitrine`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
+      headers: { "Content-Type": "application/json", apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, ...extraHeaders },
       body: JSON.stringify({ acao, ...payload }),
       cache: "no-store",
     });
@@ -60,6 +64,19 @@ export async function vitrine<T>(acao: string, payload: Record<string, unknown> 
   } catch {
     return { error: "Não foi possível falar com o servidor. Tente de novo." };
   }
+}
+
+/**
+ * Cabeçalhos que levam à função "vitrine" o IP do comprador (limite de tentativas da compra; auditoria de segurança,
+ * 25/10/2026). A chamada sai do servidor da área do aluno; sem isto, todas as compras pareceriam vir do mesmo endereço.
+ * VITRINE_CHAVE_INTERNA (só no servidor, nunca NEXT_PUBLIC) prova à função que o IP foi informado por este servidor.
+ */
+export function buyerIpHeaders(h: Headers): Record<string, string> {
+  const ip = (h.get("cf-connecting-ip") ?? h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "").trim().slice(0, 100);
+  const out: Record<string, string> = {};
+  if (ip) out["x-audita-ip-cliente"] = ip;
+  if (process.env.VITRINE_CHAVE_INTERNA) out["x-audita-vitrine-chave"] = process.env.VITRINE_CHAVE_INTERNA;
+  return out;
 }
 
 export const storeInfo = cache(async () => (await vitrine<StoreInfo>("loja")).data ?? null);

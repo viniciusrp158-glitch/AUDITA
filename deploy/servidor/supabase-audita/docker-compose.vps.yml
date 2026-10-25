@@ -37,6 +37,10 @@ services:
     container_name: audita-meta
   functions:
     container_name: audita-functions
+    environment:
+      # Chave interna área do aluno → função "vitrine" (IP do comprador no limite de tentativas; auditoria 25/10/2026).
+      # O mesmo valor vai em web.env (container audita-aluno). Vazia: o IP informado pela área do aluno é aceito como está.
+      VITRINE_CHAVE_INTERNA: ${VITRINE_CHAVE_INTERNA:-}
   db:
     container_name: audita-db
   supavisor:

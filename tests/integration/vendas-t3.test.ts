@@ -143,6 +143,7 @@ describe("T3 — vitrine e vendas (PGlite)", () => {
       expect((await one<{ r: { status: string; fulfill: boolean; email: string } }>(`select audita.training_order_apply_payment($1, $2) r`, [order.order_id, pay("approved")])).r).toEqual({
         status: "aprovado",
         fulfill: true,
+        manual_refund: false,
         email: "comprador@exemplo.test",
         name: "[TESTE] Comprador Fictício",
       });

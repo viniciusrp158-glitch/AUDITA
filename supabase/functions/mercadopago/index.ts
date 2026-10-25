@@ -76,7 +76,13 @@ Deno.serve(async (req) => {
     console.error("apply_payment", applied.error.message);
     return new Response("Pedido não conferido.", { status: applied.error.code === "P0002" ? 200 : 422 });
   }
-  const r = applied.data as { status: string; fulfill: boolean; email: string; name: string };
+  const r = applied.data as { status: string; fulfill: boolean; manual_refund?: boolean; email: string; name: string };
+  // Pago, mas sem liberação automática (pedido vencido, venda fechada, preço mudou ou e-mail com matrícula em aberto):
+  // o pedido fica marcado para reembolso manual na tela de vendas; nenhuma conta é criada
+  if (r.manual_refund) {
+    console.warn("mercadopago: pedido pago marcado para reembolso manual", JSON.stringify({ orderId }));
+    return ok("reembolso manual");
+  }
   if (!r.fulfill) return ok(r.status);
 
   // Conta do aluno: convite para criar a senha; se a conta já existe, só pega o id
@@ -93,6 +99,10 @@ Deno.serve(async (req) => {
   if (done.error) {
     console.error("fulfill", done.error.message);
     return new Response("Não foi possível liberar o acesso.", { status: 500 });
+  }
+  if ((done.data as { manual_refund?: boolean } | null)?.manual_refund) {
+    console.warn("mercadopago: liberação recusada, pedido marcado para reembolso manual", JSON.stringify({ orderId }));
+    return ok("reembolso manual");
   }
   return ok("aprovado");
 });

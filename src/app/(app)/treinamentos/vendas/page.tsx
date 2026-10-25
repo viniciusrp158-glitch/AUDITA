@@ -38,6 +38,7 @@ type Order = {
   enrollment_id: string | null;
   course_id: string;
   marketing_opt_in: boolean;
+  manual_refund_reason: string | null;
 };
 
 const STATUS: Record<Order["status"], { label: string; cls: string }> = {
@@ -61,7 +62,7 @@ export default async function VendasPage() {
       .maybeSingle(),
     supabase
       .from("training_orders")
-      .select("id, created_at, course_code, buyer_name, buyer_email, amount, status, mp_payment_id, mp_payment_method, enrollment_id, course_id, marketing_opt_in")
+      .select("id, created_at, course_code, buyer_name, buyer_email, amount, status, mp_payment_id, mp_payment_method, enrollment_id, course_id, marketing_opt_in, manual_refund_reason")
       .order("created_at", { ascending: false })
       .limit(200),
     supabase.from("training_courses").select("course_code").eq("on_sale", true).eq("status", "ativo"),
@@ -184,6 +185,12 @@ export default async function VendasPage() {
                   <Link href={`/treinamentos/${o.course_id}?aba=alunos`} className="text-xs font-semibold text-navy hover:underline">
                     Ver aluno
                   </Link>
+                )}
+                {o.manual_refund_reason && o.status === "aprovado" && (
+                  <span className="basis-full rounded-md border border-warn/40 bg-warn/5 px-2 py-1 text-xs text-ink" data-testid="manual-refund">
+                    <strong className="text-warn">Reembolso manual:</strong> {o.manual_refund_reason} Devolva o valor no Mercado Pago; nenhuma matrícula foi
+                    liberada por este pedido.
+                  </span>
                 )}
               </li>
             ))}
