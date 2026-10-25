@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isUuid } from "@/lib/curso";
+import { fileResponseHeaders } from "@/lib/arquivo";
 import { createClient } from "@/lib/supabase/server";
 
 const BUCKET = "audita-treinamentos";
 
 /**
  * Entrega um material do aluno (apostila ou ficha técnica) pelo próprio site, com a sessão do aluno: a RLS só mostra
- * arquivos do público "aluno" das versões em que ele está matriculado, e a apostila só sai se o módulo estiver liberado.
- * ?baixar=1 → download; sem o parâmetro → exibição (leitor da apostila).
+ * arquivos do público "aluno" das versões em que ele está matriculado, e a apostila só sai se o módulo estiver liberado
+ * (conferido também pela política do armazenamento).
+ * ?baixar=1 → download; sem o parâmetro → exibição (leitor da apostila), só para PDF e imagem (fileResponseHeaders).
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ arquivo: string }> }) {
   const { arquivo } = await params;
@@ -21,7 +23,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .maybeSingle();
   if (!f) return new NextResponse("Arquivo não encontrado.", { status: 404 });
   if (f.module_id) {
-    const { data: enr } = await supabase.from("training_enrollments").select("id").eq("version_id", f.version_id).in("status", ["ativa", "concluida"]);
+    const { data: enr } = await supabase
+      .from("training_enrollments")
+      .select("id")
+      .eq("version_id", f.version_id)
+      .in("status", ["ativa", "concluida"])
+      .is("access_revoked_at", null);
     let unlocked = false;
     for (const e of enr ?? []) {
       const { data: outline } = await supabase.rpc("training_outline", { p_enrollment_id: e.id });
@@ -32,13 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { data: blob, error } = await supabase.storage.from(BUCKET).download(f.storage_path);
   if (error || !blob) return new NextResponse("Não foi possível abrir o arquivo.", { status: 502 });
   const download = request.nextUrl.searchParams.get("baixar") === "1";
-  const name = encodeURIComponent(f.original_name);
   return new NextResponse(blob.stream(), {
-    headers: {
-      "Content-Type": f.mime_type || "application/pdf",
-      "Content-Length": String(blob.size),
-      "Content-Disposition": `${download ? "attachment" : "inline"}; filename*=UTF-8''${name}`,
-      "Cache-Control": "private, no-store",
-    },
+    headers: { ...fileResponseHeaders(f.mime_type, f.original_name, download), "Content-Length": String(blob.size) },
   });
 }

@@ -10,6 +10,7 @@ type Row = {
   id: string;
   status: "ativa" | "suspensa" | "cancelada" | "concluida";
   access_until: string | null;
+  access_revoked_at: string | null;
   version_id: string;
   training_courses: { course_code: string; title: string } | null;
   training_versions: { title: string; workload_minutes: number | null } | null;
@@ -44,7 +45,7 @@ export default async function MeusCursosPage({ searchParams }: { searchParams: P
   const supabase = await createClient();
   const { data } = await supabase
     .from("training_enrollments")
-    .select("id, status, access_until, version_id, training_courses(course_code, title), training_versions(title, workload_minutes)")
+    .select("id, status, access_until, access_revoked_at, version_id, training_courses(course_code, title), training_versions(title, workload_minutes)")
     .order("created_at", { ascending: false });
   const rows = (data ?? []) as unknown as Row[];
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
@@ -66,8 +67,19 @@ export default async function MeusCursosPage({ searchParams }: { searchParams: P
           <ul className="mt-6 grid gap-4 md:grid-cols-2" data-testid="my-courses">
             {rows.map((r) => {
               const expired = r.access_until !== null && r.access_until < today;
-              const blocked = r.status === "suspensa" || r.status === "cancelada" || expired;
-              const label = r.status === "suspensa" ? "Acesso suspenso" : r.status === "cancelada" ? "Matrícula cancelada" : expired ? "Prazo de acesso encerrado" : r.status === "concluida" ? "Concluído" : "Em andamento";
+              const revoked = r.access_revoked_at !== null;
+              const blocked = r.status === "suspensa" || r.status === "cancelada" || expired || revoked;
+              const label = revoked
+                ? "Acesso encerrado (compra reembolsada)"
+                : r.status === "suspensa"
+                  ? "Acesso suspenso"
+                  : r.status === "cancelada"
+                    ? "Matrícula cancelada"
+                    : expired
+                      ? "Prazo de acesso encerrado"
+                      : r.status === "concluida"
+                        ? "Concluído"
+                        : "Em andamento";
               return (
                 <li key={r.id} className={`flex flex-col gap-3 rounded-xl border border-line bg-white p-5 ${blocked ? "opacity-70" : ""}`}>
                   <div className="flex items-center gap-2">

@@ -60,6 +60,7 @@ type EnrollmentRow = {
   id: string;
   status: CourseData["status"];
   access_until: string | null;
+  access_revoked_at: string | null;
   starts_on: string;
   version_id: string;
   training_courses: { course_code: string; title: string } | null;
@@ -80,7 +81,7 @@ export const loadCourse = cache(async (enrollmentId: string): Promise<CourseData
   const { data } = await supabase
     .from("training_enrollments")
     .select(
-      "id, status, access_until, starts_on, version_id, training_courses(course_code, title), training_versions(title, version_label, workload_minutes, instructor_name, modality, important_notice)",
+      "id, status, access_until, access_revoked_at, starts_on, version_id, training_courses(course_code, title), training_versions(title, version_label, workload_minutes, instructor_name, modality, important_notice)",
     )
     .eq("id", enrollmentId)
     .maybeSingle();
@@ -89,7 +90,9 @@ export const loadCourse = cache(async (enrollmentId: string): Promise<CourseData
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
   const expired = e.access_until !== null && e.access_until < today;
   const blockedReason =
-    e.status === "suspensa"
+    e.access_revoked_at !== null
+      ? "O acesso a este curso foi encerrado porque a compra foi reembolsada ou estornada."
+      : e.status === "suspensa"
       ? "Seu acesso a este curso está suspenso. Fale com a AUDITA para reativar."
       : e.status === "cancelada"
         ? "Esta matrícula foi cancelada."

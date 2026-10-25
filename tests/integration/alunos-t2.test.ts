@@ -20,6 +20,7 @@ describe("T2 — alunos e matrículas (PGlite)", () => {
   let student = "";
   let other = "";
   const apostila = { path: "", id: "" };
+  const apostila1 = { path: "", id: "" };
   const roteiro = { path: "", id: "" };
   const err = async (p: Promise<unknown>) => {
     try {
@@ -66,6 +67,7 @@ describe("T2 — alunos e matrículas (PGlite)", () => {
     for (const m of mods) {
       const f = await addFile(m.id, "apostila", `apostila-${m.position}.pdf`);
       if (m.position === 2) Object.assign(apostila, f);
+      if (m.position === 1) Object.assign(apostila1, f);
     }
     Object.assign(roteiro, await addFile(mods[1].id, "roteiro", "roteiro-2.pdf"));
     await admin(async () => {
@@ -114,7 +116,9 @@ describe("T2 — alunos e matrículas (PGlite)", () => {
       expect(await q(`select id from audita.training_modules`)).toHaveLength(2);
       const files = await q<{ kind: string }>(`select kind from audita.training_files order by kind`);
       expect(files.every((f) => f.kind === "apostila")).toBe(true);
-      expect(await q(`select name from storage.objects where name = $1`, [apostila.path])).toHaveLength(1);
+      // Arquivo do módulo liberado (o 1º) sai; a apostila do módulo 2 só depois de concluir o módulo 1 (auditoria 25/10/2026)
+      expect(await q(`select name from storage.objects where name = $1`, [apostila1.path])).toHaveLength(1);
+      expect(await q(`select name from storage.objects where name = $1`, [apostila.path])).toHaveLength(0);
       expect(await q(`select name from storage.objects where name = $1`, [roteiro.path])).toHaveLength(0);
       // Nada da equipe, nada de escrita
       expect(await q(`select * from audita.clients`)).toHaveLength(0);
@@ -137,7 +141,7 @@ describe("T2 — alunos e matrículas (PGlite)", () => {
     await db.exec(`set session_replication_role = origin`);
     await aluno(async () => {
       expect(await q(`select id from audita.training_modules`)).toHaveLength(0);
-      expect(await q(`select name from storage.objects where name = $1`, [apostila.path])).toHaveLength(0);
+      expect(await q(`select name from storage.objects where name = $1`, [apostila1.path])).toHaveLength(0);
       expect(await q(`select id from audita.training_enrollments`)).toHaveLength(1);
     });
     await admin(async () => {
