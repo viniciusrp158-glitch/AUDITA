@@ -1181,3 +1181,12 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - as 8 etapas do PRO;
   - telas carregadas;
   - home sem "por assinatura" nem treinamentos nas plataformas.
+- **Produção (25/10/2026, 11:30):** publicada com o SIM do Leandro.
+  - imagem `audita-site:20261025-1127-site5`; só o container `audita-site` foi trocado;
+  - páginas, telas em WebP, `/empresa/login`, `/treinamentos/...` e `/email-templates/...`: 200;
+  - `/login`: 302 para `/empresa/login`;
+  - `/pagamentos/mercadopago` (GET): 403, como antes;
+  - PRO e HUB: sem mudança;
+  - sem barra final, 301 para `https://audita.seg.br/.../`.
+- **Para voltar:** `.env.bak-20261025-site5` (imagem `…-1921-site4b`). Imagens antigas do site apagadas: `…-site3` e
+  `…-site4`.
