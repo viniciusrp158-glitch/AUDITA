@@ -1148,3 +1148,36 @@ Pedido do Leandro: avançar o máximo sem ele. Vitrine e Mercado Pago aprovados 
   - imagem testada numa porta separada antes da troca;
   - agora o redirecionamento vai para `https://audita.seg.br/contato/`.
 - **Para voltar:** `.env.bak-20261024-site4` (Etapa 3, imagem `…-1715-site3`). A imagem `…-1558-site` foi apagada.
+
+## S5 — Site institucional: Audita PRO e Audita HUB com o material dos sistemas (Etapa 5) (25/10/2026)
+
+- **Material do Diretor:** `audita-pro-e-hub-para-o-site.md` (tirado do código e da documentação dos dois sistemas)
+  e 27 imagens: telas reais com dados fictícios e composições. Ficou em
+  `D:\Audita-deploy\site-institucional\pacote-pro-hub`.
+- **Decisões do Diretor:** sem razão social no rodapé de nenhuma página (o site já usava só "AUDITA | SSMA & SGI" e o
+  CNPJ) e sem página de Termos de uso por enquanto.
+- **Páginas `/audita-pro` e `/audita-hub`** (conteúdo em `site/src/content/plataformas.ts`):
+  - o que é, para quem (perfis), módulos e funcionalidades, telas reais, diferenciais, como contratar e limites;
+  - PRO: os 8 passos de uma auditoria;
+  - HUB: as duas formas de uso;
+  - a foto de fundo do topo é uma tela real do sistema.
+- **Notas do material seguidas:**
+  - treinamentos saíram do PRO, inclusive na home;
+  - o HUB ainda não foi liberado comercialmente: a chamada virou "Solicitar demonstração", sem "contrate", sem preço e
+    sem "por assinatura" como oferta disponível na home, no menu e em Soluções;
+  - a ciência no HUB aparece como "registro de ciência do trabalhador";
+  - no PRO, o aviso explica que a ciência no sistema não é assinatura legal (a assinatura é feita pelo GOV.br);
+  - nada de "garante conformidade" nem de integração entre PRO e HUB;
+  - os nomes de empresas e pessoas das telas não são apresentados como clientes.
+- **Imagens:** 18 escolhidas e convertidas para WebP (1,2 MB no total, contra 18 MB). As que mostram o nome do Diretor
+  como usuário logado ficaram de fora, porque o briefing proíbe nome pessoal no site: tela 01 e página inteira do PRO,
+  composição "PRO no computador e celular" e "ecossistema".
+- **Home, seção 7:** textos dos cartões do material e as composições reais no lugar das imagens provisórias IMG-06 e
+  IMG-07.
+- **Testes:** `playwright.site.config.ts`, **24/24**. Os novos cobrem:
+  - nenhuma menção a treinamentos no PRO;
+  - HUB só com "Solicitar demonstração" e registro de ciência;
+  - nada de assinatura digital, "contrate agora" ou nome do Diretor;
+  - as 8 etapas do PRO;
+  - telas carregadas;
+  - home sem "por assinatura" nem treinamentos nas plataformas.

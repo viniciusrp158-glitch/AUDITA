@@ -82,12 +82,12 @@ export default function Solucoes() {
             <div className="grade grade--2" style={{ marginTop: 40 }}>
               <Link href="/audita-pro/" className="vidro" style={{ textDecoration: "none", padding: 24 }} data-revelar="">
                 <Logo nome="pro-negativa" />
-                <span style={{ marginTop: 8 }}>Planejamento e execução de auditorias, evidências, constatações e relatórios.</span>
+                <span style={{ marginTop: 8 }}>Auditorias e documentos de SSMA e SGI, acompanhados em tempo real.</span>
                 <span style={{ fontWeight: 600, color: "var(--green)" }}>Conhecer o Audita PRO</span>
               </Link>
               <Link href="/audita-hub/" className="vidro" style={{ textDecoration: "none", padding: 24 }} data-revelar="">
                 <Logo nome="hub-negativa" />
-                <span style={{ marginTop: 8 }}>Gestão operacional de SST e Meio Ambiente, por assinatura.</span>
+                <span style={{ marginTop: 8 }}>A rotina de SSMA da sua empresa em um só lugar.</span>
                 <span style={{ fontWeight: 600, color: "var(--green)" }}>Conhecer o Audita HUB</span>
               </Link>
             </div>

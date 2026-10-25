@@ -156,7 +156,7 @@ test("Etapa 4: conteúdo obrigatório de cada página", async ({ page }) => {
   await expect(page.getByText("não é certificado ISO")).toBeVisible();
   await expect(page.locator('a[href*="Audita%20PRO"]').first()).toHaveAttribute("href", /wa\.me/);
   await page.goto("/audita-hub/");
-  await expect(page.getByText("A consultoria é um serviço separado da assinatura.")).toBeVisible();
+  await expect(page.getByText("A consultoria é um serviço separado.")).toBeVisible();
   await expect(page.getByText("não assume a responsabilidade técnica")).toBeVisible();
   await page.goto("/contato/");
   await expect(page.locator('main a[href="mailto:engenharia.audita@outlook.com"]')).toHaveCount(1);
@@ -193,4 +193,36 @@ test("Etapa 4: menu e rodapé levam às páginas internas; mapa do site e dados 
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}");
   expect(ld.taxID).toBe("69.563.249/0001-01");
   expect(ld.address.postalCode).toBe("18079-026");
+});
+
+test("PRO e HUB: conteúdo do material dos sistemas e telas reais", async ({ page }) => {
+  for (const rota of ["/audita-pro/", "/audita-hub/"]) {
+    await page.goto(rota);
+    const texto = await page.locator("main").innerText();
+    expect(texto, rota).not.toMatch(/assinatura digital integrada|contrate agora|Vinicius|Vinícius|(?<!nem |não )garante conformidade/i);
+    // Telas reais carregadas (rola até cada uma para o carregamento preguiçoso)
+    const imagens = page.locator('main img[src^="/images/plataformas/"]');
+    expect(await imagens.count(), rota).toBeGreaterThanOrEqual(4);
+    for (const img of await imagens.all()) {
+      // scrollIntoView direto: a foto de fundo do hero tem zoom contínuo e nunca fica "estável" para o Playwright
+      await img.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { message: rota }).toBeGreaterThan(0);
+    }
+    await expect(page.getByText("Capturas reais do sistema, com dados fictícios de demonstração.")).toBeVisible();
+    await semRolagemLateral(page);
+  }
+  await page.goto("/audita-pro/");
+  expect(await page.locator("main").innerText()).not.toMatch(/treinamento/i);
+  await expect(page.getByRole("heading", { name: "Como uma auditoria acontece no Audita PRO" })).toBeVisible();
+  await expect(page.locator("ol li.passo")).toHaveCount(8);
+  await expect(page.getByText("a assinatura é feita pelo GOV.br")).toBeVisible();
+  await page.goto("/audita-hub/");
+  await expect(page.getByRole("link", { name: "Solicitar demonstração" }).first()).toHaveAttribute("href", /demonstra%C3%A7%C3%A3o%20do%20Audita%20HUB/);
+  await expect(page.getByRole("link", { name: "Quero conhecer" })).toHaveCount(0);
+  await expect(page.getByText("Registro de ciência do trabalhador e comprovante de entrega em PDF")).toBeVisible();
+  // Home: sem "por assinatura" no HUB e sem treinamentos no PRO
+  await page.goto("/");
+  const plataformas = await page.locator("#plataformas").innerText();
+  expect(plataformas).not.toMatch(/por assinatura|treinamento/i);
+  await expect(page.locator("#plataformas").getByRole("link", { name: "Solicitar demonstração" })).toHaveCount(1);
 });

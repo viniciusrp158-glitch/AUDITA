@@ -107,8 +107,8 @@ export default function Home() {
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <CardVidro nome="Audita PRO" logo="pro-negativa" texto="Planejamento e execução de auditorias, evidências, constatações e relatórios." login={EMPRESA.proLogin} />
-              <CardVidro nome="Audita HUB" logo="hub-negativa" texto="Gestão operacional de SST e Meio Ambiente, por assinatura." login={EMPRESA.hubLogin} />
+              <CardVidro nome="Audita PRO" logo="pro-negativa" texto="Auditorias e documentos de SSMA e SGI, acompanhados em tempo real." login={EMPRESA.proLogin} />
+              <CardVidro nome="Audita HUB" logo="hub-negativa" texto="A rotina de SSMA da sua empresa em um só lugar." login={EMPRESA.hubLogin} />
             </div>
           </div>
           <Curva cor="var(--navy)" />
@@ -178,15 +178,15 @@ export default function Home() {
             nome="Audita PRO"
             classe="produto"
             logo="pro"
-            texto="Plataforma digital da AUDITA para organizar e apoiar a execução de auditorias e a gestão dos registros associados."
+            texto="Planejamento, execução e relatórios de auditorias de SSMA e SGI em uma só plataforma. A sua empresa acompanha cada etapa em tempo real."
             itens={[
-              { t: "Plano de auditoria e checklist", I: ClipboardCheck },
-              { t: "Evidências e não conformidades", I: FileSearch },
-              { t: "Relatório diário (RDA) e relatório final", I: FolderCheck },
-              { t: "Documentos e treinamentos", I: BookOpenCheck },
+              { t: "Painéis com indicadores e gráficos por perfil", I: ClipboardCheck },
+              { t: "Checklists por norma, inclusive auditorias integradas", I: FileSearch },
+              { t: "Relatório diário gerado a partir dos registros de campo", I: FolderCheck },
+              { t: "Documentos em PDF com revisões controladas", I: BookOpenCheck },
             ]}
-            img="IMG-06"
-            foto="mockup do Audita PRO em notebook (print real a enviar)"
+            imagem={{ src: "/images/plataformas/pro-no-celular.webp", alt: "Dois celulares com indicadores de auditoria e a linha do tempo do Audita PRO" }}
+            chamada="Quero conhecer"
             login={EMPRESA.proLogin}
             botao="btn btn--pro btn--bloco"
             lado="esquerda"
@@ -195,15 +195,15 @@ export default function Home() {
             nome="Audita HUB"
             classe="produto produto--hub"
             logo="hub"
-            texto="Solução da AUDITA para centralizar e acompanhar atividades de Segurança, Saúde e Meio Ambiente, por assinatura."
+            texto="A rotina de SSMA da sua empresa em um só lugar: trabalhadores, EPIs, inspeções, ações, documentos, CIPA, emergências, capacitações e meio ambiente."
             itens={[
-              { t: "Colaboradores e EPIs", I: HardHat },
-              { t: "Documentos e ordens de serviço", I: FolderCheck },
-              { t: "CIPA e brigada de emergência", I: Flame },
-              { t: "Riscos ocupacionais, treinamentos e planos de emergência", I: ShieldCheck },
+              { t: "Entrega de EPI com registro de ciência do trabalhador", I: HardHat },
+              { t: "Inspeções com foto no celular e ações corretivas ligadas", I: ShieldCheck },
+              { t: "Documentos e licenças com alerta de vencimento", I: FolderCheck },
+              { t: "Calendário único de prazos e relatório consolidado", I: Flame },
             ]}
-            img="IMG-07"
-            foto="mockup do Audita HUB em tablet ou celular (print real a enviar)"
+            imagem={{ src: "/images/plataformas/hub-computador-e-celular.webp", alt: "Painel de SSMA do Audita HUB no notebook e inspeção em campo no celular" }}
+            chamada="Solicitar demonstração"
             login={EMPRESA.hubLogin}
             botao="btn btn--hub btn--bloco"
             lado="direita"
@@ -349,8 +349,8 @@ function Produto(p: {
   logo: "pro" | "hub";
   texto: string;
   itens: { t: string; I: Icone }[];
-  img: string;
-  foto: string;
+  imagem: { src: string; alt: string };
+  chamada: string;
   login: string;
   botao: string;
   lado: "esquerda" | "direita";
@@ -371,11 +371,15 @@ function Produto(p: {
             </li>
           ))}
         </ul>
-        <div data-revelar={p.lado}>
-          <Foto codigo={p.img} descricao={p.foto} className="foto--redonda" style={{ height: 240, marginTop: 28 }} />
+        <div data-revelar={p.lado} style={{ marginTop: 28 }}>
+          <Link href={p.nome === "Audita PRO" ? "/audita-pro/" : "/audita-hub/"} style={{ display: "block", borderRadius: 20, overflow: "hidden", boxShadow: "var(--shadow-card)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
+            <img src={p.imagem.src} alt={p.imagem.alt} width={1600} height={1000} loading="lazy" style={{ display: "block", width: "100%", height: "auto" }} />
+          </Link>
+          <p className="mutado" style={{ margin: "6px 0 0", fontSize: 13 }}>Tela real com dados fictícios de demonstração.</p>
         </div>
         <div className="acoes" style={{ alignItems: "flex-start" }}>
-          <a className={p.botao} href={whatsapp(`Olá! Quero conhecer o ${p.nome}.`)} target="_blank" rel="noopener">Quero conhecer</a>
+          <a className={p.botao} href={whatsapp(p.chamada === "Quero conhecer" ? `Olá! Quero conhecer o ${p.nome}.` : `Olá! Quero uma demonstração do ${p.nome}.`)} target="_blank" rel="noopener">{p.chamada}</a>
           <span style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%", maxWidth: 260 }}>
             <a className="btn btn--contorno externo" href={p.login} target="_blank" rel="noopener" aria-label={`Acessar o ${p.nome} (abre em nova aba, área exclusiva para clientes)`}>Acessar</a>
             <span className="mutado" style={{ fontSize: 13 }}>Área exclusiva para clientes</span>

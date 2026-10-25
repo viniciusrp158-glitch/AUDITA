@@ -21,16 +21,24 @@ export function HeroInterno({
   kicker: string;
   titulo: React.ReactNode;
   resumo?: string;
-  foto: { codigo: string; descricao: string };
+  foto: { codigo: string; descricao: string; src?: string };
   traco?: string;
   children?: React.ReactNode;
 }) {
   return (
     <section className="hero hero--interna" aria-labelledby={id}>
-      <div className="hero__foto" aria-hidden="true">
-        <span style={{ fontWeight: 700 }}>{foto.codigo} · imagem provisória</span>
-        <span>{foto.descricao}</span>
-      </div>
+      {foto.src ? (
+        <div className="hero__foto" aria-hidden="true" style={{ padding: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
+          <img src={foto.src} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+          <span style={{ position: "absolute", inset: 0, background: "rgba(3, 27, 53, 0.92)" }} />
+        </div>
+      ) : (
+        <div className="hero__foto" aria-hidden="true">
+          <span style={{ fontWeight: 700 }}>{foto.codigo} · imagem provisória</span>
+          <span>{foto.descricao}</span>
+        </div>
+      )}
       <div className="container" style={{ position: "relative" }}>
         <nav aria-label="Você está em" className="migalhas">
           <Link href="/">Início</Link>

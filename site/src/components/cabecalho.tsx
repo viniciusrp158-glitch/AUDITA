@@ -101,8 +101,8 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
                   {estaAberto &&
                     (grupo.rotulo === "Plataformas" ? (
                       <div id={id} className="menu-painel menu-painel--mega">
-                        <MegaItem nome="Audita PRO" texto="Planejamento e execução de auditorias, evidências, constatações e relatórios." login={EMPRESA.proLogin} />
-                        <MegaItem nome="Audita HUB" texto="Gestão operacional de SST e Meio Ambiente, por assinatura." login={EMPRESA.hubLogin} />
+                        <MegaItem nome="Audita PRO" texto="Auditorias e documentos de SSMA e SGI, acompanhados em tempo real." login={EMPRESA.proLogin} />
+                        <MegaItem nome="Audita HUB" texto="A rotina de SSMA da sua empresa em um só lugar." login={EMPRESA.hubLogin} />
                       </div>
                     ) : (
                       <div id={id} className="menu-painel">
