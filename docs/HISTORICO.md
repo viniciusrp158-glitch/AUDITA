@@ -1337,3 +1337,21 @@ Testes só locais (PGlite e unidade), nunca contra a produção (regra 7).
   `NEXT_PUBLIC_APP_ENV=desenvolvimento`); continua recusando produção.
 - `tests/integration/seguranca-i9.test.ts`: lista de buckets inclui `audita-treinamentos` (privado, com limites; T1).
 - `npx vitest run tests/integration` contra o desenvolvimento: **23 de 23 arquivos, 142 de 142 testes passaram**.
+
+## Migração para a VPS do Diretor e publicação das correções (26/10/2026)
+
+- Destino: VPS 164.68.112.61 (Ubuntu 24.04). Kit `deploy/servidor` (borda HTTPS própria + audita-proxy). Detalhes e lições
+  em `deploy/servidor/README.md`, seção "Estado: migração concluída em 26/10/2026".
+- Vendas fechadas (`sales_enabled=false`), pilhas paradas na VPS 1, cópia fria das pilhas Supabase (dados, `.env`,
+  funções, volumes `*_db-config`), subida na VPS nova: 22 containers saudáveis; Vault abre os 2 segredos do Mercado Pago.
+- Migrações aplicadas em produção: AUDITA `20261025120000`–`120300` (4), PRO `20261025120000`–`120200` (3), HUB
+  `20261025213100`–`213400` (4). Funções publicadas: AUDITA `alunos`, `certificado`, `mercadopago`, `usuarios`,
+  `vitrine`; PRO/HUB as 9 do PRO + `hub-usuarios` e a nova `hub-emitidos`.
+- Imagens: `audita-sistema`, `audita-aluno` e `audita-site` `20261026-1011-seg`; HUB `202610251949-3576367`; telas do PRO
+  `20261025225343-5041fe3` (supabase-js 2.57.0 em `vendor/`, CSP).
+- Conferência pelo IP novo antes do DNS (`curl --resolve`): sites e logins 200, `/caixa-de-testes/` 404, `www` → 301,
+  APIs `auth/v1/health` 200 com a chave pública, `vitrine` (catálogo) e `training-certificate` respondendo, CSP e HSTS.
+- DNS: 8 registros A trocados para 164.68.112.61 pela API do Cloudflare; conferido de fora (PRO/HUB resolvem para o IP
+  novo; `audita.seg.br` pelo Cloudflare com `/caixa-de-testes/` 404 e HSTS). Vendas reabertas; backups rodados na VPS
+  nova (60 MB e 7,9 MB); crons instalados; crons e containers do Audita parados na VPS 1 (reserva até 02/11/2026).
+- A equipe do AUDITA precisa entrar de novo uma vez (cookie `audita-equipe` HttpOnly).

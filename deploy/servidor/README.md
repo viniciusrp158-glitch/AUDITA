@@ -18,6 +18,29 @@ aqui; dados e segredos vêm dos backups (nunca do Git).
 
 Os caminhos usam `/home/deploy/audita`, como na VPS 1: criar o usuário `deploy` na VPS nova evita qualquer ajuste.
 
+## Estado: migração concluída em 26/10/2026
+
+Os 3 sistemas rodam na VPS do Diretor **164.68.112.61** (porta SSH 22; `root` e `deploy`, só chave), já com as correções
+da auditoria de segurança de 25/10/2026 (ramos `fix/seguranca-auditoria` dos 3 repositórios). DNS trocado às 10h29 de
+26/10 pela API do Cloudflare (8 registros A; `audita.seg.br` segue com proxy laranja). A VPS 1 (109.205.179.53) ficou
+com os containers do Audita **parados, não apagados**, e os 4 crons comentados: volta = registros A de volta para
+109.205.179.53 e `docker compose start` das pilhas lá. Apagar a VPS 1 só depois de 02/11/2026, com o OK do Diretor.
+
+O que foi diferente do roteiro abaixo (para a próxima vez):
+- A VPS já tinha um AUDITA antigo (21/10) com Nginx + certbot no host: backup em `/root/backup-antes-migracao-20261025`,
+  depois `docker compose down` em `/opt/supabase-audita` e `/opt/audita-sistema`, `systemctl disable --now nginx
+  certbot.timer`. A borda (`borda/`) passou a ocupar 80/443.
+- O `deploy` da VPS nova tem uid 1001 (o 1000 é `ubuntu`): depois de copiar as pilhas, trocar o dono dos arquivos de
+  uid 1000 (`find … -uid 1000 -exec chown -h 1001:1001`), sem mexer em `volumes/db/data`. O `auditahub-web` roda como
+  1000:1000, então a release do HUB fica com dono 1000.
+- Dados: cópia **fria** das pastas `supabase/` e `supabase-audita/` inteiras e dos volumes `supabase_db-config` e
+  `supabase-audita_db-config` (chave do Vault com as credenciais do Mercado Pago), com as pilhas paradas, via `tar` num
+  container alpine (o tar do alpine aceita um só `-C`: usar caminhos a partir de `/`). As vendas foram fechadas antes e
+  reabertas depois.
+- Variável nova `VITRINE_CHAVE_INTERNA` (mesmo valor em `audita-sistema/web.env` e `supabase-audita/.env`).
+- O token do Cloudflare em `~/.config/secrets/cloudflare-audita.ini` não tem validade (certificados e DNS). A API do
+  Cloudflare recusa o `User-Agent` padrão do Python: mandar um próprio.
+
 **Nunca vão para o Git:** os `.env` das pilhas Supabase, `web.env`, `proxy/htpasswd/`, `borda/letsencrypt/`, o token do
 Cloudflare e os backups.
 
