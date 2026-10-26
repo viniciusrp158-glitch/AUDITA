@@ -1325,3 +1325,15 @@ Testes só locais (PGlite e unidade), nunca contra a produção (regra 7).
   - novas imagens do sistema, da área do aluno e do site; recarregar o proxy (`nginx -t && systemctl reload nginx` ou o
     reload do `audita-proxy`) para tirar `/caixa-de-testes/`;
   - avisar a equipe de que vai precisar entrar de novo (cookie novo).
+
+
+### Evidência no banco de desenvolvimento (26/10/2026)
+
+- As 4 migrações `20261025120000`–`20261025120300` aplicadas no Supabase de desenvolvimento (auditadev-db) sem erro.
+- Funções `usuarios`, `alunos`, `certificado`, `mercadopago` e `vitrine` publicadas no desenvolvimento (a `usuarios` nunca
+  tinha sido publicada lá: era a causa do 500 nos testes da I9.1). Usuários de teste operador, marketing e intruso criados
+  só no desenvolvimento (`*.dev@teste.audita`, `is_test`).
+- `scripts/dev-liberar-servicos-teste.mjs` passa a aceitar o desenvolvimento self-hosted (localhost:8200 com
+  `NEXT_PUBLIC_APP_ENV=desenvolvimento`); continua recusando produção.
+- `tests/integration/seguranca-i9.test.ts`: lista de buckets inclui `audita-treinamentos` (privado, com limites; T1).
+- `npx vitest run tests/integration` contra o desenvolvimento: **23 de 23 arquivos, 142 de 142 testes passaram**.

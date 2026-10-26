@@ -8,7 +8,9 @@ import { createClient } from "@supabase/supabase-js";
 
 const DEV_REF = "avfqgxckcclzktrojynj";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-if (!url.includes(DEV_REF) || process.env.NEXT_PUBLIC_APP_ENV === "producao") {
+// Desenvolvimento self-hosted (pilha supabase-audita-dev na VPS, acessada por túnel em localhost:8200).
+const DEV_LOCAL = /^http:\/\/(localhost|127\.0\.0\.1):8200$/.test(url) && process.env.NEXT_PUBLIC_APP_ENV === "desenvolvimento";
+if (!(url.includes(DEV_REF) || DEV_LOCAL) || process.env.NEXT_PUBLIC_APP_ENV === "producao") {
   console.error("Abortado: este script só pode ser executado no ambiente de desenvolvimento.");
   process.exit(1);
 }
