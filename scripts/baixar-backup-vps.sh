@@ -1,5 +1,7 @@
 #!/bin/sh
 # Copia para o computador o backup mais recente do Sistema AUDITA na VPS (pendência V5): banco, Storage, .env do Supabase,
+# OBSOLETO desde 26/10/2026: os caminhos abaixo (/opt, /var/backups/audita-sistema) não existem mais. Os backups agora
+# ficam em /home/deploy/backups (ver deploy/servidor/README.md).
 # web.env e um pacote com as configurações do servidor. Roda no Git Bash, na pasta do projeto:
 #   sh scripts/baixar-backup-vps.sh            (usa o backup das 04h00 mais recente)
 #   sh scripts/baixar-backup-vps.sh agora      (gera um backup novo antes de baixar)

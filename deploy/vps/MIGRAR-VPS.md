@@ -1,5 +1,9 @@
 # Levar o Sistema AUDITA para outra VPS
 
+> **OBSOLETO desde 26/10/2026.** Descreve a instalação antiga em `/opt` (Nginx do servidor e certificado próprio), removida
+> da VPS em 26/10/2026, com cópia de segurança no computador do Diretor. A instalação em uso está em
+> [`deploy/servidor/README.md`](../servidor/README.md) (`/home/deploy/audita`, Nginx em container `audita-borda`).
+
 Tudo o que é **código e configuração** está neste repositório (ramo `develop`). O que **não pode** ir para o Git — dados do
 banco, arquivos do Storage e segredos — fica no backup copiado para o computador do Diretor por
 [`scripts/baixar-backup-vps.sh`](../../scripts/baixar-backup-vps.sh), na pasta `Documents\AUDITA-BACKUP-VPS\<data>\`.

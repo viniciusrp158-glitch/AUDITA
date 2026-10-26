@@ -1,5 +1,9 @@
 # Sistema AUDITA de Operação na VPS
 
+> **OBSOLETO desde 26/10/2026.** Descreve a instalação antiga em `/opt` (Nginx do servidor e certificado próprio), removida
+> da VPS em 26/10/2026, com cópia de segurança no computador do Diretor. A instalação em uso está em
+> [`deploy/servidor/README.md`](../servidor/README.md) (`/home/deploy/audita`, Nginx em container `audita-borda`).
+
 VPS `vmi3662674` — `164.68.112.61`, Ubuntu 24.04, acesso `root` por chave SSH. **A mesma VPS roda o Audita PRO**: nunca
 alterar `/opt/supabase`, `/opt/auditapro-*`, `/etc/nginx/sites-available/auditapro`, nem usar `systemctl restart nginx`
 ou `docker compose down` na pasta do PRO. Nginx: sempre `nginx -t && systemctl reload nginx`.

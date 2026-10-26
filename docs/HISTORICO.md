@@ -1355,3 +1355,9 @@ Testes só locais (PGlite e unidade), nunca contra a produção (regra 7).
   novo; `audita.seg.br` pelo Cloudflare com `/caixa-de-testes/` 404 e HSTS). Vendas reabertas; backups rodados na VPS
   nova (60 MB e 7,9 MB); crons instalados; crons e containers do Audita parados na VPS 1 (reserva até 02/11/2026).
 - A equipe do AUDITA precisa entrar de novo uma vez (cookie `audita-equipe` HttpOnly).
+
+### Limpeza da instalação antiga na VPS do Diretor (26/10/2026)
+
+Depois da migração de volta (sistemas em `/home/deploy/audita`, ver `deploy/servidor/README.md`), conferido de fora e por dentro: DNS dos 3 domínios em 164.68.112.61; os 5 endereços (`/empresa`, site, `/treinamentos`, PRO e HUB) com 200; 30 containers saudáveis; código publicado (`20261026-1011-seg`) idêntico ao `develop` (418/420 arquivos; os 2 restantes são o guia e o script de notificações do HUB, alterados depois — o script em uso já é o novo); 35 migrações no banco = 35 no Git; certificados novos (renovação pela validação DNS) até 23/01/2027.
+
+Com autorização do Diretor, removidos os restos da instalação de 20–21/10: cron de backup das 04h00 e scripts `/usr/local/bin/audita-*` (apontavam para `/opt`, o backup gravava arquivos desatualizados), pastas `/opt/supabase-audita` e `/opt/audita-sistema`, backups antigos de `/var/backups/audita-sistema`, imagens `audita-sistema:20261021-*`, certificado `audita.seg.br` do servidor e o token temporário do Cloudflare (`/root/.secrets`), e o site do Nginx do servidor (desligado). Cópia de segurança antes da remoção: `/root/seguranca-instalacao-antiga-20261026.tar.gz` (116 MB, SHA-256 `7ad63517…`), também no computador do Diretor (`Documents\AUDITA-BACKUP-VPS\instalacao-antiga-20261026`). Depois da limpeza: os 5 endereços 15/15 com 200 e nenhum container fora do ar. `deploy/vps/` marcado como obsoleto.
