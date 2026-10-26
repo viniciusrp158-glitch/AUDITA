@@ -14,4 +14,7 @@ location / {
   proxy_send_timeout 300s;
   proxy_request_buffering off;
   proxy_buffering off;
+  # HSTS de 1 ano nos 3 sistemas (auditoria de 25/10/2026); o cabeçalho que vier do app é trocado por este.
+  proxy_hide_header Strict-Transport-Security;
+  add_header Strict-Transport-Security "max-age=31536000" always;
 }
