@@ -1,4 +1,6 @@
 import "server-only";
+import { WAITING_LIMIT_HOURS, waitingCutoffIso } from "@/lib/demands/labels";
+import { getMasterListState } from "@/lib/library/master-list";
 import { createClient } from "@/lib/supabase/server";
 
 export type Indicators = {
@@ -55,14 +57,23 @@ export async function getAlerts(today: string, includeTest: boolean): Promise<Al
     overdueQ = overdueQ.eq("is_test", false);
   }
 
-  const [vigente, expiring, expired, overdue, requests, drafts] = await Promise.all([
+  let waitingQ = supabase
+    .from("demands")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "aguardando_cliente")
+    .lt("status_changed_at", waitingCutoffIso());
+  if (!includeTest) waitingQ = waitingQ.eq("is_test", false);
+
+  const [vigente, expiring, expired, overdue, requests, drafts, waiting] = await Promise.all([
     supabase.from("pricing_parameter_sets").select("id", { count: "exact", head: true }).eq("status", "vigente"),
     expiringQ,
     expiredQ,
     overdueQ,
     supabase.from("client_registration_requests").select("id", { count: "exact", head: true }).eq("status", "pendente"),
     supabase.from("library_revisions").select("id", { count: "exact", head: true }).eq("status", "rascunho"),
+    waitingQ,
   ]);
+  const master = await getMasterListState().catch(() => null);
 
   const out: Alert[] = [];
   if ((vigente.count ?? 0) === 0)
@@ -70,6 +81,10 @@ export async function getAlerts(today: string, includeTest: boolean): Promise<Al
   if (expired.count) out.push({ kind: "warning", text: `${expired.count} proposta(s) emitida(s) com validade vencida, sem decisão do cliente.`, href: "/orcamentos" });
   if (expiring.count) out.push({ kind: "info", text: `${expiring.count} proposta(s) vencem nos próximos 7 dias.`, href: "/orcamentos" });
   if (overdue.count) out.push({ kind: "warning", text: `${overdue.count} demanda(s) em aberto com prazo vencido.`, href: "/demandas" });
+  if (waiting.count)
+    out.push({ kind: "warning", text: `${waiting.count} demanda(s) em "Aguardando cliente" há mais de ${WAITING_LIMIT_HOURS} horas.`, href: "/demandas?alerta=aguardando" });
+  if (master && !master.upToDate)
+    out.push({ kind: "info", text: `Lista mestra de serviços e treinamentos desatualizada: confira e aprove a ${master.nextRevision}.`, href: "/biblioteca/lista-mestra" });
   if (requests.count) out.push({ kind: "info", text: `${requests.count} solicitação(ões) de cadastro aguardando análise.`, href: "/clientes/solicitacoes" });
   if (drafts.count) out.push({ kind: "info", text: `${drafts.count} documento(s) da biblioteca em rascunho, aguardando aprovação.`, href: "/biblioteca" });
   return out;

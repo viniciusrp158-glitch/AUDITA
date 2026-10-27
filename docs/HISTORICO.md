@@ -1361,3 +1361,50 @@ Testes só locais (PGlite e unidade), nunca contra a produção (regra 7).
 Depois da migração de volta (sistemas em `/home/deploy/audita`, ver `deploy/servidor/README.md`), conferido de fora e por dentro: DNS dos 3 domínios em 164.68.112.61; os 5 endereços (`/empresa`, site, `/treinamentos`, PRO e HUB) com 200; 30 containers saudáveis; código publicado (`20261026-1011-seg`) idêntico ao `develop` (418/420 arquivos; os 2 restantes são o guia e o script de notificações do HUB, alterados depois — o script em uso já é o novo); 35 migrações no banco = 35 no Git; certificados novos (renovação pela validação DNS) até 23/01/2027.
 
 Com autorização do Diretor, removidos os restos da instalação de 20–21/10: cron de backup das 04h00 e scripts `/usr/local/bin/audita-*` (apontavam para `/opt`, o backup gravava arquivos desatualizados), pastas `/opt/supabase-audita` e `/opt/audita-sistema`, backups antigos de `/var/backups/audita-sistema`, imagens `audita-sistema:20261021-*`, certificado `audita.seg.br` do servidor e o token temporário do Cloudflare (`/root/.secrets`), e o site do Nginx do servidor (desligado). Cópia de segurança antes da remoção: `/root/seguranca-instalacao-antiga-20261026.tar.gz` (116 MB, SHA-256 `7ad63517…`), também no computador do Diretor (`Documents\AUDITA-BACKUP-VPS\instalacao-antiga-20261026`). Depois da limpeza: os 5 endereços 15/15 com 200 e nenhum container fora do ar. `deploy/vps/` marcado como obsoleto.
+
+## Demandas do Diretor de 27/10/2026 (demanda, orçamento, lista mestra e artes com IA)
+
+Pedido: busca de cliente por nome ou código na demanda; escopo puxado do catálogo ao escolher o treinamento; aviso de
+demanda em "Aguardando cliente" há mais de 48 h; lista mestra de serviços e treinamentos automática, com nova revisão na
+Biblioteca sem baixar/enviar arquivos; vistoria dos 3 sistemas; agente de IA (Claude) para artes de redes sociais na
+Comunicação, com imagens de referência. Decisões do Diretor no dia: lista mestra = documento novo gerado pelo sistema;
+vistoria = "proponho, você aprova" (nada vira vigente nem muda situação de serviço sem aprovação).
+
+- **Busca de cliente** (`src/components/client-picker.tsx`): o select virou campo de pesquisa por nome (razão social ou
+  fantasia) ou código, sem acento, por partes ("cli 12", "padaria"); teclado (setas/Enter/Esc) e celular.
+- **Escopo automático** (`src/lib/services/scope.ts`): ao escolher o serviço/treinamento, a "Descrição / escopo pretendido"
+  da demanda recebe escopo preliminar, limites, modalidade, evidências e referência legal do catálogo (sem repetir campos
+  iguais). Se a pessoa já escreveu, o sistema oferece "Usar o escopo do catálogo" em vez de apagar. O resumo vazio recebe
+  o nome do serviço. No item do orçamento, a descrição e as notas de escopo vazias também são preenchidas.
+- **Aviso de 48 h** (`WAITING_LIMIT_HOURS` em `src/lib/demands/labels.ts`, a partir de `status_changed_at`): selo
+  "Aguardando há N h/dias" na lista e no detalhe, faixa no topo de Demandas com o filtro `?alerta=aguardando`, item nos
+  Alertas do Início e número no menu lateral (Demandas).
+- **Lista Mestra AUDDOC019** (`src/lib/library/master-list*.ts`, tela `/biblioteca/lista-mestra`): conteúdo sempre do
+  catálogo e dos treinamentos EAD (serviços liberados por família, EAD com versão/carga/preço ou PENDENTE, não liberados,
+  inativos). Impressão digital do conteúdo guardada na observação da revisão; quando o catálogo muda, aviso no Início e na
+  Biblioteca, lista do que mudou e prévia em Word; "Aprovar e publicar a Rev.NN" gera o Word, registra a revisão com
+  SHA-256 e publica (a anterior fica substituída). O documento AUDDOC019 é criado na primeira aprovação. Pontos de atenção
+  para orçar (liberado sem modelo de preço, sem escopo, EAD sem preço/sem versão) na mesma tela.
+- **Artes com IA — D-08 decidida pelo Diretor em 27/10/2026** (migração `20261027120000_c1_artes_ia.sql`;
+  `src/lib/comunicacao/ai.ts`, `art-layout.ts`, `images.ts`; telas em `comunicacao/ia-*.tsx`): provedor Claude
+  (`claude-opus-5-5`, esforço alto, saída estruturada, reserva automática de modelo em recusa indevida), chamado só no
+  servidor com `ANTHROPIC_API_KEY`; a IA recebe a descrição, as imagens anexadas, a marca, o formato e o serviço (com o
+  escopo do catálogo), nunca dados de clientes. A arte é SVG desenhado na área entre a faixa branca do logo oficial e o
+  rodapé oficial (aplicados pelo sistema), rasterizado no servidor com a Montserrat (resvg). Até 3 imagens de referência
+  (reduzidas pelo sharp, sem metadados): referência de estilo ou, marcando a opção, a primeira vira a **foto de fundo** e
+  a IA desenha faixas, formas e textos por cima. Pedidos, artes e imagens são imutáveis e registrados; a peça aponta para
+  a arte (`art_id`, congelado no snapshot da revisão). A geração roda depois da resposta (`after`), a tela se atualiza
+  sozinha; pedido parado há 15 min vira erro. Revisão humana do I10 continua obrigatória antes de exportar.
+- **Vistoria dos 3 sistemas**: relatório em `docs/VISTORIA_2026-10-27.md` (propostas para o Diretor decidir).
+
+### Evidência (27/10/2026, computador do Diretor)
+
+- `npx tsc --noEmit` e `npx eslint` sem erros; `npx next build` concluído (resvg e sharp no pacote standalone).
+- Unitários: 86 de 87; a falha é anterior a esta entrega (`ca12-escopo`: `tests/e2e-site/site.spec.ts`, de 25/10, cita os
+  domínios do PRO/HUB). Novos: `demandas-avisos`, `lista-mestra`, `artes-ia` (inclui a montagem real logo + arte +
+  rodapé e a foto de fundo).
+- PGlite com todas as migrações: 13 arquivos, 53 testes, incluindo `artes-ia-c1` (rascunho obrigatório, um pedido por vez,
+  conclusão única, artes e imagens imutáveis, sem conteúdo ativo, foto de fundo só da própria peça, operador sem acesso,
+  `art_id` no snapshot).
+- **Não executados:** e2e e integração contra o banco de desenvolvimento (contas de teste do `audita-dev` em nuvem
+  bloqueadas, V4; o desenvolvimento self-hosted do Leandro não está nesta VPS) e a chamada real ao Claude (sem chave).

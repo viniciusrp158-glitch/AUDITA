@@ -54,11 +54,12 @@ export function CommTabs({ active }: { active: (typeof TABS)[number]["href"] }) 
   );
 }
 
-export function NoAiNotice() {
+export function AiNotice() {
   return (
     <p className="rounded-md bg-surface px-3 py-2 text-xs text-muted">
-      Sem inteligência artificial: textos escritos e revisados pela equipe. Ligar IA depende de aprovação do provedor, custos e tratamento de
-      dados (AUDDOC017 §18, D-08). Nada é publicado ou agendado automaticamente.
+      Artes com IA (Claude, da Anthropic; D-08 decidida pelo Diretor em 27/10/2026): a IA recebe só a descrição da peça, a marca, o formato e o
+      serviço escolhido, nunca dados de clientes. O logo oficial e o rodapé são aplicados pelo sistema, e toda peça passa pela revisão do
+      administrador antes de exportar. Nada é publicado ou agendado automaticamente.
     </p>
   );
 }

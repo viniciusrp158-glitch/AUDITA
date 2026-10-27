@@ -16,6 +16,9 @@ export type ServiceOpt = {
   pricing_model: string;
   commercial_status: string;
   catalog_status: string;
+  /** Nome e escopo do catálogo: pré-preenchem a descrição e as notas de escopo vazias ao escolher o serviço. */
+  name?: string;
+  scope?: string;
 };
 
 type Initial = Partial<Record<Exclude<keyof ItemValues, "discount_authorized"> | "quantity_ref" | "discount_reason" | "scope_notes", string | null>> & {
@@ -104,7 +107,16 @@ export function ItemForm({
       noValidate
       className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"
       onChange={(ev) => {
-        const fd = new FormData(ev.currentTarget);
+        const form = ev.currentTarget;
+        const target = ev.target as unknown as HTMLSelectElement;
+        if (target.name === "service_id") {
+          const chosen = services.find((s) => s.id === target.value);
+          const desc = form.elements.namedItem("description") as HTMLInputElement | null;
+          const notes = form.elements.namedItem("scope_notes") as HTMLTextAreaElement | null;
+          if (chosen?.name && desc && !desc.value.trim()) desc.value = chosen.name.slice(0, 300);
+          if (chosen?.scope && notes && !notes.value.trim()) notes.value = chosen.scope.slice(0, 2000);
+        }
+        const fd = new FormData(form);
         setSnap(Object.fromEntries([...fd.entries()].map(([k, v]) => [k, String(v)])));
       }}
     >

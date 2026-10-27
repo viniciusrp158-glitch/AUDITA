@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { ClientPicker } from "@/components/client-picker";
 import { Alert, CheckboxField, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
 import { ORIGINS } from "@/lib/demands/labels";
 import type { FormOptions } from "@/lib/demands/queries";
@@ -47,6 +48,28 @@ export function DemandForm({
   const [serviceId, setServiceId] = useState<string>(val("service_id"));
   const [links, setLinks] = useState<ClientLinks>(initialLinks ?? { units: [], contacts: [] });
   const [loading, startLoading] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  // Último escopo colocado automaticamente: só é trocado sozinho se a pessoa não o editou
+  const autoScope = useRef<string | null>(null);
+  const [scopeOffer, setScopeOffer] = useState<string | null>(null);
+
+  const field = (n: string) => formRef.current?.elements.namedItem(n) as HTMLInputElement | HTMLTextAreaElement | null;
+  const onServiceChange = (id: string) => {
+    setServiceId(id);
+    setScopeOffer(null);
+    const svc = options.services.find((s) => s.id === id);
+    if (!svc) return;
+    const summary = field("summary");
+    if (summary && !summary.value.trim()) summary.value = svc.name.slice(0, 200);
+    const desc = field("description");
+    if (!desc || !svc.scope) return;
+    if (!desc.value.trim() || desc.value === autoScope.current) {
+      desc.value = svc.scope;
+      autoScope.current = svc.scope;
+    } else if (desc.value !== svc.scope) {
+      setScopeOffer(svc.scope);
+    }
+  };
 
   useEffect(() => {
     if (!clientId) {
@@ -65,7 +88,7 @@ export function DemandForm({
   const released = service && service.commercial_status === "apto_comercialmente" && service.catalog_status === "ativo";
 
   return (
-    <form action={formAction} className="space-y-6" noValidate>
+    <form ref={formRef} action={formAction} className="space-y-6" noValidate>
       {state.error && <Alert kind="error">{state.error}</Alert>}
       {isDev && (
         <Alert kind="warning">
@@ -79,21 +102,7 @@ export function DemandForm({
           <span className="mb-1 block text-sm font-medium text-ink">
             Cliente<span className="text-danger" aria-hidden> *</span>
           </span>
-          <select
-            name="client_id"
-            value={clientId}
-            onChange={(ev) => setClientId(ev.target.value)}
-            aria-invalid={e.client_id ? true : undefined}
-            className={`${selectCls} ${e.client_id ? "border-danger" : "border-line"}`}
-          >
-            <option value="">Selecione o cliente</option>
-            {options.clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-                {c.is_test ? " [TESTE]" : ""}
-              </option>
-            ))}
-          </select>
+          <ClientPicker name="client_id" options={options.clients} value={clientId} onChange={setClientId} error={e.client_id} required />
           {e.client_id ? (
             <span className="mt-1 block text-xs text-danger">{e.client_id}</span>
           ) : (
@@ -141,7 +150,35 @@ export function DemandForm({
       <fieldset className="space-y-4">
         <legend className="mb-2 text-sm font-semibold text-navy">Necessidade</legend>
         <Field label="Resumo da solicitação" name="summary" defaultValue={val("summary")} error={e.summary} maxLength={200} placeholder="Ex.: Treinamento NR-35 para 12 colaboradores" />
-        <TextAreaField label="Descrição / escopo pretendido" name="description" defaultValue={val("description")} error={e.description} rows={4} maxLength={4000} />
+        <TextAreaField
+          label="Descrição / escopo pretendido"
+          name="description"
+          defaultValue={val("description")}
+          error={e.description}
+          rows={6}
+          maxLength={4000}
+          hint="Ao escolher o serviço ou treinamento do catálogo, o escopo dele é preenchido aqui; ajuste o que precisar."
+        />
+        {scopeOffer && (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-blue/30 bg-blue/5 px-3 py-2 text-xs text-ink" data-testid="scope-offer">
+            <span>A descrição já tem texto. Quer trocar pelo escopo do serviço escolhido?</span>
+            <button
+              type="button"
+              className="rounded-md border border-line bg-white px-3 py-1 font-semibold text-navy hover:border-navy/40"
+              onClick={() => {
+                const desc = field("description");
+                if (desc) desc.value = scopeOffer;
+                autoScope.current = scopeOffer;
+                setScopeOffer(null);
+              }}
+            >
+              Usar o escopo do catálogo
+            </button>
+            <button type="button" className="text-muted hover:text-navy" onClick={() => setScopeOffer(null)}>
+              Manter o meu texto
+            </button>
+          </div>
+        )}
         <Field label="Local de execução" name="location" required={false} defaultValue={val("location")} error={e.location} placeholder="Município, unidade ou remoto" />
         <CheckboxField
           name="is_recurring"
@@ -155,7 +192,7 @@ export function DemandForm({
         <legend className="mb-2 text-sm font-semibold text-navy">Serviço e viabilidade</legend>
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-ink">Serviço do catálogo</span>
-          <select name="service_id" value={serviceId} onChange={(ev) => setServiceId(ev.target.value)} className={`${selectCls} border-line`}>
+          <select name="service_id" value={serviceId} onChange={(ev) => onServiceChange(ev.target.value)} className={`${selectCls} border-line`}>
             <option value="">A definir na análise</option>
             {families.map((f) => (
               <optgroup key={f} label={f}>

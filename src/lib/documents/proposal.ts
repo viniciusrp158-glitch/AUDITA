@@ -30,8 +30,8 @@ export type Block =
   | { kind: "notice"; label: string; text: string };
 
 export type DocModel = {
-  templateCode: `AUDDOC010-ANX0${1 | 2 | 3 | 4 | 5 | 6}`;
-  modelCode: `M0${1 | 2 | 3 | 4 | 5 | 6}`;
+  templateCode: string;
+  modelCode: string;
   title: string;
   reference: string;
   headerRight: string;

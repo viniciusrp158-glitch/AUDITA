@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
-import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge } from "@/components/demand-status";
+import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge, WaitingBadge } from "@/components/demand-status";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
 import { OPERATE } from "@/lib/permissions";
-import { DEMAND_STATUS, DEMAND_STATUS_KEYS } from "@/lib/demands/labels";
-import { listDemands, PAGE_SIZE } from "@/lib/demands/queries";
+import { DEMAND_STATUS, DEMAND_STATUS_KEYS, WAITING_LIMIT_HOURS, waitingHours } from "@/lib/demands/labels";
+import { countWaitingTooLong, listDemands, PAGE_SIZE } from "@/lib/demands/queries";
 import { formatDay, todaySaoPaulo } from "@/lib/format";
 import { DemandTabs } from "./servicos/shared";
 
@@ -21,7 +21,7 @@ const GRUPOS = [
 export default async function DemandasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; grupo?: string; situacao?: string; p?: string }>;
+  searchParams: Promise<{ q?: string; grupo?: string; situacao?: string; p?: string; alerta?: string }>;
 }) {
   const user = await requireAppUser(OPERATE);
   const sp = await searchParams;
@@ -29,10 +29,12 @@ export default async function DemandasPage({
   const grupo = (GRUPOS.find((g) => g.value === sp.grupo)?.value ?? "abertas") as "abertas" | "encerradas" | "todas";
   const situacao = (DEMAND_STATUS_KEYS as string[]).includes(sp.situacao ?? "") ? sp.situacao! : "";
   const page = Math.max(1, Number(sp.p) || 1);
-  const { rows, total, error } = await listDemands({ q, grupo, situacao, page });
+  const waiting = sp.alerta === "aguardando";
+  const [{ rows, total, error }, waitingCount] = await Promise.all([listDemands({ q, grupo, situacao, page, waiting }), countWaitingTooLong()]);
+  const now = Date.now();
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const today = todaySaoPaulo();
-  const qs = (p: number) => `?${new URLSearchParams({ ...(q && { q }), grupo, ...(situacao && { situacao }), p: String(p) })}`;
+  const qs = (p: number) => `?${new URLSearchParams({ ...(q && { q }), grupo, ...(situacao && { situacao }), ...(waiting && { alerta: "aguardando" }), p: String(p) })}`;
 
   return (
     <>
@@ -43,6 +45,24 @@ export default async function DemandasPage({
         </ButtonLink>
       </div>
       <DemandTabs active="demandas" showServices={user.role === "admin"} />
+
+      {waitingCount > 0 && (
+        <div
+          role="status"
+          className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-ink"
+          data-testid="waiting-alert"
+        >
+          <span>
+            <strong>
+              {waitingCount} demanda{waitingCount === 1 ? "" : "s"}
+            </strong>{" "}
+            em &ldquo;Aguardando cliente&rdquo; há mais de {WAITING_LIMIT_HOURS} horas: cobre o retorno do cliente ou atualize a situação.
+          </span>
+          <Link href={waiting ? "/demandas" : "/demandas?alerta=aguardando"} className="font-semibold text-navy hover:underline">
+            {waiting ? "Ver todas" : "Ver quais"}
+          </Link>
+        </div>
+      )}
 
       <nav className="mb-4 flex gap-1 overflow-x-auto border-b border-line" aria-label="Filtro de situação">
         {GRUPOS.map((g) => (
@@ -124,6 +144,7 @@ export default async function DemandasPage({
                       <span className="flex flex-wrap items-center gap-1">
                         <DemandStatusPill status={d.status} />
                         {isOverdue(d, today) && <OverdueBadge />}
+                        {waitingHours(d, now) !== null && <WaitingBadge hours={waitingHours(d, now)!} />}
                         {d.is_recurring && <RecurringBadge />}
                         {d.is_test && <TestBadge />}
                       </span>
@@ -150,6 +171,7 @@ export default async function DemandasPage({
                     Recebida {formatDay(d.received_on)}
                     {d.due_on ? ` · prazo ${formatDay(d.due_on)}` : ""}
                     {isOverdue(d, today) && <OverdueBadge />}
+                    {waitingHours(d, now) !== null && <WaitingBadge hours={waitingHours(d, now)!} />}
                     {d.is_recurring && <RecurringBadge />}
                     {d.is_test && <TestBadge />}
                   </p>
@@ -160,7 +182,7 @@ export default async function DemandasPage({
 
           {rows.length === 0 && (
             <p className="rounded-xl border border-line bg-white px-4 py-10 text-center text-sm text-muted">
-              {q || situacao ? "Nenhuma demanda encontrada." : "Nenhuma demanda nesta situação."}
+              {q || situacao || waiting ? "Nenhuma demanda encontrada." : "Nenhuma demanda nesta situação."}
             </p>
           )}
 

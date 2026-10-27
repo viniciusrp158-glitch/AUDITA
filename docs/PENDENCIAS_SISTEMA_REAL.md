@@ -16,6 +16,8 @@ O sistema está no ar em **https://audita.seg.br/empresa**, com Supabase própri
 | V7 | **Conflito de IP na rede da Contabo** (diagnosticado em 19–20/10/2026): outro servidor da Contabo, `vmi3288967` (CyberPanel/LiteSpeed, certificado vencido), responde em cerca de metade das conexões ao IP 164.68.112.61. Era a causa da "perda de pacotes". A VPS do AUDITA está correta (certificado, Nginx e dados conferidos). Chamado aberto pelo Diretor pedindo a retirada do IP da outra máquina ou um IP novo; manter o Cloudflare em **Full (strict)** (o modo Full aceitaria o servidor estranho). Se for preciso trocar de VPS: `deploy/vps/MIGRAR-VPS.md` | D | **Sim** (site instável) |
 | V8 | **Token permanente do Cloudflare para renovar o certificado**: o que está em `/root/.secrets/cloudflare.ini` vale até 26/10/2026 e tem acesso a todas as zonas. Criar um token só com Zone:Read e DNS:Edit da zona `audita.seg.br`, **sem validade**, trocar o arquivo e excluir o token antigo (senão a renovação de dezembro falha) | D, S | **Sim** (até dez/2026) |
 | V9 | Arquivos Word perdidos na reinstalação: PROP-2026-0001 Rev00 e Rev01 e PROP-2026-0002 Rev00 (os PDFs e os dados foram recuperados). Se houver cópia no computador ou no e-mail, reenviar; senão, aceitar a perda | D | Não |
+| V10 | Vistoria de 27/10/2026 (`docs/VISTORIA_2026-10-27.md`): decidir SIS-001 (HUB liberado no catálogo, mas "não liberado comercialmente" no próprio HUB), TRN-004 (no site, mas não liberado no catálogo), cursos EAD sem item de orçamento e a 1ª revisão da Lista Mestra AUDDOC019 | D | Não |
+| V11 | Teste `ca12-escopo` falhando desde 25/10: `tests/e2e-site/site.spec.ts` cita os domínios do PRO/HUB (ajustar o teste do site ou a regra) | S | Não |
 | V2 | Ativar a **verificação em duas etapas** do usuário mestre (decisão I3.01) | D | Não |
 | V3 | Retirar `audita.seg.br` e `www.audita.seg.br` do projeto `audita` da Vercel (não é mais usado) | D, S | Não |
 | V4 | Decidir o destino do `audita-dev` em nuvem: voltar a ser **ambiente de testes** (retirando o CPF do titular e os dados reais) ou pausar | D | Não |
@@ -88,7 +90,7 @@ Resolvidos no sistema: 1, 2 (parâmetros prontos para carga), 3, 4 (decisões pr
 | # | Pendência | AUDDOC | Quem | Bloqueia? |
 |---|---|---|---|---|
 | 24 | ~~V1.1~~ — **implementado em 11/10/2026** (serviço contratado e execução, M03–M06 como minutas com campos PENDENTES, caixa gerencial e indicadores de caixa). Falta só a revisão jurídica dos modelos (item 8 / caderno J2) para retirar a marca de minuta | AUDDOC017 §2, RF-07, RF-18, RF-23 | J | Não |
-| 25 | **I10 / V1.2 — Comunicação e marketing**: módulo **sem IA implementado no I10** (marca, campanhas, peças, revisão e exportação). Para ligar IA: aprovar provedor, custos, tratamento de dados e revisão humana (decisão D-08) | AUDDOC017 RF-25 a RF-28, §18 (D-08) | D, S | Não |
+| 25 | **I10 / V1.2 — Comunicação e marketing**: D-08 decidida pelo Diretor em 27/10/2026 (artes com IA, Claude). Falta cadastrar a chave `ANTHROPIC_API_KEY` no `web.env` do servidor (o Diretor cria a chave na conta Anthropic; custo estimado de US$ 0,20 a 0,60 por arte) | AUDDOC017 RF-25 a RF-28, §18 (D-08) | D | Não |
 | 26 | **Integração com Audita PRO / HUB**: somente em estágio próprio, após inventário dos três sistemas | AUDDOC014; AUDDOC017 §12 | D, S | Não |
 
 ## Observações

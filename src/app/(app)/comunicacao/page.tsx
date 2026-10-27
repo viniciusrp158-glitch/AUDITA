@@ -8,7 +8,7 @@ import { BRANDS, CHANNELS, PIECE_STATUS, TEMPLATES, type PieceStatus } from "@/l
 import { approvedLogo, listPieces } from "@/lib/comunicacao/queries";
 import { formatDateTime } from "@/lib/format";
 import { COMMUNICATE } from "@/lib/permissions";
-import { CommTabs, NoAiNotice, PieceStatusPill } from "./shared";
+import { CommTabs, AiNotice, PieceStatusPill } from "./shared";
 
 export const metadata = { title: "Comunicação" };
 
@@ -113,7 +113,7 @@ export default async function ComunicacaoPage({ searchParams }: { searchParams: 
             ))}
           </ul>
         )}
-        <NoAiNotice />
+        <AiNotice />
       </div>
     </>
   );

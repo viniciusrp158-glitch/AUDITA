@@ -33,6 +33,8 @@ export type Piece = {
   show_slogan: boolean;
   show_contacts: boolean;
   caption: string | null;
+  /** Arte atual gerada pela IA (C1); null = layout padrão. */
+  art_id: string | null;
   status: PieceStatus;
   current_version: number;
   status_note: string | null;
@@ -230,4 +232,50 @@ export async function downloadBrandFile(path: string, sha256: string): Promise<B
   if (error || !data) return null;
   const buf = Buffer.from(await data.arrayBuffer());
   return createHash("sha256").update(buf).digest("hex") === sha256 ? buf : null;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// C1 — Artes com IA
+// ---------------------------------------------------------------------------------------------------------------
+export type AiRequest = {
+  id: string;
+  mode: "criar" | "ajustar";
+  instruction: string;
+  status: "gerando" | "concluida" | "erro";
+  model: string | null;
+  error: string | null;
+  created_at: string;
+  finished_at: string | null;
+};
+
+/** Arte imutável de uma peça: o SVG e, se houver, a foto de fundo. */
+export async function getArt(artId: string): Promise<{ svg: string; background: Buffer | null } | null> {
+  if (!uuidRe.test(artId)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("comm_piece_arts").select("svg, comm_ai_references(data_base64)").eq("id", artId).maybeSingle();
+  if (!data) return null;
+  const ref = data.comm_ai_references as unknown as { data_base64: string } | null;
+  return { svg: data.svg, background: ref ? Buffer.from(ref.data_base64, "base64") : null };
+}
+
+export async function listAiRequests(pieceId: string): Promise<AiRequest[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("comm_ai_requests")
+    .select("id, mode, instruction, status, model, error, created_at, finished_at")
+    .eq("piece_id", pieceId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  return (data ?? []) as AiRequest[];
+}
+
+/** Pedido parado há mais de 15 minutos (servidor reiniciado no meio da geração): libera a peça para novo pedido. */
+export async function expireStaleAiRequests(pieceId: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase
+    .from("comm_ai_requests")
+    .update({ status: "erro", error: "A geração não terminou (tempo esgotado). Tente de novo." })
+    .eq("piece_id", pieceId)
+    .eq("status", "gerando")
+    .lt("created_at", new Date(Date.now() - 15 * 60_000).toISOString());
 }

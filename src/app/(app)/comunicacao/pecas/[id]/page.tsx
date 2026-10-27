@@ -4,12 +4,15 @@ import { Alert } from "@/components/form";
 import { Card, DefinitionList, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
 import { BRANDS, CHANNELS, TEMPLATES, textWarnings } from "@/lib/comunicacao/labels";
-import { getPieceOr404, listCampaigns, listPieceExports, listPieceVersions, listServiceOptions } from "@/lib/comunicacao/queries";
+import { aiConfigured } from "@/lib/comunicacao/ai";
+import { expireStaleAiRequests, getPieceOr404, listAiRequests, listCampaigns, listPieceExports, listPieceVersions, listServiceOptions } from "@/lib/comunicacao/queries";
 import { formatDateTime } from "@/lib/format";
 import { COMMUNICATE } from "@/lib/permissions";
 import { cancelPieceAction, reopenPieceAction, reviewPieceAction, submitPieceAction, updatePieceAction } from "../../actions";
 import { PieceForm, ReasonForm, ReviewForm, SubmitPieceForm } from "../../comm-forms";
-import { NoAiNotice, PieceStatusPill, VersionStatusPill } from "../../shared";
+import { requestArtAction } from "../../ia-actions";
+import { ArtRequestForm, AutoRefresh, RemoveArtButton } from "../../ia-forms";
+import { AiNotice, PieceStatusPill, VersionStatusPill } from "../../shared";
 import { withBase } from "@/lib/base-path";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -20,6 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 const FLASH: Record<string, string> = {
   criada: "Peça criada. Escreva o texto, salve e confira a prévia.",
+  ia: "Peça criada e pedido enviado à IA. A arte aparece aqui em 1 a 3 minutos; a tela se atualiza sozinha.",
   enviada: "Peça enviada para revisão do administrador.",
   aprovada: "Peça aprovada: exportação liberada e registrada.",
   devolvida: "Peça devolvida para ajuste com a orientação registrada.",
@@ -33,7 +37,17 @@ export default async function PecaPage({ params, searchParams }: { params: Promi
   const { id } = await params;
   const sp = await searchParams;
   const p = await getPieceOr404(id);
-  const [versions, exports, services, campaigns] = await Promise.all([listPieceVersions(id), listPieceExports(id), listServiceOptions(), listCampaigns()]);
+  if (p.status === "rascunho") await expireStaleAiRequests(id);
+  const [versions, exports, services, campaigns, aiRequests] = await Promise.all([
+    listPieceVersions(id),
+    listPieceExports(id),
+    listServiceOptions(),
+    listCampaigns(),
+    listAiRequests(id),
+  ]);
+  const running = aiRequests.find((r) => r.status === "gerando") ?? null;
+  const lastAi = aiRequests[0] ?? null;
+  const iaOn = aiConfigured();
   const current = versions.find((v) => v.version === p.current_version) ?? null;
   const approved = versions.find((v) => v.status === "aprovada") ?? null;
   const flash = Object.keys(FLASH).find((k) => sp[k]);
@@ -110,6 +124,51 @@ export default async function PecaPage({ params, searchParams }: { params: Promi
         </Card>
 
         {p.status === "rascunho" && (
+          <Card title="Arte com IA (Claude)">
+            <AutoRefresh active={Boolean(running)} />
+            <div className="space-y-3" data-testid="ai-card">
+              {!iaOn ? (
+                <Alert kind="warning">
+                  A IA ainda não está ligada neste servidor: falta cadastrar a chave da Anthropic (ANTHROPIC_API_KEY) no arquivo de configuração
+                  do sistema. Enquanto isso, a peça pode ser feita com o layout padrão, escrevendo os textos abaixo.
+                </Alert>
+              ) : running ? (
+                <p role="status" className="flex items-center gap-2 rounded-md bg-blue/5 px-3 py-2 text-sm text-navy" data-testid="ai-running">
+                  <span className="inline-block size-3 animate-spin rounded-full border-2 border-navy border-t-transparent" aria-hidden />
+                  A IA está {running.mode === "ajustar" ? "ajustando" : "desenhando"} a arte (pedido feito em {formatDateTime(running.created_at)}). Isso leva de 1 a
+                  3 minutos; a tela se atualiza sozinha.
+                </p>
+              ) : (
+                <>
+                  {lastAi?.status === "erro" && <Alert kind="error">Último pedido não concluído: {lastAi.error}</Alert>}
+                  <ArtRequestForm action={requestArtAction.bind(null, p.id)} hasArt={Boolean(p.art_id)} />
+                </>
+              )}
+              {p.art_id && (
+                <p className="text-xs text-muted">
+                  Os textos abaixo foram preenchidos pela IA e são os que aparecem na arte. Para mudar o texto da arte, peça o ajuste aqui: editar os
+                  campos não redesenha a imagem. <RemoveArtButton pieceId={p.id} />
+                </p>
+              )}
+              {aiRequests.length > 0 && (
+                <details className="text-xs text-muted">
+                  <summary className="cursor-pointer">Histórico de pedidos à IA ({aiRequests.length})</summary>
+                  <ul className="mt-2 space-y-1">
+                    {aiRequests.map((r) => (
+                      <li key={r.id}>
+                        {formatDateTime(r.created_at)} · {r.mode === "ajustar" ? "Ajuste" : "Criação"} ·{" "}
+                        {r.status === "concluida" ? "concluído" : r.status === "erro" ? "não concluído" : "em andamento"}: &ldquo;{r.instruction.slice(0, 160)}
+                        {r.instruction.length > 160 ? "…" : ""}&rdquo;
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {p.status === "rascunho" && (
           <div className="grid gap-6 xl:grid-cols-2">
             <Card title="Texto da peça">
               <PieceForm action={updatePieceAction.bind(null, p.id)} initial={initial} opts={{ services, campaigns }} />
@@ -129,7 +188,13 @@ export default async function PecaPage({ params, searchParams }: { params: Promi
               <Card title="Enviar para revisão">
                 <SubmitPieceForm
                   action={submitPieceAction.bind(null, p.id)}
-                  disabled={(p.title ?? "").trim().length < 3 ? "Escreva e salve o título antes de enviar." : undefined}
+                  disabled={
+                    running
+                      ? "Aguarde a IA terminar a arte antes de enviar."
+                      : (p.title ?? "").trim().length < 3
+                        ? "Escreva e salve o título antes de enviar."
+                        : undefined
+                  }
                 />
                 <p className="mt-2 text-xs text-muted">O conteúdo enviado fica congelado como uma versão; o administrador revisa marca e texto.</p>
               </Card>
@@ -247,7 +312,7 @@ export default async function PecaPage({ params, searchParams }: { params: Promi
             </div>
           </details>
         )}
-        <NoAiNotice />
+        <AiNotice />
       </div>
     </>
   );

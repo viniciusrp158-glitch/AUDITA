@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { ButtonLink } from "@/components/ui";
@@ -5,6 +6,7 @@ import { requireAppUser } from "@/lib/auth";
 import { ADMIN_ONLY } from "@/lib/permissions";
 import { PHASES, type Phase } from "@/lib/library/labels";
 import { currentRevision, listLibrary } from "@/lib/library/queries";
+import { getMasterListState, MASTER_LIST_TITLE } from "@/lib/library/master-list";
 import { LibraryList } from "./library-list";
 
 export const metadata = { title: "Biblioteca" };
@@ -15,7 +17,7 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
   const q = (sp.q ?? "").slice(0, 80);
   const fase = Object.keys(PHASES).includes(sp.fase ?? "") ? (sp.fase as Phase) : "";
   const familia = (sp.familia ?? "").slice(0, 80);
-  const { rows, families, error } = await listLibrary({ q, fase, familia });
+  const [{ rows, families, error }, master] = await Promise.all([listLibrary({ q, fase, familia }), getMasterListState()]);
   const vigentes = rows.filter((d) => d.library_revisions.some((r) => r.status === "vigente")).length;
 
   return (
@@ -31,6 +33,20 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
           </ButtonLink>
         )}
       </div>
+
+      <Link
+        href="/biblioteca/lista-mestra"
+        className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm ${master.upToDate ? "border-line bg-white" : "border-warn/40 bg-warn/10"}`}
+        data-testid="master-list-banner"
+      >
+        <span className="text-ink">
+          <strong>{MASTER_LIST_TITLE}</strong>{" "}
+          {master.upToDate
+            ? `— ${master.vigente?.revision} vigente, igual ao catálogo.`
+            : `— ${master.vigente ? `o catálogo mudou desde a ${master.vigente.revision}` : "ainda não publicada"}: aprove a ${master.nextRevision}.`}
+        </span>
+        <span className="font-semibold text-navy">Abrir</span>
+      </Link>
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">
         <label className="min-w-0 flex-1 basis-64">

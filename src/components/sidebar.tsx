@@ -45,6 +45,7 @@ export function Sidebar({
   isMaster,
   theme,
   badges = {},
+  badgeTitles = {},
 }: {
   userName: string;
   userEmail: string;
@@ -52,6 +53,8 @@ export function Sidebar({
   isMaster: boolean;
   theme: "claro" | "escuro";
   badges?: Record<string, number>;
+  /** Texto de ajuda de cada selo (ao passar o mouse). */
+  badgeTitles?: Record<string, string>;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -114,7 +117,7 @@ export function Sidebar({
                 {(badges[href] ?? 0) > 0 && (
                   <span
                     className="rounded-full bg-warn px-1.5 text-xs font-bold text-white"
-                    title={`${badges[href]} solicitação(ões) de cadastro pendente(s)`}
+                    title={badgeTitles[href] ?? String(badges[href])}
                   >
                     {badges[href]}
                   </span>

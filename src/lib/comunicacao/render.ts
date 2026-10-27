@@ -14,6 +14,12 @@ import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import { formatPhone } from "@/lib/br";
 import { ensurePdfmake } from "@/lib/documents/render-pdf";
 import { MONTSERRAT_BOLD, MONTSERRAT_REGULAR, MONTSERRAT_SEMIBOLD } from "./fonts";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { Resvg } from "@resvg/resvg-js";
+import { artArea, artBands } from "./art-layout";
+import { composeArtArea } from "./images";
 import { BRANDS, PALETTE, SIGNATURE, SLOGAN, TEMPLATES, type Brand, type Template } from "./labels";
 
 export type RenderLogo = { dataUri: string; width: number; height: number };
@@ -32,6 +38,10 @@ export type PieceRenderInput = {
   contacts: RenderContacts;
   logo: RenderLogo | null;
   watermark: boolean;
+  /** Arte gerada pela IA (SVG): ocupa a área entre a faixa do logo e o rodapé. */
+  artSvg?: string | null;
+  /** Foto de fundo da arte (enviada pela pessoa), por baixo do SVG. */
+  artBackground?: Buffer | null;
 };
 
 const b64 = (s: string) => {
@@ -231,8 +241,61 @@ function noticeLayout(p: PieceRenderInput, W: number, H: number) {
   );
 }
 
+// O resvg (Node) lê fontes de arquivos: grava a Montserrat embutida uma vez na pasta temporária
+let artFontFiles: string[] | null = null;
+function artFonts(): string[] {
+  if (artFontFiles) return artFontFiles;
+  const dir = join(tmpdir(), "audita-fontes");
+  mkdirSync(dir, { recursive: true });
+  artFontFiles = (
+    [
+      ["Montserrat-Regular.ttf", MONTSERRAT_REGULAR],
+      ["Montserrat-SemiBold.ttf", MONTSERRAT_SEMIBOLD],
+      ["Montserrat-Bold.ttf", MONTSERRAT_BOLD],
+    ] as const
+  ).map(([name, data]) => {
+    const file = join(dir, name);
+    writeFileSync(file, Buffer.from(data, "base64"));
+    return file;
+  });
+  return artFontFiles;
+}
+
+/** SVG da IA → PNG, só com a Montserrat (sem fontes do sistema nem arquivos externos). */
+export function rasterizeArt(svg: string, width: number): Buffer {
+  const r = new Resvg(svg, {
+    fitTo: { mode: "width", value: width },
+    font: { loadSystemFonts: false, defaultFontFamily: "Montserrat", fontFiles: artFonts() },
+  });
+  return Buffer.from(r.render().asPng());
+}
+
+/** Peça com arte da IA: logo oficial em faixa branca, arte no meio e rodapé oficial (AUDDOC003). */
+function artLayout(p: PieceRenderInput, artPng: Buffer) {
+  const b = artBands(p.template);
+  const accent = BRANDS[p.brand].accent;
+  const logoH = Math.round(b.header * 0.48);
+  return box(
+    { width: b.width, height: b.height, flexDirection: "column", backgroundColor: PALETTE.white, fontFamily: "Montserrat", color: PALETTE.navy, position: "relative" },
+    box(
+      { height: b.header, flexDirection: "column", backgroundColor: PALETTE.white },
+      box({ height: Math.round(b.header * 0.06), backgroundColor: accent }),
+      box({ flex: 1, alignItems: "center", paddingLeft: Math.round(b.width * 0.06) }, logoBlock(p.logo, logoH)),
+    ),
+    h("img", { src: `data:image/png;base64,${artPng.toString("base64")}`, width: b.width, height: b.height - b.header - b.footer, style: { width: b.width, height: b.height - b.header - b.footer } }),
+    box({ height: b.footer, flexDirection: "column", justifyContent: "center", backgroundColor: PALETTE.navy }, footer(p, b.width, b.height, { compact: true })),
+    p.watermark ? watermarkBand(b.width) : null,
+  );
+}
+
 export async function renderPiecePng(p: PieceRenderInput): Promise<Buffer> {
   const t = TEMPLATES[p.template];
+  if (p.artSvg) {
+    const area = artArea(p.template);
+    const artPng = await composeArtArea(rasterizeArt(p.artSvg, t.width), p.artBackground ?? null, area.width, area.height);
+    const res = new ImageResponse(artLayout(p, artPng), { width: t.width, height: t.height, fonts: fonts() });
+    return Buffer.from(await res.arrayBuffer());
+  }
   const el =
     p.template === "capa_apresentacao" ? coverLayout(p, t.width, t.height) : p.template === "comunicado_a4" ? noticeLayout(p, t.width, t.height) : socialLayout(p, t.width, t.height);
   const res = new ImageResponse(el, { width: t.width, height: t.height, fonts: fonts() });

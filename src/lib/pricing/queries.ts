@@ -1,6 +1,7 @@
 import "server-only";
 import { notFound } from "next/navigation";
 import { normalizeSearch } from "@/lib/clients/queries";
+import { SCOPE_COLUMNS, serviceScopeText } from "@/lib/services/scope";
 import { createClient } from "@/lib/supabase/server";
 import type { QuoteSnapshot } from "@/lib/documents/snapshot";
 import { ITEM_BASE_COLS, withItemPricing, type ItemPricingFields, type ItemPricingRow } from "./item-columns";
@@ -199,17 +200,21 @@ export type ServiceOption = {
   pricing_model: string;
   commercial_status: string;
   catalog_status: string;
+  name: string;
+  scope: string;
 };
 
 export async function getServiceOptions(): Promise<ServiceOption[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("services")
-    .select("id, service_code, name, family, pricing_model, commercial_status, catalog_status")
+    .select(`id, service_code, name, family, pricing_model, commercial_status, catalog_status, ${SCOPE_COLUMNS}`)
     .order("service_code");
   return (data ?? []).map((s) => ({
     id: s.id,
     label: `${s.service_code} — ${s.name}`,
+    name: s.name,
+    scope: serviceScopeText(s),
     family: s.family,
     pricing_model: s.pricing_model,
     commercial_status: s.commercial_status,

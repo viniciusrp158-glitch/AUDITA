@@ -2,8 +2,9 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { normalizeSearch } from "@/lib/clients/queries";
 import type { CommercialStatus } from "@/lib/services/labels";
+import { SCOPE_COLUMNS, serviceScopeText } from "@/lib/services/scope";
 import { createClient } from "@/lib/supabase/server";
-import { CLOSED_STATUSES, DEMAND_STATUS_KEYS, OPEN_STATUSES, type DemandStatus, type EventType, type Origin } from "./labels";
+import { CLOSED_STATUSES, DEMAND_STATUS_KEYS, OPEN_STATUSES, waitingCutoffIso, type DemandStatus, type EventType, type Origin } from "./labels";
 
 export const PAGE_SIZE = 25;
 
@@ -15,6 +16,7 @@ export type DemandListRow = {
   demand_code: string;
   summary: string;
   status: DemandStatus;
+  status_changed_at: string;
   received_on: string;
   due_on: string | null;
   is_recurring: boolean;
@@ -68,18 +70,21 @@ export async function listDemands({
   situacao,
   page,
   clientId,
+  waiting,
 }: {
   q?: string;
   grupo?: "abertas" | "encerradas" | "todas";
   situacao?: string;
   page: number;
   clientId?: string;
+  /** Só as que estão em "Aguardando cliente" há mais de 48 h. */
+  waiting?: boolean;
 }): Promise<{ rows: DemandListRow[]; total: number; error: boolean }> {
   const supabase = await createClient();
   let query = supabase
     .from("demands")
     .select(
-      "id, demand_code, summary, status, received_on, due_on, is_recurring, is_test, clients(id, client_code, legal_name, trade_name), services(service_code, name)",
+      "id, demand_code, summary, status, status_changed_at, received_on, due_on, is_recurring, is_test, clients(id, client_code, legal_name, trade_name), services(service_code, name)",
       { count: "exact" },
     )
     .order("received_on", { ascending: false })
@@ -87,7 +92,8 @@ export async function listDemands({
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (clientId) query = query.eq("client_id", clientId);
-  if (situacao && (DEMAND_STATUS_KEYS as string[]).includes(situacao)) query = query.eq("status", situacao);
+  if (waiting) query = query.eq("status", "aguardando_cliente").lt("status_changed_at", waitingCutoffIso());
+  else if (situacao && (DEMAND_STATUS_KEYS as string[]).includes(situacao)) query = query.eq("status", situacao);
   else if (grupo === "abertas") query = query.in("status", OPEN_STATUSES);
   else if (grupo === "encerradas") query = query.in("status", CLOSED_STATUSES);
 
@@ -132,7 +138,8 @@ export async function getDemandEvents(id: string): Promise<DemandEvent[]> {
 
 export type FormOptions = {
   clients: { id: string; label: string; is_test: boolean }[];
-  services: { id: string; label: string; family: string; commercial_status: CommercialStatus; catalog_status: string }[];
+  /** `scope`: escopo do catálogo em texto (pré-preenche a descrição ao escolher o serviço). */
+  services: { id: string; label: string; name: string; family: string; commercial_status: CommercialStatus; catalog_status: string; scope: string }[];
 };
 
 /** Opções do formulário: clientes ativos e catálogo (serviços não liberados aparecem sinalizados). */
@@ -142,7 +149,7 @@ export async function getDemandFormOptions(includeClientId?: string | null): Pro
   clientsQuery = includeClientId ? clientsQuery.or(`status.eq.ativo,id.eq.${includeClientId}`) : clientsQuery.eq("status", "ativo");
   const [clients, services] = await Promise.all([
     clientsQuery.limit(1000),
-    supabase.from("services").select("id, service_code, name, family, commercial_status, catalog_status").order("service_code"),
+    supabase.from("services").select(`id, service_code, name, family, commercial_status, catalog_status, ${SCOPE_COLUMNS}`).order("service_code"),
   ]);
   return {
     clients: (clients.data ?? []).map((c) => ({
@@ -153,9 +160,11 @@ export async function getDemandFormOptions(includeClientId?: string | null): Pro
     services: (services.data ?? []).map((s) => ({
       id: s.id,
       label: `${s.service_code} — ${s.name}`,
+      name: s.name,
       family: s.family,
       commercial_status: s.commercial_status,
       catalog_status: s.catalog_status,
+      scope: serviceScopeText(s),
     })),
   };
 }
@@ -163,5 +172,18 @@ export async function getDemandFormOptions(includeClientId?: string | null): Pro
 export async function countDemandsByClient(clientId: string): Promise<number> {
   const supabase = await createClient();
   const { count } = await supabase.from("demands").select("id", { count: "exact", head: true }).eq("client_id", clientId);
+  return count ?? 0;
+}
+
+/** Demandas em "Aguardando cliente" há mais de 48 h (aviso no menu, no Início e em Demandas). */
+export async function countWaitingTooLong(includeTest = true): Promise<number> {
+  const supabase = await createClient();
+  let q = supabase
+    .from("demands")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "aguardando_cliente")
+    .lt("status_changed_at", waitingCutoffIso());
+  if (!includeTest) q = q.eq("is_test", false);
+  const { count } = await q;
   return count ?? 0;
 }

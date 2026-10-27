@@ -37,3 +37,23 @@ export const EVENT_TYPES = {
   situacao: "Mudança de situação",
 } as const;
 export type EventType = keyof typeof EVENT_TYPES;
+
+/** Demanda parada em "Aguardando cliente" por mais que isto gera aviso (pedido do Diretor, 27/10/2026). */
+export const WAITING_LIMIT_HOURS = 48;
+
+/** Horas na situação "Aguardando cliente" quando passou do limite; null se não for o caso. */
+export function waitingHours(d: { status: DemandStatus; status_changed_at: string }, now = Date.now()): number | null {
+  if (d.status !== "aguardando_cliente") return null;
+  const h = Math.floor((now - new Date(d.status_changed_at).getTime()) / 3_600_000);
+  return h >= WAITING_LIMIT_HOURS ? h : null;
+}
+
+/** Limite em ISO para a consulta: mudou para "Aguardando cliente" antes disto. */
+export function waitingCutoffIso(now = Date.now()): string {
+  return new Date(now - WAITING_LIMIT_HOURS * 3_600_000).toISOString();
+}
+
+export function waitingLabel(hours: number): string {
+  // Até 3 dias em horas (49 h, 60 h…); depois em dias
+  return hours < 72 ? `Aguardando há ${hours} h` : `Aguardando há ${Math.floor(hours / 24)} dias`;
+}

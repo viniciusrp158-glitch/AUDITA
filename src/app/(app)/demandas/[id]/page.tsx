@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
-import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge } from "@/components/demand-status";
+import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge, WaitingBadge } from "@/components/demand-status";
 import { Alert, SubmitButton } from "@/components/form";
 import { QuoteStatusPill } from "@/components/pricing-status";
 import { getQuoteByDemand } from "@/lib/pricing/queries";
@@ -10,7 +10,7 @@ import { ButtonLink, Card, CodeBadge, DefinitionList, TestBadge } from "@/compon
 import { requireAppUser } from "@/lib/auth";
 import { OPERATE } from "@/lib/permissions";
 import { formatPhone } from "@/lib/br";
-import { DEMAND_STATUS, EVENT_TYPES, ORIGINS } from "@/lib/demands/labels";
+import { DEMAND_STATUS, EVENT_TYPES, ORIGINS, WAITING_LIMIT_HOURS, waitingHours } from "@/lib/demands/labels";
 import { getDemandEvents, getDemandOr404 } from "@/lib/demands/queries";
 import { formatDateTime, formatDay, todaySaoPaulo } from "@/lib/format";
 import { addEventAction, changeStatusAction } from "../actions";
@@ -38,6 +38,7 @@ export default async function DemandaPage({
   const svc = d.services;
   const released = svc && svc.commercial_status === "apto_comercialmente" && svc.catalog_status === "ativo";
   const contact = d.client_contacts;
+  const waitingFor = waitingHours(d);
 
   return (
     <>
@@ -51,6 +52,7 @@ export default async function DemandaPage({
             <CodeBadge code={d.demand_code} />
             <DemandStatusPill status={d.status} />
             {isOverdue(d, today) && <OverdueBadge />}
+            {waitingFor !== null && <WaitingBadge hours={waitingFor} />}
             {d.is_recurring && <RecurringBadge />}
             {d.is_test && <TestBadge />}
           </div>
@@ -67,6 +69,14 @@ export default async function DemandaPage({
         </ButtonLink>
       </header>
 
+      {waitingFor !== null && (
+        <div className="mb-4">
+          <Alert kind="warning">
+            Esta demanda está em <strong>Aguardando cliente</strong> há mais de {WAITING_LIMIT_HOURS} horas (desde{" "}
+            {formatDateTime(d.status_changed_at)}). Cobre o retorno do cliente, registre o contato abaixo ou atualize a situação.
+          </Alert>
+        </div>
+      )}
       {sp.criada && (
         <div className="mb-4">
           <Alert kind="info">
