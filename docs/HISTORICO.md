@@ -1408,3 +1408,12 @@ vistoria = "proponho, você aprova" (nada vira vigente nem muda situação de se
   `art_id` no snapshot).
 - **Não executados:** e2e e integração contra o banco de desenvolvimento (contas de teste do `audita-dev` em nuvem
   bloqueadas, V4; o desenvolvimento self-hosted do Leandro não está nesta VPS) e a chamada real ao Claude (sem chave).
+
+### Publicação em produção (27/10/2026, 20h30–20h50)
+
+Com autorização do Diretor: backup do banco antes (`/home/deploy/backups/audita-sistema/*_2026-10-27_2029`); migração
+`20261027120000_c1_artes_ia` aplicada pelo `apply-migrations.sh` (36 registradas; 3 tabelas novas com RLS e a coluna
+`comm_pieces.art_id`); imagem `audita-sistema:20261027-2030-ia` gerada do commit `c30e8f2` (resvg e sharp testados dentro
+da imagem) e trocada só no `audita-web` (área do aluno e site sem mudança). Retorno: `.env.antes-20261027-ia`.
+Conferência: os 5 endereços 15/15 com 200; `/biblioteca/lista-mestra`, `/comunicacao/pecas/nova` e `/demandas` pedindo
+login; nenhum erro no registro do `audita-web`. A IA fica desligada até a chave `ANTHROPIC_API_KEY` entrar no `web.env`.
