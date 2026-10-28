@@ -1431,3 +1431,6 @@ A pedido do Diretor ("remova a aba de Comunicação do sistema AUDITA"), depois 
   retirada).
 - Evidência: `tsc` e `eslint` sem erros; unitários 77/78 (a falha é a antiga do `ca12-escopo`, V11); PGlite 53/53;
   `next build` concluído.
+- Publicado em produção em 28/10/2026 com autorização do Diretor: imagem `audita-sistema:20261028-sem-comunicacao`
+  (commit `3a8665f`), só o `audita-web`; os 5 endereços 15/15 com 200; nenhum erro no registro. Retorno:
+  `.env.antes-20261028-sem-comunicacao`.
