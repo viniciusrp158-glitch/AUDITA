@@ -7,7 +7,6 @@ import { uniqueSuffix } from "../helpers/br";
 
 const ADMIN = { email: process.env.TEST_ADMIN_EMAIL!, password: process.env.TEST_ADMIN_PASSWORD! };
 const OPERADOR = { email: process.env.TEST_OPERADOR_EMAIL!, password: process.env.TEST_OPERADOR_PASSWORD! };
-const MARKETING = { email: process.env.TEST_MARKETING_EMAIL!, password: process.env.TEST_MARKETING_PASSWORD! };
 const SHOTS = "test-results/telas";
 
 async function login(page: Page, who: { email: string; password: string }, landing: RegExp) {
@@ -113,7 +112,7 @@ test("mestre cria usuário operador; primeiro acesso exige troca de senha; opera
   const nav = op.locator('aside[aria-label="Menu principal"] nav');
   await expect(nav.getByRole("link", { name: "Clientes" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Orçamentos" })).toBeVisible();
-  for (const hidden of ["Início", "Biblioteca", "Configurações", "Comunicação"]) await expect(nav.getByRole("link", { name: hidden })).toHaveCount(0);
+  for (const hidden of ["Início", "Biblioteca", "Configurações"]) await expect(nav.getByRole("link", { name: hidden })).toHaveCount(0);
   await expect(op.getByRole("link", { name: "Link de cadastro" })).toHaveCount(0);
   for (const path of ["/", "/configuracoes/parametros", "/biblioteca", "/clientes/convites"]) {
     await op.goto(path);
@@ -165,24 +164,6 @@ test("operador de teste: item do orçamento sem preço, margem ou desconto", asy
   await expect(page.getByTestId("price-restricted")).toBeVisible();
   await expect(page.getByLabel("Desconto aplicado")).toHaveCount(0);
   await expect(page.getByTestId("item-final-price")).toHaveCount(0);
-});
-
-test("marketing: só Comunicação (I10) e a própria conta; celular sem rolagem horizontal", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
-  const page = await ctx.newPage();
-  await login(page, MARKETING, /\/comunicacao/);
-  await page.goto("/conta");
-  await expect(page.getByTestId("users-section")).toHaveCount(0);
-  await page.goto("/clientes");
-  await expect(page).toHaveURL(/\/comunicacao\?sem_permissao=1/);
-  await page.getByRole("button", { name: "Abrir menu" }).click();
-  const nav = page.locator('aside[aria-label="Menu principal"] nav');
-  await expect(nav.getByRole("link")).toHaveCount(1);
-  await expect(nav.getByRole("link", { name: "Comunicação" })).toBeVisible();
-  await expect(page.getByTestId("theme-toggle")).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1);
-  await page.screenshot({ path: `${SHOTS}/97-conta-marketing-celular.png`, fullPage: true });
-  await ctx.close();
 });
 
 test("mestre cria outro usuário mestre: mesmas permissões, login próprio, não altera o próprio nível", async ({ page, browser }) => {

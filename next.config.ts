@@ -21,8 +21,8 @@ const nextConfig: NextConfig = {
       { source: "/:path((?!empresa(?:/|$)).*)", destination: `${BASE_PATH}/:path`, basePath: false, permanent: false },
     ];
   },
-  // Geração de PDF no servidor (pdfmake/pdfkit) e da arte da IA (resvg, binário nativo) carregados do node_modules, sem empacotamento
-  serverExternalPackages: ["pdfmake", "@resvg/resvg-js", "sharp"],
+  // Geração de PDF no servidor (pdfmake/pdfkit carregados do node_modules, sem empacotamento)
+  serverExternalPackages: ["pdfmake"],
   // Importador de treinamentos: o PDF da ficha e dos gabaritos vai para a conferência (até 8 MB por envio)
   experimental: { serverActions: { bodySizeLimit: "9mb" } },
   async headers() {

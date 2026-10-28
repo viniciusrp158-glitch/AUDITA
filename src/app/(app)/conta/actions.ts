@@ -8,7 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export type AccountState = { ok?: string; error?: string; fieldErrors?: Record<string, string>; seq?: number };
 
-const ROLES = ["admin", "operador", "marketing"] as const;
+// Sem "marketing": o nível era só para a Comunicação, retirada a pedido do Diretor em 28/10/2026
+const ROLES = ["admin", "operador"] as const;
 const LEVELS = ["mestre", ...ROLES] as const;
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

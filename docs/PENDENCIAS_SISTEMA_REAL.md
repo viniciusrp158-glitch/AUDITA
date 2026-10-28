@@ -90,7 +90,7 @@ Resolvidos no sistema: 1, 2 (parâmetros prontos para carga), 3, 4 (decisões pr
 | # | Pendência | AUDDOC | Quem | Bloqueia? |
 |---|---|---|---|---|
 | 24 | ~~V1.1~~ — **implementado em 11/10/2026** (serviço contratado e execução, M03–M06 como minutas com campos PENDENTES, caixa gerencial e indicadores de caixa). Falta só a revisão jurídica dos modelos (item 8 / caderno J2) para retirar a marca de minuta | AUDDOC017 §2, RF-07, RF-18, RF-23 | J | Não |
-| 25 | **I10 / V1.2 — Comunicação e marketing**: D-08 decidida pelo Diretor em 27/10/2026 (artes com IA, Claude). Falta cadastrar a chave `ANTHROPIC_API_KEY` no `web.env` do servidor (o Diretor cria a chave na conta Anthropic; custo estimado de US$ 0,20 a 0,60 por arte) | AUDDOC017 RF-25 a RF-28, §18 (D-08) | D | Não |
+| 25 | **I10 / V1.2 — Comunicação e marketing**: aba retirada do sistema a pedido do Diretor em 28/10/2026 (dados preservados no banco). Sem pendência | AUDDOC017 RF-25 a RF-28 | D | Não |
 | 26 | **Integração com Audita PRO / HUB**: somente em estágio próprio, após inventário dos três sistemas | AUDDOC014; AUDDOC017 §12 | D, S | Não |
 
 ## Observações

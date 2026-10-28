@@ -12,7 +12,6 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
-  Megaphone,
   Menu,
   Settings,
   UserRound,
@@ -29,7 +28,6 @@ export const NAV = [
   { href: "/demandas", label: "Demandas", icon: ClipboardList },
   { href: "/orcamentos", label: "Orçamentos", icon: Calculator },
   { href: "/biblioteca", label: "Biblioteca", icon: BookOpen },
-  { href: "/comunicacao", label: "Comunicação", icon: Megaphone },
   { href: "/treinamentos", label: "Treinamentos", icon: GraduationCap },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;

@@ -28,7 +28,8 @@ export const LEVEL_HINT: Record<AccessLevel, string> = {
     "Mesmas permissões e acessos do usuário mestre: tudo o que o Administrador faz e também cria usuários e define níveis. Cada pessoa com o próprio login.",
   ...ROLE_HINT,
 };
-export const LEVELS: AccessLevel[] = ["mestre", "admin", "operador", "marketing"];
+/** "marketing" continua existindo no banco, mas não é mais oferecido: era só para a Comunicação, retirada em 28/10/2026. */
+export const LEVELS: AccessLevel[] = ["mestre", "admin", "operador"];
 
 /** Menu principal por nível. */
 export const NAV_ROLES: Record<string, Role[]> = {
@@ -37,18 +38,16 @@ export const NAV_ROLES: Record<string, Role[]> = {
   "/demandas": ["admin", "operador"],
   "/orcamentos": ["admin", "operador"],
   "/biblioteca": ["admin"],
-  "/comunicacao": ["admin", "marketing"],
   "/treinamentos": ["admin"],
   "/configuracoes": ["admin"],
 };
 
 export function homeFor(role: Role): string {
   if (role === "operador") return "/clientes";
-  if (role === "marketing") return "/comunicacao";
+  // A aba Comunicação foi retirada a pedido do Diretor (28/10/2026): o nível Marketing ficou sem telas
+  if (role === "marketing") return "/sem-acesso";
   return "/";
 }
 
 export const OPERATE: Role[] = ["admin", "operador"];
-/** Comunicação (I10): administrador e marketing; só o administrador aprova peças e logos. */
-export const COMMUNICATE: Role[] = ["admin", "marketing"];
 export const ADMIN_ONLY: Role[] = ["admin"];

@@ -1417,3 +1417,17 @@ Com autorização do Diretor: backup do banco antes (`/home/deploy/backups/audit
 da imagem) e trocada só no `audita-web` (área do aluno e site sem mudança). Retorno: `.env.antes-20261027-ia`.
 Conferência: os 5 endereços 15/15 com 200; `/biblioteca/lista-mestra`, `/comunicacao/pecas/nova` e `/demandas` pedindo
 login; nenhum erro no registro do `audita-web`. A IA fica desligada até a chave `ANTHROPIC_API_KEY` entrar no `web.env`.
+
+## Comunicação retirada do sistema (28/10/2026)
+
+A pedido do Diretor ("remova a aba de Comunicação do sistema AUDITA"), depois de ver o resultado das artes com IA:
+- Saem a aba e todas as telas da Comunicação (peças, campanhas, biblioteca de marca e artes com IA), o código em
+  `src/lib/comunicacao`, os testes do I10 e da IA e as dependências `@anthropic-ai/sdk`, `@resvg/resvg-js` e `sharp`.
+- O nível **Marketing** deixa de ser oferecido ao criar usuários (só existia para a Comunicação; nenhum usuário o tinha);
+  se algum aparecer, cai em "sem acesso".
+- **Banco sem mudança:** nada foi apagado (CLAUDE.md, regra 3). As tabelas `comm_*`, `brand_*` e as da migração
+  `20261027120000_c1_artes_ia` continuam, com os 2 rascunhos de peça e os 3 logos já enviados. A migração segue no
+  repositório porque está aplicada. Para voltar com a aba, basta restaurar o código pelo Git (commit anterior a esta
+  retirada).
+- Evidência: `tsc` e `eslint` sem erros; unitários 77/78 (a falha é a antiga do `ca12-escopo`, V11); PGlite 53/53;
+  `next build` concluído.

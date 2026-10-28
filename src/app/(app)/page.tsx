@@ -32,7 +32,6 @@ const INCREMENTOS: { id: string; titulo: string; status: Status }[] = [
   { id: "I8", titulo: "Indicadores gerenciais", status: "concluido" },
   { id: "I9", titulo: "Homologação do MVP", status: "concluido" },
   { id: "I9.1", titulo: "Minha conta, usuários e tema claro/escuro (pedido do Diretor)", status: "em_validacao" },
-  { id: "I10", titulo: "Comunicação / marketing (V1.2)", status: "previsto" },
 ];
 
 const STATUS = {
