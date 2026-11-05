@@ -1434,3 +1434,27 @@ A pedido do Diretor ("remova a aba de Comunicação do sistema AUDITA"), depois 
 - Publicado em produção em 28/10/2026 com autorização do Diretor: imagem `audita-sistema:20261028-sem-comunicacao`
   (commit `3a8665f`), só o `audita-web`; os 5 endereços 15/15 com 200; nenhum erro no registro. Retorno:
   `.env.antes-20261028-sem-comunicacao`.
+
+## Biblioteca sob responsabilidade do Claude e AUDDOC003 Rev.01 (05/11/2026)
+
+O Diretor delegou ao Claude a atualização e a publicação dos documentos da Biblioteca: quando ele informar uma mudança,
+a nova revisão é gerada e publicada, com rastreabilidade (regra 12 do `CLAUDE.md`).
+
+- **Situação da Biblioteca em 05/11/2026** (consulta em produção): 37 documentos; AUDDOC019 Rev.01 em dia com o catálogo
+  (nenhuma alteração de serviço ou curso depois de 02/11 23:57); AUDDOC014 e AUDDOC015 na Rev.01; os demais na Rev.00.
+  Desatualizados: AUDDOC004 e AUDDOC005 (descrevem a carga inicial do catálogo). Sem arquivo: AUDDOC018 (só os anexos).
+- **AUDDOC003 — Manual de Identidade Visual, Rev.01**: inclusão das versões negativas oficiais de AUDITA, Audita PRO e
+  Audita HUB (as do site, `site/public/images/marca/*-negativa.webp`, convertidas para PNG sem alteração). Seção 06 com
+  as três marcas sobre #031B35, regras da versão negativa (conforme as folhas de validação enviadas pelo Diretor) e
+  situação das variantes; linha "Negativo" nos arquivos de distribuição (12); validação e histórico (13); controle
+  documental, capa, cabeçalho e rodapé na Rev.01. Gerada por `scripts/biblioteca/auddoc003-rev01.cjs` a partir do Word
+  da Rev.00 (o restante do documento fica idêntico).
+- **Publicação**: cópia de segurança antes (`db_2026-11-05_2037.sql.gz`); arquivo enviado ao armazenamento
+  `audita-biblioteca` e revisão registrada e publicada por `scripts/biblioteca/publicar-revisao.sh` (mesma regra da tela:
+  `publish_library_revision`, com o usuário do Diretor). Rev.00 passou a "substituída".
+
+### Evidência (05/11/2026)
+
+- Word abriu a Rev.01 sem erro (19 páginas); páginas 2, 8, 9, 18 e 19 conferidas em imagem.
+- Produção: `AUDDOC003 Rev.00 substituido`, `Rev.01 vigente 05/11/2026 20:38`.
+- SHA-256 do arquivo baixado do armazenamento igual ao registrado (`c97eb27b…a6a2`).
