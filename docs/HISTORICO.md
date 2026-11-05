@@ -1458,3 +1458,32 @@ a nova revisão é gerada e publicada, com rastreabilidade (regra 12 do `CLAUDE.
 - Word abriu a Rev.01 sem erro (19 páginas); páginas 2, 8, 9, 18 e 19 conferidas em imagem.
 - Produção: `AUDDOC003 Rev.00 substituido`, `Rev.01 vigente 05/11/2026 20:38`.
 - SHA-256 do arquivo baixado do armazenamento igual ao registrado (`c97eb27b…a6a2`).
+
+## AUDDOC004 Rev.01, AUDDOC005 Rev.01 e AUDDOC018 Rev.00 em rascunho para aprovação (05/11/2026)
+
+Pedido do Diretor: atualizar o que estava desatualizado na Biblioteca; ele aprova no sistema. As três revisões foram
+registradas como **rascunho** (sem aprovação) e aparecem na Biblioteca com o formulário "Aprovar e publicar".
+
+- **Fonte dos dados**: catálogo de produção (`audita.services`, 45 itens) e dados institucionais vigentes; nada novo foi
+  decidido nos documentos. Situação em 05/11/2026: 25 serviços e 12 ofertas de treinamento aptos comercialmente (decisão
+  do Diretor de 14/10/2026, D3/D4, registrada em 15/10); não liberados: ESP-001 a ESP-007 e TRN-004; MEI formalizado
+  (CNPJ 69.563.249/0001-01, 11/10/2026), inscrição municipal pendente.
+- **AUDDOC004 Rev.01** (planilha; `scripts/biblioteca/auddoc004-rev01.cjs`): coluna M da matriz com "Liberado"/"Não
+  liberado" (vocabulário da própria matriz, fórmula de contagem = 25), J–L do catálogo, observações com o fundamento de
+  cada decisão; abas Treinamentos por NR, Materiais dos Cursos, Habilitações (registro TST, instrutor, auditor ISO,
+  formalização) e Pendências (11 etapas) atualizadas; Controle de Revisões com Rev.00 substituída e Rev.01.
+- **AUDDOC005 Rev.01** (Word; `scripts/biblioteca/auddoc005-rev01.cjs`): identificação, aviso inicial (situação no
+  catálogo e AUDDOC019; preços pelo AUDDOC011, sem parâmetro = PENDENTE), §3 situação do portfólio, nova §3.1 com a
+  situação de cada um dos 45 itens, §14, três pendências da §15 concluídas, §16 controle, cabeçalho e rodapé.
+- **AUDDOC018 Rev.00** (Word; `scripts/biblioteca/auddoc018-rev00.ts`, gerador de Word do sistema): o documento só
+  tinha os anexos. Documento-índice com os 10 modelos (formato, revisão vigente e serviços do catálogo que os citam) e
+  regras de uso.
+- `scripts/biblioteca/publicar-revisao.sh` passou a ter os modos `rascunho` e `publicar`.
+
+### Evidência (05/11/2026)
+
+- Word abriu AUDDOC005 (8 páginas) e AUDDOC018 (2 páginas) sem erro; páginas conferidas em imagem. Excel abriu o
+  AUDDOC004, recalculou (33 / 26 / 7 / 25) e os valores das abas alteradas foram conferidos.
+- Cópia de segurança antes do registro (`db_2026-11-05_2050`). Produção: AUDDOC004 Rev.01, AUDDOC005 Rev.01 e
+  AUDDOC018 Rev.00 em "rascunho"; Rev.00 do 004 e do 005 continuam vigentes até a aprovação.
+- SHA-256 do arquivo gerado = arquivo guardado = registro, nos três casos.
