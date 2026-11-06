@@ -1487,3 +1487,18 @@ registradas como **rascunho** (sem aprovação) e aparecem na Biblioteca com o f
 - Cópia de segurança antes do registro (`db_2026-11-05_2050`). Produção: AUDDOC004 Rev.01, AUDDOC005 Rev.01 e
   AUDDOC018 Rev.00 em "rascunho"; Rev.00 do 004 e do 005 continuam vigentes até a aprovação.
 - SHA-256 do arquivo gerado = arquivo guardado = registro, nos três casos.
+
+## Varredura dos arquivos guardados e reparo do AUDDOC018-ANX02 (05/11/2026)
+
+Ao montar o pacote das revisões vigentes da Biblioteca (pedido do Diretor), a conferência por SHA-256 encontrou o
+arquivo do **AUDDOC018-ANX02 Rev.00** truncado no armazenamento (9.216 de 93.280 bytes, data do arquivo 20/10/2026,
+anterior à migração de 26/10; também truncado nas cópias de segurança de 26/10 e 05/11).
+
+- Varredura completa (495 objetos, tamanho em disco × registro; todas as revisões da Biblioteca por SHA-256): só o
+  ANX02 estava errado. Ausentes: os 3 Word de propostas já conhecidos (V9).
+- Reparo autorizado pelo Diretor: o arquivo truncado foi guardado em
+  `/home/deploy/backups/audita-sistema/reparos/AUDDOC018-ANX02_truncado_9216b_2026-11-05` e substituído pela cópia
+  local `_migracao/audita-biblioteca/…/AUDDOC018-ANX02_Avaliacao_de_Aprendizagem.docx`, cujo SHA-256 é igual ao
+  registrado (`bea13896…1b40`). O registro da revisão não mudou.
+- Evidência: download pelo armazenamento depois do reparo com SHA-256 igual ao registro.
+- Pacote entregue: 37 revisões vigentes + `INDICE.csv`, todas conferidas por SHA-256.
