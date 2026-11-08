@@ -1502,3 +1502,43 @@ anterior à migração de 26/10; também truncado nas cópias de segurança de 2
   registrado (`bea13896…1b40`). O registro da revisão não mudou.
 - Evidência: download pelo armazenamento depois do reparo com SHA-256 igual ao registro.
 - Pacote entregue: 37 revisões vigentes + `INDICE.csv`, todas conferidas por SHA-256.
+
+## S7 — Site institucional: fotos definitivas, painel principal e ajustes da conferência (08/11/2026)
+
+- **Responsável e autorização:** nova sessão do Claude dedicada ao site. **Quem autoriza as publicações e o lançamento
+  é o Diretor (Vinicius)**, por decisão dele de 07/11/2026. Esta publicação: "Aprovo, pode publicar" (08/11/2026).
+- **Decisões do Diretor (07/11/2026):**
+  - "A melhor escolha para sua empresa" fica na faixa de destaques;
+  - logos negativas do PRO e do HUB e favicon aprovados (estudar outras opções de ícone depois);
+  - redes: Instagram `https://www.instagram.com/audita.ssma/` e LinkedIn
+    `https://www.linkedin.com/company/audita-ssma-sgi/` (YouTube ainda não existe);
+  - fotos: ambientes e paisagens em destaque, pessoas sem rosto (de costas ou só mãos) e a **logo oficial da AUDITA nos
+    uniformes**. A logo é o arquivo de `marca/derivados_aprovados` aplicado por cima da foto, sem alteração (a IA não
+    desenha a marca);
+  - faixa "Prévia do site em construção" retirada. **A trava dos buscadores continua** (noindex, robots.txt e
+    X-Robots-Tag).
+- **Fotos:** 29 imagens geradas no Canva (sem logotipo nem texto, EPI e conduta conferidos uma a uma), exportadas em
+  alta e convertidas para WebP em `site/public/images/site/` (IMG-01/01m a 05, 08 a 23, 26, 27, `painel/` e
+  `fundo-como-trabalhamos`). Descartadas: as do pacote do Diretor com logo redesenhada pela IA e as de altura com
+  conduta insegura. Design de apoio no Canva: "AUDITA site - fotos para exportar".
+- **Layout:**
+  - painel principal da home com rodízio de fotos (`site/src/content/painel.ts`, 7 s cada, transição suave; parado com
+    "reduzir movimento");
+  - "Como trabalhamos" com foto de fundo em tela cheia e passos em cartões translúcidos;
+  - fotos dos cartões com aproximação leve ao passar o mouse.
+- **Ajustes da conferência de 24/10:** "Abrir no mapa" em linha própria (Contato); no celular, WhatsApp só depois de
+  uma pequena rolagem, legendas de imagens provisórias escondidas e espaço no fim do rodapé para os botões flutuantes.
+- **Testes:** `npx next build site` e `playwright.site.config.ts`, **45/45** (computador, Android e iPhone 13). Novos:
+  redes sociais ligadas, WhatsApp/mapa/legendas no celular, sem faixa de prévia, painel em rodízio e fotos carregadas.
+  No Windows sem Python, o site foi servido por um servidor Node na porta 3400 (`E2E_REUSE=1`).
+- **Código:** ramo `feat/site-s7-ajustes` (commit `ff226d8`), saído do `develop` de 08/11/2026. **Falta juntar no
+  `develop`**: até lá, quem gerar a imagem do site a partir do `develop` volta à versão anterior.
+- **Produção (08/11/2026, VPS do Diretor 164.68.112.61):**
+  - versão enviada por `git archive` para `~/audita/audita-sistema/releases/20261108-s7-fotos`; imagem
+    `audita-site:20261108-s7-fotos` (85,6 MB) testada antes numa porta separada (3499);
+  - `AUDITA_SITE_TAG=20261108-s7-fotos` e `docker compose up -d site`: só o container `audita-site` foi trocado;
+  - conferido pelo endereço público: as 9 páginas, `sitemap.xml`, `robots.txt` e fotos: 200; trava mantida
+    (`X-Robots-Tag: noindex, nofollow`); `/empresa/login`, `/treinamentos/entrar` e `/treinamentos/cursos`: 200;
+    `/login`: 302; `www`: 301 para `audita.seg.br`; PRO e HUB abrem a tela de login; console do navegador sem erros.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261108-s7 .env && docker compose up -d site` (imagem
+  `audita-site:20261026-1011-seg`, guardada).
