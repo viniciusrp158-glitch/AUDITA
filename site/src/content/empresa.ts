@@ -17,10 +17,10 @@ export const EMPRESA = {
  * Redes sociais: só entram quando o Vinicius confirmar os perfis (briefing, seção 2). Para publicar: preencher a URL
  * de cada perfil oficial e trocar REDES_SOCIAIS_PUBLICADAS para true. Rede sem URL não aparece.
  */
-export const REDES_SOCIAIS_PUBLICADAS = false;
+export const REDES_SOCIAIS_PUBLICADAS = true;
 export const REDES_SOCIAIS: { nome: string; url: string }[] = [
-  { nome: "Instagram", url: "" },
-  { nome: "LinkedIn", url: "" },
+  { nome: "Instagram", url: "https://www.instagram.com/audita.ssma/" },
+  { nome: "LinkedIn", url: "https://www.linkedin.com/company/audita-ssma-sgi/" },
   { nome: "Facebook", url: "" },
   { nome: "YouTube", url: "" },
 ];

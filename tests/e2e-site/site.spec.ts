@@ -227,7 +227,7 @@ test("PRO e HUB: conteúdo do material dos sistemas e telas reais", async ({ pag
   await expect(page.locator("#plataformas").getByRole("link", { name: "Solicitar demonstração" })).toHaveCount(1);
 });
 
-test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes escondidas e toque", async ({ page, request }) => {
+test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes sociais e toque", async ({ page, request }) => {
   await page.goto("/audita-hub/");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://audita.seg.br/audita-hub/");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /opengraph-image\.png/);
@@ -236,8 +236,11 @@ test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes escond
     expect((await request.get(arquivo)).status(), arquivo).toBe(200);
   }
   expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /");
-  // Redes sociais só entram quando o Diretor confirmar os perfis
-  await expect(page.locator('footer [aria-label="Redes sociais"]')).toHaveCount(0);
+  // Redes sociais confirmadas pelo Diretor em 07/11/2026: só Instagram e LinkedIn
+  const redes = page.locator('footer [aria-label="Redes sociais"] a');
+  await expect(redes).toHaveCount(2);
+  await expect(redes.nth(0)).toHaveAttribute("href", "https://www.instagram.com/audita.ssma/");
+  await expect(redes.nth(1)).toHaveAttribute("href", "https://www.linkedin.com/company/audita-ssma-sgi/");
   // Bolinhas do carrossel com área de toque de pelo menos 24 px
   await page.goto("/");
   const ponto = page.locator(".ponto").first();
@@ -245,4 +248,39 @@ test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes escond
   const caixa = await ponto.boundingBox();
   expect(caixa?.width).toBeGreaterThanOrEqual(24);
   expect(caixa?.height).toBeGreaterThanOrEqual(24);
+});
+
+test("S7: WhatsApp não cobre o topo no celular, mapa em linha própria, sem legendas provisórias no celular", async ({ page, isMobile }) => {
+  await page.goto("/");
+  const whats = page.locator(".flutuante--whats");
+  if (isMobile) {
+    await expect(whats).toHaveCount(0);
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await expect(whats).toBeVisible();
+    // Legendas das imagens provisórias escondidas no celular
+    const visiveis = await page.locator(".foto > span").evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== "none").length);
+    expect(visiveis).toBe(0);
+  } else {
+    await expect(whats).toBeVisible();
+  }
+  await page.goto("/contato/");
+  const endereco = page.locator("a", { hasText: "Abrir no mapa" });
+  const texto = await endereco.innerText();
+  expect(texto).toMatch(/18079-026\s*\n\s*Abrir no mapa/);
+});
+
+test("S7: sem faixa de prévia, painel principal em rodízio e fotos definitivas carregadas", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.getByText("Prévia do site em construção")).toHaveCount(0);
+  // Painel: a IMG-01 e as fotos de content/painel.ts entram no hero e só uma fica visível por vez
+  const slides = page.locator(".hero__painel .painel__slide");
+  await expect(slides).toHaveCount(6);
+  await expect(page.locator(".hero__painel .painel__slide.ativo")).toHaveCount(1);
+  // Nenhuma imagem provisória nas seções que receberam foto (IMG-02 a 05, 08 a 19)
+  for (const codigo of ["IMG-02", "IMG-03", "IMG-04", "IMG-05", "IMG-08", "IMG-16", "IMG-17", "IMG-18", "IMG-19"]) {
+    await expect(page.locator(`[aria-label^="Imagem provisória ${codigo}:"]`)).toHaveCount(0);
+  }
+  for (const src of await page.locator("img").evaluateAll((els) => els.map((e) => (e as HTMLImageElement).getAttribute("src") ?? ""))) {
+    if (src.startsWith("/images/site/")) expect((await request.get(src)).status(), src).toBe(200);
+  }
 });

@@ -234,13 +234,15 @@ export default function Home() {
         </section>
 
         {/* 10 Como trabalhamos */}
-        <section id="como-trabalhamos" className="secao secao--cinza" aria-labelledby="como-titulo">
-          <div className="container">
+        <section id="como-trabalhamos" className="secao secao--escura secao--foto" aria-labelledby="como-titulo">
+          {/* Galpão com profissionais de costas e uniforme AUDITA (logo oficial aplicada), à direita, longe do texto */}
+          <span className="secao__fundo" aria-hidden="true" style={{ backgroundImage: "url(/images/site/fundo-como-trabalhamos.webp)" }} />
+          <div className="container" style={{ position: "relative" }}>
             <p className="kicker">Método</p>
             <h2 id="como-titulo" className="t2">Como trabalhamos</h2>
             <ol className="grade grade--4" style={{ listStyle: "none", padding: 0, margin: "40px 0 0" }}>
               {["Diagnóstico", "Plano de ação", "Implantação e treinamento", "Acompanhamento e melhoria contínua"].map((passo, i) => (
-                <li key={passo} className="passo" data-revelar="" style={{ display: "flex", alignItems: "center", gap: 16, transitionDelay: `${i * 250}ms` }}>
+                <li key={passo} className="passo passo--vidro" data-revelar="" style={{ display: "flex", alignItems: "center", gap: 16, transitionDelay: `${i * 250}ms` }}>
                   <span className="passo__num">{i + 1}</span>
                   <span className="t3" style={{ fontSize: 19 }}>{passo}</span>
                 </li>

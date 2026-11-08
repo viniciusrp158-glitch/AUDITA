@@ -55,8 +55,8 @@ export default function Contato() {
                 <span className="losango" aria-hidden="true"><MapPin /></span>
                 <span>
                   <span className="t3" style={{ display: "block" }}>Endereço</span>
-                  <span>{EMPRESA.endereco}</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--green-text)", marginTop: 6 }}>
+                  <span style={{ display: "block" }}>{EMPRESA.endereco}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--green-text)", marginTop: 6 }}>
                     Abrir no mapa <ExternalLink aria-hidden="true" size={16} />
                   </span>
                 </span>

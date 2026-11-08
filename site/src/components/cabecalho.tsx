@@ -54,7 +54,6 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
   return (
     <>
       <header className={rolado ? "cab cab--rolado" : "cab"}>
-        <p className="previa">Prévia do site em construção · Etapa 4</p>
         <div className="topo">
           <div className="container topo__linha">
             <a href={whatsapp()} target="_blank" rel="noopener">

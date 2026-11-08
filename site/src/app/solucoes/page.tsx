@@ -32,7 +32,7 @@ export default function Solucoes() {
           kicker="Soluções"
           titulo={<>Nossas <span className="marca-texto">soluções</span></>}
           resumo="Soluções em Segurança, Saúde, Meio Ambiente e Sistemas de Gestão para pequenas e médias empresas."
-          foto={{ codigo: "IMG-21", descricao: "trabalhador com EPI completo em inspeção" }}
+          foto={{ codigo: "IMG-23", descricao: "auditor com tablet e gestor observando a produção" }}
         />
 
         {PILARES.map(({ nome, Icone }, i) => {

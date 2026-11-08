@@ -110,6 +110,8 @@ main, footer { overflow-x: clip; }
 }
 .foto svg { width: 28px; height: 28px; opacity: 0.7; }
 .foto__codigo { font-weight: 700; letter-spacing: 0.04em; }
+/* No celular, o texto das imagens provisórias ficava por cima do conteúdo (rodapé, hero): só o espaço fica. */
+@media (max-width: 767px) { .foto > svg, .foto > span, .hero__foto > span:not([style*="inset"]) { display: none; } }
 .foto--escura { background: var(--navy-2); color: #d9e2e9; }
 .foto--redonda { border-radius: 20px; overflow: hidden; position: relative; }
 @media (min-width: 1024px) { .foto--redonda { border-radius: 28px; } }
@@ -301,3 +303,25 @@ main, footer { overflow-x: clip; }
 .texto-legal p, .texto-legal li { margin: 0 0 12px; }
 .texto-legal ul { padding-left: 22px; margin: 0 0 12px; }
 .texto-legal a { color: var(--green-text); font-weight: 600; }
+
+/* No celular, espaço no fim do rodapé para os botões flutuantes não cobrirem o CNPJ e os links (S7) */
+@media (max-width: 767px) { footer.rodape { padding-bottom: 96px; } footer.rodape [aria-label="Redes sociais"] { margin-left: 0 !important; width: 100%; } }
+
+/* Painel principal da home (S7): fotos em rodízio com transição suave, como na referência Ambipar */
+.hero__painel > .painel__slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1400ms ease; }
+.hero__painel > .painel__slide.ativo { opacity: 1; }
+.hero__painel > picture.painel__slide img { position: absolute; inset: 0; }
+@media (prefers-reduced-motion: reduce) { .hero__painel > .painel__slide { transition: none; } }
+
+/* Fotos dos cartões: aproximação leve ao passar o mouse (imersão), sem mexer no layout */
+.card { overflow: hidden; }
+.card img.foto { transition: transform 700ms ease; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { .card:hover img.foto { transform: scale(1.04); } }
+
+/* "Como trabalhamos" com foto de fundo em tela cheia (S7, imersão no estilo Ambipar) */
+.secao--foto { position: relative; overflow: hidden; }
+.secao__fundo { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.secao__fundo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(3, 27, 53, 0.92) 0%, rgba(3, 27, 53, 0.78) 55%, rgba(3, 27, 53, 0.6) 100%); }
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) { .secao__fundo { background-attachment: fixed; } }
+.passo--vidro { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 20px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: var(--white); }
+.passo--vidro .t3 { color: var(--white); }
