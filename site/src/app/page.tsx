@@ -205,7 +205,7 @@ export default function Home() {
               { t: "Documentos e licenças com alerta de vencimento", I: FolderCheck },
               { t: "Calendário único de prazos e relatório consolidado", I: Flame },
             ]}
-            imagem={{ src: "/images/plataformas/hub-computador-e-celular.webp", alt: "Painel de SSMA do Audita HUB no notebook e inspeção em campo no celular" }}
+            imagem={{ src: "/images/plataformas/hub-computador-e-celular-v2.webp", alt: "Painel de SSMA do Audita HUB no notebook e inspeção em campo no celular" }}
             chamada="Solicitar demonstração"
             login={EMPRESA.hubLogin}
             botao="btn btn--hub btn--bloco"
