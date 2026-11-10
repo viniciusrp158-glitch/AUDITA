@@ -1531,8 +1531,7 @@ anterior à migração de 26/10; também truncado nas cópias de segurança de 2
 - **Testes:** `npx next build site` e `playwright.site.config.ts`, **45/45** (computador, Android e iPhone 13). Novos:
   redes sociais ligadas, WhatsApp/mapa/legendas no celular, sem faixa de prévia, painel em rodízio e fotos carregadas.
   No Windows sem Python, o site foi servido por um servidor Node na porta 3400 (`E2E_REUSE=1`).
-- **Código:** ramo `feat/site-s7-ajustes` (commit `ff226d8`), saído do `develop` de 08/11/2026. **Falta juntar no
-  `develop`**: até lá, quem gerar a imagem do site a partir do `develop` volta à versão anterior.
+- **Código:** ramo `feat/site-s7-ajustes` (commit `ff226d8`), saído do `develop` de 08/11/2026 e juntado no `develop` em 10/11/2026 (avanço direto, com o OK do Diretor).
 - **Produção (08/11/2026, VPS do Diretor 164.68.112.61):**
   - versão enviada por `git archive` para `~/audita/audita-sistema/releases/20261108-s7-fotos`; imagem
     `audita-site:20261108-s7-fotos` (85,6 MB) testada antes numa porta separada (3499);
