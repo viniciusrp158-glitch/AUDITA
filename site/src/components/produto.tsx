@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Info, UserRound } from "lucide-react";
+import { BellRing, CheckCircle2, ExternalLink, Info, LayoutGrid, Leaf, MonitorSmartphone, ShieldCheck, UserRound } from "lucide-react";
 import { HeroInterno } from "./pagina";
 import { Logo } from "./wireframe";
 import { whatsapp } from "@/content/empresa";
@@ -47,6 +47,25 @@ export function PaginaProduto({ p }: { p: Produto }) {
         <p style={{ margin: "10px 0 0", fontSize: 13, color: "#d9e2e9" }}>&quot;Acessar&quot;: área exclusiva para clientes.</p>
       </HeroInterno>
 
+      {d.fatos ? (
+        <section className="secao secao--cinza" style={{ paddingTop: 40, paddingBottom: 40 }} aria-label={`Destaques do ${p.nome}`}>
+          <ul className="container grade grade--4" style={{ listStyle: "none", margin: "0 auto" }}>
+            {d.fatos.map((f, i) => {
+              const Icone = [LayoutGrid, MonitorSmartphone, BellRing, ShieldCheck][i % 4];
+              return (
+                <li key={f.titulo} className="card com-losango" data-revelar="" style={{ padding: 20, display: "flex", gap: 16, alignItems: "center", transitionDelay: `${i * 80}ms` }}>
+                  <span className="losango" aria-hidden="true"><Icone /></span>
+                  <span>
+                    <span style={{ display: "block", fontWeight: 800, fontSize: 18, fontFamily: "var(--font-display), Arial, sans-serif" }}>{f.titulo}</span>
+                    <span className="mutado" style={{ fontSize: 14 }}>{f.texto}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       {/* O que é */}
       <section className="secao" aria-labelledby="o-que-e-titulo">
         <div className="container grade grade--2 grade--meio">
@@ -60,6 +79,30 @@ export function PaginaProduto({ p }: { p: Produto }) {
           </div>
         </div>
       </section>
+
+      {d.recursos?.map((r, i) => (
+        <section key={r.kicker} className={i % 2 ? "secao secao--cinza" : "secao"} aria-labelledby={`recurso-${i}`}>
+          <div className="container grade grade--2 grade--meio">
+            <div data-revelar="" className={i % 2 ? "recurso-texto--direita" : undefined}>
+              <p className="kicker" style={{ color: p.corTexto }}>{r.kicker}</p>
+              <h2 id={`recurso-${i}`} className="t2">{r.titulo}</h2>
+              <p className="medida" style={{ margin: "16px 0 0" }}>{r.texto}</p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "20px 0 0", display: "grid", gap: 10 }}>
+                {r.itens.map((item) => (
+                  <li key={item} style={{ display: "flex", gap: 10 }}>
+                    <CheckCircle2 aria-hidden="true" size={20} style={{ flex: "none", color: p.corTexto, marginTop: 2 }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div data-revelar={i % 2 ? "esquerda" : "direita"} className="produto-pilha">
+              <Janela img={r.telas[0]} />
+              <Janela img={r.telas[1]} frente />
+            </div>
+          </div>
+        </section>
+      ))}
 
       {/* Para quem */}
       <section className="secao secao--cinza" aria-labelledby="para-quem-titulo">
@@ -114,7 +157,44 @@ export function PaginaProduto({ p }: { p: Produto }) {
         </section>
       ) : null}
 
+      {d.suite ? (
+        <section className="secao secao--cinza" aria-labelledby="modulos-titulo">
+          <div className="container">
+            <p className="kicker" style={{ color: p.corTexto }}>Gestão completa</p>
+            <h2 id="modulos-titulo" className="t2">{d.suite.titulo}</h2>
+            <p className="medida" style={{ margin: "16px 0 0" }}>{d.suite.texto}</p>
+            <div className="grade produto-suite" style={{ marginTop: 32 }}>
+              {d.suite.grupos.map((g, gi) => (
+                <article key={g.nome} className="card" data-revelar="" style={{ padding: 28, borderTop: `4px solid ${p.cor}` }}>
+                  <h3 className="t3" style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 21 }}>
+                    <span className="losango" aria-hidden="true">{gi === 0 ? <ShieldCheck /> : <Leaf />}</span>
+                    {g.nome}
+                  </h3>
+                  <ul className={gi === 0 ? "produto-mods produto-mods--2" : "produto-mods"}>
+                    {g.modulos.map(([t, dsc]) => (
+                      <li key={t}>
+                        <strong>{t}</strong>
+                        <span className="mutado">{dsc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+            <ul aria-label="Em toda a plataforma" style={{ listStyle: "none", padding: 0, margin: "28px 0 0", display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
+              {d.suite.todos.map((t) => (
+                <li key={t} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, padding: "8px 14px", borderRadius: 999, background: "var(--white)", border: "1px solid var(--line)" }}>
+                  <CheckCircle2 aria-hidden="true" size={16} style={{ color: p.corTexto }} />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
       {/* Módulos */}
+      {d.suite ? null : (
       <section className="secao secao--cinza" aria-labelledby="modulos-titulo">
         <div className="container">
           <p className="kicker" style={{ color: p.corTexto }}>Funcionalidades</p>
@@ -136,6 +216,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
           </div>
         </div>
       </section>
+      )}
 
       {/* Telas reais */}
       <section className="secao secao--escura" aria-labelledby="telas-titulo">
@@ -186,7 +267,17 @@ export function PaginaProduto({ p }: { p: Produto }) {
           <div>
             <p className="kicker" style={{ color: p.corTexto }}>Como contratar</p>
             <h2 id="contratar-titulo" className="t2">Quer o {p.nome} na sua empresa?</h2>
-            <p className="medida" style={{ margin: "20px 0 0" }}>{p.contratacao}</p>
+            <p className="medida" style={{ margin: "20px 0 0" }}>{d.comecar?.texto ?? p.contratacao}</p>
+            {d.comecar ? (
+              <ol aria-label="Como começar" style={{ listStyle: "none", padding: 0, margin: "20px 0 0", display: "grid", gap: 10 }}>
+                {d.comecar.passos.map((ps, i) => (
+                  <li key={ps} style={{ display: "flex", alignItems: "center", gap: 12, fontWeight: 600 }}>
+                    <span className="passo__num" style={{ background: p.cor, width: 32, height: 32, fontSize: 15 }}>{i + 1}</span>
+                    {ps}
+                  </li>
+                ))}
+              </ol>
+            ) : null}
             <div className="acoes">
               <a className="btn btn--bloco" style={{ background: p.cor, color: "var(--navy)" }} href={chamada} target="_blank" rel="noopener">{p.chamada.rotulo}</a>
               <a className="btn btn--contorno btn--bloco" href={p.login} target="_blank" rel="noopener">
@@ -222,5 +313,15 @@ function Tela({ img, redonda = false }: { img: Imagem; redonda?: boolean }) {
       </a>
       <figcaption className="mutado" style={{ marginTop: 8, fontSize: 13, color: redonda ? undefined : "#d9e2e9" }}>{img.legenda}</figcaption>
     </figure>
+  );
+}
+
+function Janela({ img, frente = false }: { img: Imagem; frente?: boolean }) {
+  return (
+    <div className={frente ? "janela janela--frente" : "janela"}>
+      <div className="janela__barra" aria-hidden="true"><i /><i /><i /></div>
+      {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
+      <img src={img.src} alt={img.alt} width={img.largura} height={img.altura} loading="lazy" style={{ display: "block", width: "100%", height: "auto" }} />
+    </div>
   );
 }

@@ -6,6 +6,9 @@
  * - ciência no sistema não é assinatura legal (PRO: assinatura via GOV.br fora do sistema; HUB: "registro de ciência");
  * - nenhum dos dois garante conformidade ou certifica; PRO e HUB não trocam dados entre si.
  * Imagens: telas reais com dados fictícios; as que mostram o nome do Diretor ficaram de fora (briefing: sem nome pessoal).
+ * S8 (10/11/2026): o HUB ganhou fatos, recursos (Indicadores e PGR), suite de módulos, passos para começar e telas novas,
+ * do material da sessão do HUB. Decisões do Diretor: "Documentos técnicos" no lugar de "Documentos e laudos"; manter
+ * "Contrate os módulos" e "assinatura" da entrega de EPI como no material.
  */
 
 export type Imagem = { src: string; alt: string; legenda: string; largura: number; altura: number };
@@ -21,6 +24,11 @@ export type Plataforma = {
   telas: Imagem[];
   celulares: Imagem[];
   diferenciais: { titulo: string; texto: string }[];
+  /** Opcionais (S8, página do HUB com o material da sessão do HUB de 10/11/2026) */
+  fatos?: { titulo: string; texto: string }[];
+  recursos?: { kicker: string; titulo: string; texto: string; itens: string[]; telas: [Imagem, Imagem] }[];
+  suite?: { titulo: string; texto: string; grupos: { nome: string; modulos: [string, string][] }[]; todos: string[] };
+  comecar?: { texto: string; passos: string[] };
 };
 
 
@@ -122,10 +130,10 @@ export const HUB: Plataforma = {
   ],
   destaque: {
     src: "/images/plataformas/hub-computador-e-celular.webp",
-    alt: "Painel de SSMA do Audita HUB no notebook e inspeção em campo no celular",
-    legenda: "Painel no computador e inspeção em campo no celular.",
-    largura: 1600,
-    altura: 1000,
+    alt: "Painel do Audita HUB no computador e no celular",
+    legenda: "Painel no computador e no celular.",
+    largura: 2000,
+    altura: 1240,
   },
   perfis: [
     { nome: "Administrador da empresa", texto: "Gerencia usuários, unidades e configurações." },
@@ -153,17 +161,18 @@ export const HUB: Plataforma = {
     { nome: "Prazos, relatórios e avisos", itens: ["Calendário com os prazos de todos os módulos", "Relatório consolidado e exportação em CSV", "Avisos no sistema e por e-mail"] },
   ],
   telas: [
-    { src: "/images/plataformas/hub-painel.webp", alt: "Painel do Audita HUB com indicadores de SSMA e atividade recente", legenda: "Painel com os indicadores da empresa.", largura: 1440, altura: 900 },
-    { src: "/images/plataformas/hub-inspecao-concluida.webp", alt: "Inspeção concluída com itens conformes, um não conforme e a ação aberta ligada a ele", legenda: "Inspeção concluída e ação ligada ao item não conforme.", largura: 1440, altura: 900 },
-    { src: "/images/plataformas/hub-epi-entregas.webp", alt: "Histórico de entregas de EPI com troca prevista e ciência registrada", legenda: "Entregas de EPI.", largura: 1440, altura: 900 },
-    { src: "/images/plataformas/hub-calendario.webp", alt: "Calendário com os prazos de todos os módulos do Audita HUB", legenda: "Calendário de prazos.", largura: 1440, altura: 900 },
-    { src: "/images/plataformas/hub-documentos.webp", alt: "Documentos com revisão, validade e situação vigente, a vencer ou vencido", legenda: "Documentos e vencimentos.", largura: 1440, altura: 900 },
-    { src: "/images/plataformas/hub-ambiente.webp", alt: "Licenças ambientais com condicionantes e alerta de renovação", legenda: "Licenças ambientais.", largura: 1440, altura: 900 },
+    { src: "/images/plataformas/hub-painel.webp", alt: "Dashboard com índice de gestão SSMA, alertas e gráficos", legenda: "Dashboard com os indicadores da empresa.", largura: 1920, altura: 1200 },
+    { src: "/images/plataformas/hub-inspecao.webp", alt: "Inspeção em andamento com itens do checklist", legenda: "Inspeção com checklist próprio.", largura: 1920, altura: 1200 },
+    { src: "/images/plataformas/hub-epi-entregas.webp", alt: "Entregas de EPI com troca prevista", legenda: "Entregas de EPI.", largura: 1920, altura: 1200 },
+    { src: "/images/plataformas/hub-kanban.webp", alt: "Ações em quadro Kanban por situação", legenda: "Ações no Kanban.", largura: 1920, altura: 1200 },
+    { src: "/images/plataformas/hub-calendario.webp", alt: "Calendário com os prazos de todos os módulos", legenda: "Calendário de prazos.", largura: 1920, altura: 1200 },
+    { src: "/images/plataformas/hub-documentos.webp", alt: "Documentos com revisão e alerta de vencimento", legenda: "Documentos e vencimentos.", largura: 1920, altura: 1200 },
   ],
   celulares: [
-    { src: "/images/plataformas/hub-celular-inspecao.webp", alt: "Execução de inspeção no celular, com observação e foto", legenda: "Inspeção em campo", largura: 520, altura: 1125 },
-    { src: "/images/plataformas/hub-celular-acoes.webp", alt: "Ações no celular", legenda: "Ações", largura: 520, altura: 1125 },
-    { src: "/images/plataformas/hub-celular-calendario.webp", alt: "Calendário de prazos no celular", legenda: "Prazos", largura: 520, altura: 1125 },
+    { src: "/images/plataformas/hub-celular-painel.webp", alt: "Painel no celular", legenda: "Painel: o que vence e o que está atrasado", largura: 780, altura: 1688 },
+    { src: "/images/plataformas/hub-celular-inspecao.webp", alt: "Inspeção em campo no celular", legenda: "Inspeção em campo, item por item, com foto", largura: 780, altura: 1688 },
+    { src: "/images/plataformas/hub-celular-ambiente.webp", alt: "Licenças ambientais no celular", legenda: "Meio Ambiente: licenças e condicionantes", largura: 780, altura: 1688 },
+    { src: "/images/plataformas/hub-celular-minhas-entregas.webp", alt: "Entregas de EPI no acesso do trabalhador", legenda: "Acesso do trabalhador: entregas de EPI e assinatura", largura: 780, altura: 1688 },
   ],
   diferenciais: [
     { titulo: "Tudo de SSMA em um só lugar", texto: "Módulos integrados no lugar de planilhas soltas, com um painel e um calendário que enxergam todos os prazos." },
@@ -176,4 +185,77 @@ export const HUB: Plataforma = {
     { titulo: "Proteção de dados", texto: "CPF não é exigido, os arquivos ficam em armazenamento privado e há rotina de anonimização de trabalhador." },
     { titulo: "Acessível", texto: "Telas testadas contra os critérios WCAG 2.1 (A e AA), no computador e no celular. Situações sempre com texto, nunca só com cor." },
   ],
+  fatos: [
+    { titulo: "14 módulos", texto: "de SST e Meio Ambiente integrados" },
+    { titulo: "Computador e celular", texto: "sem instalar nada" },
+    { titulo: "Avisos de prazo", texto: "antes de vencer, no sistema e por e-mail" },
+    { titulo: "Dados protegidos", texto: "cada empresa vê só os seus" },
+  ],
+  recursos: [
+    {
+      kicker: "Indicadores",
+      titulo: "Abra o HUB e saiba exatamente onde agir",
+      texto: "O Dashboard reúne os números de todos os módulos em uma tela, e cada indicador explica em uma frase o que está contando.",
+      itens: [
+        "Índice de gestão SSMA de 0 a 100, com a composição aberta",
+        "Ações vencidas, desvios sem ação, documentos a vencer e alertas de EPI",
+        "Inspeções e desvios por semana, ações por status e suas tarefas",
+        "Filtro por unidade e período, metas da empresa e relatório consolidado",
+      ],
+      telas: [
+        { src: "/images/plataformas/hub-painel.webp", alt: "Dashboard com índice de gestão SSMA, alertas e gráficos", legenda: "", largura: 1920, altura: 1200 },
+        { src: "/images/plataformas/hub-relatorio.webp", alt: "Relatório consolidado da empresa", legenda: "", largura: 1920, altura: 1200 },
+      ],
+    },
+    {
+      kicker: "PGR",
+      titulo: "Os riscos do PGR organizados e ligados à rotina",
+      texto: "Monte o inventário de riscos por Grupo Homogêneo de Exposição, com a matriz de risco da empresa, e deixe que o HUB leve isso para o dia a dia.",
+      itens: [
+        "GHE com setores, cargos e trabalhadores vinculados",
+        "Probabilidade × severidade com o nível de risco calculado",
+        "Medidas existentes e propostas para cada risco",
+        "EPIs e capacitações exigidos por GHE, cobrados nas entregas e na matriz de treinamentos",
+      ],
+      telas: [
+        { src: "/images/plataformas/hub-pgr-matriz.webp", alt: "Matriz de risco do PGR", legenda: "", largura: 1920, altura: 1200 },
+        { src: "/images/plataformas/hub-pgr.webp", alt: "Lista de GHE com riscos e maior nível", legenda: "", largura: 1920, altura: 1200 },
+      ],
+    },
+  ],
+  suite: {
+    titulo: "Toda a rotina de SST e Meio Ambiente, conectada",
+    texto: "Contrate os módulos de que a empresa precisa. Um conversa com o outro: o desvio vira ação, o prazo vai para o calendário, o GHE define o EPI.",
+    grupos: [
+      {
+        nome: "Segurança e Saúde do Trabalho",
+        modulos: [
+          ["EPIs e uniformes", "Estoque, entregas, assinatura e ficha em PDF"],
+          ["Inspeções", "Checklists próprios, no celular, com fotos"],
+          ["Ações e Kanban", "Responsável, prazo, evidência e eficácia"],
+          ["Ocorrências", "5 porquês, Ishikawa, 5W2H e CAT"],
+          ["Documentos técnicos", "Revisões e alerta de vencimento"],
+          ["Ordens de serviço", "Emissão e ciência do trabalhador"],
+          ["CIPA", "Eleição com urna, reuniões e atas"],
+          ["Brigada e emergências", "Planos, contatos e simulados"],
+          ["Capacitações", "Matriz por cargo e vencimentos"],
+          ["Trabalhadores", "Cadastro, lotação e histórico"],
+        ],
+      },
+      {
+        nome: "Meio Ambiente",
+        modulos: [
+          ["Licenças e condicionantes", "Validade, renovação, prazo e responsável"],
+          ["Resíduos", "Saídas, inventário e notas fiscais"],
+          ["LAIA", "Aspectos e impactos ambientais"],
+          ["Indicadores ambientais", "Geração e custos por período"],
+        ],
+      },
+    ],
+    todos: ["Calendário de prazos", "Avisos e notificações", "PDF e CSV", "Trilha de auditoria", "Perfis e acesso por unidade", "Tema claro e escuro"],
+  },
+  comecar: {
+    texto: "Assinatura com os módulos de que você precisa, usada pela sua equipe ou junto com a consultoria AUDITA.",
+    passos: ["Demonstração", "Configuração dos módulos e acessos", "Equipe usando no dia a dia"],
+  },
 };
