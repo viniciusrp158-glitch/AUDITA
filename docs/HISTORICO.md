@@ -1541,3 +1541,34 @@ anterior à migração de 26/10; também truncado nas cópias de segurança de 2
     `/login`: 302; `www`: 301 para `audita.seg.br`; PRO e HUB abrem a tela de login; console do navegador sem erros.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261108-s7 .env && docker compose up -d site` (imagem
   `audita-site:20261026-1011-seg`, guardada).
+
+## S8 — Site institucional: página do Audita HUB com o material da sessão do HUB (10/11/2026)
+
+- **Pedido:** a sessão do HUB enviou o pacote `audita-hub-pagina-site.zip` (protótipo, prompt, imagens finais em WebP
+  com dados fictícios e prévias). Primeira versão seguiu o protótipo à risca (página fora do padrão); **o Diretor
+  pediu para manter o padrão do site** (topo, curva e seções das páginas de produto) e só incorporar o conteúdo, a
+  apresentação e as telas do HUB.
+- **Decisões do Diretor:** "Documentos técnicos" no lugar de "Documentos e laudos" (a regra de "laudo" do site
+  continua); manter "Contrate os módulos" e a "assinatura" da entrega de EPI como no material.
+- **Página `/audita-hub/`** (componente `PaginaProduto` com blocos opcionais em `content/plataformas.ts`; o PRO não
+  muda):
+  - 4 destaques (14 módulos, computador e celular, avisos de prazo, dados protegidos);
+  - blocos Indicadores e PGR com texto, itens e duas telas sobrepostas com moldura de navegador (no celular, texto
+    primeiro e uma tela só);
+  - gestão completa com os 14 módulos (SST e Meio Ambiente) e as funções de toda a plataforma, no lugar da lista
+    antiga de funcionalidades;
+  - galeria com telas novas (Dashboard, Inspeção, EPI, Kanban, Calendário, Documentos) e 4 celulares com as legendas
+    do material; "Como contratar" com os 3 passos;
+  - título, descrição, Open Graph próprio (`hub-og.jpg`, 1200×630) e JSON-LD `SoftwareApplication`.
+- **Imagens:** em `site/public/images/plataformas/` (as de mesmo nome substituíram as antigas). A home passou a usar a
+  composição nova `hub-computador-e-celular.webp`. Imagens antigas sem uso ficaram no lugar (nada apagado).
+- **Testes:** 48/48 (computador, Android e iPhone 13). Novo teste S8 (destaques, blocos, 14 módulos, passos, SEO,
+  nada de "laudo", PRO sem os blocos novos). Conferido sem rolagem lateral e com botões ≥ 48 px em 360, 390, 430,
+  820, 1440 e 1920 px.
+- **Código:** ramo `feat/site-hub-pagina`, juntado no `develop` (avanço direto) com o OK do Diretor.
+- **Produção (10/11/2026, com o "Aprovo, pode publicar" do Diretor):** imagem `audita-site:20261110-s8-hub`, testada
+  antes na porta 3499; só o container `audita-site` trocado. Conferido no ar: páginas e imagens 200, título e Open
+  Graph do HUB, JSON-LD, trava `noindex` mantida, `/empresa/login`, `/treinamentos/...`, PRO e HUB (login) e console
+  do navegador sem erros.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261110-s8 .env && docker compose up -d site` (imagem
+  `audita-site:20261108-s7-fotos`, guardada).
