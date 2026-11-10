@@ -126,7 +126,7 @@ test("Etapa 4: páginas internas abrem, sem rolagem lateral e sem frases proibid
     ["/a-audita/", "Conheça a AUDITA"],
     ["/solucoes/", "Nossas soluções"],
     ["/audita-pro/", "Audita PRO"],
-    ["/audita-hub/", "Audita HUB"],
+    ["/audita-hub/", /Segurança do Trabalho e Meio Ambiente em dia, em um só lugar\./],
     ["/cursos/", "Cursos EAD"],
     ["/contato/", "Fale conosco"],
     ["/privacidade/", "Política de privacidade do site"],
@@ -156,7 +156,6 @@ test("Etapa 4: conteúdo obrigatório de cada página", async ({ page }) => {
   await expect(page.getByText("não é certificado ISO")).toBeVisible();
   await expect(page.locator('a[href*="Audita%20PRO"]').first()).toHaveAttribute("href", /wa\.me/);
   await page.goto("/audita-hub/");
-  await expect(page.getByText("A consultoria é um serviço separado.")).toBeVisible();
   await expect(page.getByText("não assume a responsabilidade técnica")).toBeVisible();
   await page.goto("/contato/");
   await expect(page.locator('main a[href="mailto:engenharia.audita%40outlook.com"]')).toHaveCount(1);
@@ -200,15 +199,16 @@ test("PRO e HUB: conteúdo do material dos sistemas e telas reais", async ({ pag
     await page.goto(rota);
     const texto = await page.locator("main").innerText();
     expect(texto, rota).not.toMatch(/assinatura digital integrada|contrate agora|Vinicius|Vinícius|(?<!nem |não )garante conformidade/i);
-    // Telas reais carregadas (rola até cada uma para o carregamento preguiçoso)
-    const imagens = page.locator('main img[src^="/images/plataformas/"]');
+    // Telas reais carregadas (rola até cada uma para o carregamento preguiçoso). Só as visíveis: no celular a página do
+    // HUB esconde de propósito a composição do topo e a segunda captura de cada bloco.
+    const imagens = page.locator('main img[src^="/images/plataformas/"]').locator("visible=true");
     expect(await imagens.count(), rota).toBeGreaterThanOrEqual(4);
     for (const img of await imagens.all()) {
       // scrollIntoView direto: a foto de fundo do hero tem zoom contínuo e nunca fica "estável" para o Playwright
       await img.evaluate((el) => el.scrollIntoView({ block: "center" }));
       await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { message: rota }).toBeGreaterThan(0);
     }
-    await expect(page.getByText("Capturas reais do sistema, com dados fictícios de demonstração.")).toBeVisible();
+    await expect(page.getByText(rota === "/audita-hub/" ? "Telas reais com dados fictícios de demonstração." : "Capturas reais do sistema, com dados fictícios de demonstração.")).toBeVisible();
     await semRolagemLateral(page);
   }
   await page.goto("/audita-pro/");
@@ -217,9 +217,8 @@ test("PRO e HUB: conteúdo do material dos sistemas e telas reais", async ({ pag
   await expect(page.locator("ol li.passo")).toHaveCount(8);
   await expect(page.getByText("a assinatura é feita pelo GOV.br")).toBeVisible();
   await page.goto("/audita-hub/");
-  await expect(page.getByRole("link", { name: "Solicitar demonstração" }).first()).toHaveAttribute("href", /demonstra%C3%A7%C3%A3o%20do%20Audita%20HUB/);
+  await expect(page.getByRole("link", { name: "Agendar demonstração" })).toHaveAttribute("href", /demonstra%C3%A7%C3%A3o%20do%20Audita%20HUB/);
   await expect(page.getByRole("link", { name: "Quero conhecer" })).toHaveCount(0);
-  await expect(page.getByText("Registro de ciência do trabalhador e comprovante de entrega em PDF")).toBeVisible();
   // Home: sem "por assinatura" no HUB e sem treinamentos no PRO
   await page.goto("/");
   const plataformas = await page.locator("#plataformas").innerText();
@@ -230,8 +229,12 @@ test("PRO e HUB: conteúdo do material dos sistemas e telas reais", async ({ pag
 test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes sociais e toque", async ({ page, request }) => {
   await page.goto("/audita-hub/");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://audita.seg.br/audita-hub/");
-  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /opengraph-image\.png/);
+  // A página do HUB tem imagem de compartilhamento própria (S8); as demais usam a padrão do site
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /hub-og\.jpg/);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  await page.goto("/audita-pro/");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /opengraph-image\.png/);
+  await page.goto("/audita-hub/");
   for (const arquivo of ["/favicon.ico", "/icon.png", "/apple-icon.png", "/opengraph-image.png"]) {
     expect((await request.get(arquivo)).status(), arquivo).toBe(200);
   }
@@ -283,4 +286,33 @@ test("S7: sem faixa de prévia, painel principal em rodízio e fotos definitivas
   for (const src of await page.locator("img").evaluateAll((els) => els.map((e) => (e as HTMLImageElement).getAttribute("src") ?? ""))) {
     if (src.startsWith("/images/site/")) expect((await request.get(src)).status(), src).toBe(200);
   }
+});
+
+test("S8: página do Audita HUB no layout do protótipo (6 blocos, celular, SEO)", async ({ page, isMobile }) => {
+  await page.goto("/audita-hub/");
+  await expect(page).toHaveTitle("Audita HUB · Gestão de SST e Meio Ambiente em um só lugar | AUDITA");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  await expect(page.locator("nav.migalhas")).toContainText("Plataformas");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /\/images\/plataformas\/hub-og\.jpg$/);
+  const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').last().textContent()) ?? "{}");
+  expect(ld["@type"]).toBe("SoftwareApplication");
+  for (const t of ["Abra o HUB e saiba exatamente onde agir", "Os riscos do PGR organizados e ligados à rotina", "Toda a rotina de SST e Meio Ambiente, conectada", "O HUB vai aonde a segurança acontece", "Veja o Audita HUB com a realidade da sua empresa"]) {
+    await expect(page.getByRole("heading", { level: 2, name: t })).toBeVisible();
+  }
+  await expect(page.locator(".hubp-fact")).toHaveCount(4);
+  await expect(page.locator(".hubp-mod")).toHaveCount(14);
+  await expect(page.locator(".hubp-phones figure")).toHaveCount(4);
+  await expect(page.getByRole("link", { name: "Acessar o Audita HUB" })).toHaveAttribute("href", "https://auditahub.app.br");
+  await expect(page.getByRole("link", { name: "Conheça o Audita PRO" })).toHaveAttribute("href", "/audita-pro/");
+  await expect(page.getByRole("link", { name: "Enviar e-mail" })).toHaveAttribute("href", /^mailto:.*subject=Demonstra/);
+  for (const b of await page.locator(".hubp-btn").all()) expect((await b.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(48);
+  if (isMobile) {
+    await expect(page.locator(".hubp-hero__desk")).toBeHidden();
+    await expect(page.locator(".hubp-hero__mob")).toBeVisible();
+    const trilho = page.locator(".hubp-phones");
+    expect(await trilho.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+  } else {
+    await expect(page.locator(".hubp-hero__desk")).toBeVisible();
+  }
+  await semRolagemLateral(page);
 });

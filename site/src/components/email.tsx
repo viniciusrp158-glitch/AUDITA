@@ -18,9 +18,9 @@ export function EmailTexto() {
   );
 }
 
-export function LinkEmail({ className, style, children }: { className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
+export function LinkEmail({ className, style, children, assunto }: { className?: string; style?: React.CSSProperties; children: React.ReactNode; assunto?: string }) {
   const [href, setHref] = useState("/contato/");
-  useEffect(() => setHref(MAILTO), []);
+  useEffect(() => setHref(assunto ? `${MAILTO}?subject=${encodeURIComponent(assunto)}` : MAILTO), [assunto]);
   return (
     <a className={className} style={style} href={href}>
       {children}
