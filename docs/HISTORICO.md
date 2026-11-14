@@ -1572,3 +1572,23 @@ anterior à migração de 26/10; também truncado nas cópias de segurança de 2
   do navegador sem erros.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261110-s8 .env && docker compose up -d site` (imagem
   `audita-site:20261108-s7-fotos`, guardada).
+
+## Fase 0 do AUDITA PROSPECT (14/11/2026)
+
+Autorização do Diretor em 14/11/2026 ("Sim, pode iniciar"), com as decisões da seção 16 do planejamento (custo zero, SP,
+sem IA, base de CNPJ autorizada no servidor).
+
+- **Base pública de CNPJ:** `scripts/prospect/baixar-cnpj.sh` (6 conexões em paralelo, baixa prioridade, retomada) baixou a
+  publicação 2026-10 para `/home/deploy/audita/cnpj/2026-10` (6,4 GB, todos os .zip abertos e conferidos);
+  `scripts/prospect/cnpj_sp.py` gerou o recorte de SP (8.833.181 estabelecimentos ativos) e os agregados;
+  `scripts/prospect/cnpj_nichos.py` contou empresas-alvo por nicho, porte e distância; `scripts/prospect/ibge_municipios.py`
+  calculou o centro dos 645 municípios (malha do IBGE) e a distância a Sorocaba; `scripts/prospect/ioc_prototipo.py` calculou
+  o IOC do protótipo. Nenhuma tabela do banco foi criada ou alterada nesta fase.
+- **AUDDOC020 Rev.00** (`scripts/biblioteca/auddoc020-rev00.ts`): documento cadastrado na Biblioteca (família Sistemas) e
+  revisão registrada como rascunho; Word conferido (4 páginas); SHA-256 `481bd2c9…5caf`; backup antes
+  (`db_2026-11-14_0823`).
+- **Protótipo navegável:** quadro com 7 telas em https://claude.ai/artifact/62EkNAtmLqMPBxyWk5LgLL.
+- **Resultados e proposta de nichos/regiões:** seção 17 de `docs/PLANEJAMENTO_MELHORIAS_E_PROSPECT.md`.
+- **Não executado:** auditoria das telas por captura. O `audita-dev` em nuvem não responde (V4) e o Docker Desktop do PC não
+  inicia (instalação incompleta). O roteiro de captura (computador 1366 px e celular 390 px, com medições de rolagem
+  horizontal, alvos de toque pequenos e erros do navegador) fica pronto para quando houver ambiente de testes.

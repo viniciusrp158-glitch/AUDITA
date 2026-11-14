@@ -522,3 +522,53 @@ Preços e condições saem do orçamento do próprio sistema (AUDDOC011); este d
 **A conferir na Fase 0 por causa do custo zero:** forma gratuita de posicionar as empresas no mapa a partir do endereço
 ou CEP da Receita (sem a API do Google) e regras de uso do mapa aberto para o nosso volume. Enquanto isso não for
 confirmado, o mapa trabalha por cidade e bairro (IBGE), o que já atende o IOC e a escolha de regiões.
+
+---
+
+## 17. Resultado da Fase 0 (14/11/2026)
+
+**Base de CNPJ.** A Receita mudou o endereço de publicação em 2026; os arquivos estão no repositório público
+`arquivos.receitafederal.gov.br` (pasta Dados › Cadastros › CNPJ, uma pasta por mês). Publicação usada: **2026-10**
+(arquivos de 13/10/2026). Layout conferido nos próprios arquivos: estabelecimentos com 30 colunas, incluindo DDD/telefone 1 e 2
+e e-mail. O servidor da Receita limita cada conexão a ~0,5 MB/s; com 6 conexões em paralelo os 6,4 GB (estabelecimentos,
+empresas e tabelas) baixaram em ~1 h. Recorte de SP gravado no servidor: `/home/deploy/audita/cnpj/2026-10/sp/`
+(540 MB compactado), fora do backup.
+
+**Números do Estado de São Paulo (estabelecimentos ativos):** 8.833.181, de 8.403.368 empresas; 4.979.836 são de
+empresário individual/MEI. Quase todos têm telefone (8,64 mi) ou e-mail (8,16 mi) no cadastro, **mas esse contato
+costuma ser do contador que abriu a empresa**: a abordagem precisa confirmar o contato (ficha ao vivo, site da empresa ou
+ligação) antes de tratá-lo como contato da empresa.
+
+**Nichos de entrada propostos** (empresa-alvo = ativa, não é MEI/empresário individual, porte ME, EPP ou demais;
+contagens reais da base de 10/2026):
+
+| Nicho | Até 50 km de Sorocaba | Até 100 km | Estado | Abertas nos últimos 12 meses (Estado) | Por que |
+|---|---|---|---|---|---|
+| **Construção civil** (CNAE 41, 42, 43) | 9.449 | 109.128 | 164.633 | 17.082 | Atividade de alto risco; NR-35, PGR, inspeção e consultoria liberados |
+| **Atacado, armazenagem e transporte** (46, 52, 4930) | 10.494 | 139.572 | 226.834 | 24.810 | Empilhadeira (NR-11), altura (NR-35), incêndio (NR-23), PGR |
+| **Indústria de pequeno porte** (10–11, 13–18, 20–25, 28–31) | 7.556 | 68.241 | 118.165 | 8.552 | NR-11 (ponte rolante), NR-06, NR-20, NR-26, PGR, OS de SST |
+
+Ficaram fora da entrada: saúde (precisa da NR-32, que não está no catálogo), agropecuária (NR-31 fora do catálogo e
+cadastros rurais distorcem o porte), limpeza/facilities (inclui condomínios) e restaurantes (baixa aderência).
+
+**Regiões (IOC até 60 km de Sorocaba, três nichos somados):** Sorocaba 74 (9.155 empresas-alvo), Barueri 73 (7.387),
+Santana de Parnaíba 71 (2.843), Indaiatuba 70 (4.075), Araçariguama 70 (390), Vargem Grande Paulista 69 (912),
+Cotia 67 (3.741), Itupeva 66 (1.091), Boituva, Itu e Salto 65. Fórmula do protótipo: quantidade (30, escala
+logarítmica), concentração nos nichos (20) e distância (10), normalizados para 100; canal de contato e histórico entram
+na versão real. Municípios: IBGE (645 de SP, todos casados com o código da Receita).
+
+**Mapa e localização sem custo (regras conferidas):** OpenStreetMap permite uso leve com atribuição visível, sem baixar
+ou pré-carregar áreas; o Nominatim permite no máximo 1 consulta por segundo e proíbe localização em massa ou sistemática.
+Por isso o mapa da Fase 1 trabalha por município (malha do IBGE) e a empresa só é localizada individualmente quando a
+ficha é aberta, com o resultado guardado.
+
+**Protótipo navegável (7 telas):** https://claude.ai/artifact/62EkNAtmLqMPBxyWk5LgLL — painel, pesquisa, regiões (números
+reais), funil, ficha do lead, nichos (números reais) e registro de contato no celular. Empresas das listas são fictícias.
+
+**AUDDOC020 Rev.00** (Especificação de Requisitos do AUDITA PROSPECT): registrada na Biblioteca como rascunho para
+aprovação.
+
+**Auditoria das telas: pendente.** O ambiente de testes em nuvem (`audita-dev`, pendência V4) está desligado e as contas
+de teste não entram; o Docker Desktop do computador do Diretor não inicia (instalação incompleta: falta a chave
+`HKLM\SOFTWARE\Docker Inc.\Docker Desktop` no registro). Assim que o Docker for reinstalado, o ambiente de testes local é
+montado e as 41 telas são capturadas em computador e celular (roteiro pronto).
