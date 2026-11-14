@@ -481,3 +481,44 @@ e substituem estas hipóteses.
 - WhatsApp Business Platform — opt-in: https://developers.facebook.com/docs/whatsapp/overview/getting-opt-in
 - Receita Federal — dados abertos do CNPJ (arquivos mensais): https://dadosabertos.rfb.gov.br/CNPJ/dados_abertos_cnpj/ (layout a conferir na Fase 0)
 - Anthropic — preços da API do Claude: tabela de referência de 03/11/2026 (confirmar na página oficial antes de contratar)
+
+---
+
+## 16. Decisões do Diretor em 14/11/2026 e ajustes no plano
+
+| # | Resposta do Diretor | Efeito no plano |
+|---|---|---|
+| 1 | Não tem Google Cloud; teto mensal R$ 0,00 | **Fase 1 sem nenhuma API paga e sem cartão:** base de CNPJ + mapa aberto (OpenStreetMap) + botão "Ver no Google Maps" em cada empresa (abre o Maps em outra aba, sem API). A pesquisa por palavra-chave dentro do sistema (Google Places) fica como **opcional da Fase 2**: exige conta Google com cartão cadastrado, mesmo sem cobrança; se for ativada, as cotas são travadas na franquia gratuita |
+| 2 | Somente Estado de São Paulo; atende on-line também | Recorte da base de CNPJ = SP, estabelecimentos ativos. Presencial priorizado por distância de Sorocaba; on-line/EAD para todo o estado |
+| 3 | Sem preferência de nichos | Os 3 nichos de entrada serão **propostos com base nos dados** (quantidade de empresas por CNAE em SP × aderência aos serviços liberados), para aprovação |
+| 4 | Usa WhatsApp Business; aceita envio assistido; não tem segundo número | WhatsApp assistido no MVP; API oficial fica fora do horizonte até existir um segundo número |
+| 5 | Só `engenharia.audita@outlook.com` | E-mail de prospecção em escala não é viável com endereço @outlook.com. Proposta para a Fase 2 (custo zero, a confirmar): endereço no domínio `audita.seg.br` com encaminhamento para o Outlook e envio pelo Brevo. No MVP, o sistema abre o seu programa de e-mail com a mensagem pronta |
+| 6 | Diretor + 1 usuário | Responsável por lead e distribuição simples entre dois usuários desde o MVP |
+| 7 | Sem IA; custo zero | Qualificação e mensagens por regras e modelos; IA retirada das fases |
+| 8 | Autoriza a base pública de CNPJ no servidor | Carga mensal do recorte de SP |
+| 9 | Tem advogado para validar | Antes de escalar os contatos, enviar a ele a seção 3 (LGPD e termos) |
+| 10 | Confirma a ordem | MVP do PROSPECT primeiro; melhorias de tela em paralelo |
+| 11 | Pede sugestão; carros-chefe: PGR, treinamentos normativos, consultoria de SST | Ver "Oferta de entrada" abaixo |
+
+**Conferido no servidor (14/11/2026, somente leitura):** disco com 64 GB livres de 96 GB e banco do AUDITA com 25 MB
+(há espaço para o recorte de SP; o tamanho exato sai da primeira carga); `pg_cron` não está instalado (as rotinas usam o
+cron do servidor); `pg_trgm` e `unaccent` já instalados (busca por nome parecido e sem acento).
+
+**Oferta de entrada (sugestão, usando só serviços liberados no catálogo):**
+
+1. **Diagnóstico inicial de SST** (SST-002 Inspeção + SST-009 Relatório técnico): visita ou reunião on-line, relatório
+   com os pontos de atenção. É a porta de entrada: mostra o problema e abre as duas ofertas seguintes.
+2. **PGR**: no catálogo o serviço liberado é **DOC-001 — Apoio à estruturação e manutenção do PGR/GRO** (a
+   responsabilidade pelo PGR é da organização, conforme a NR-1; avaliações especializadas estão fora). As mensagens
+   devem dizer "apoio à estruturação/elaboração e manutenção do PGR", não prometer laudos. Se a AUDITA quiser vender
+   "elaboração de PGR" com outro escopo, é decisão sua no catálogo antes de anunciar.
+3. **Treinamentos normativos**: presenciais na empresa (ofertas TRN-NR liberadas, como NR-35, NR-11, NR-06, NR-05,
+   NR-20 e NR-33 com as condições registradas) e **EAD para todo o estado** (cursos L01 a L08 cadastrados; publicar e
+   precificar os que forem entrar na oferta).
+4. **Consultoria recorrente de SST** (SST-001) como continuidade para quem fechou diagnóstico, PGR ou treinamento.
+
+Preços e condições saem do orçamento do próprio sistema (AUDDOC011); este documento não fixa valores.
+
+**A conferir na Fase 0 por causa do custo zero:** forma gratuita de posicionar as empresas no mapa a partir do endereço
+ou CEP da Receita (sem a API do Google) e regras de uso do mapa aberto para o nosso volume. Enquanto isso não for
+confirmado, o mapa trabalha por cidade e bairro (IBGE), o que já atende o IOC e a escolha de regiões.
