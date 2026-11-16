@@ -1592,3 +1592,35 @@ sem IA, base de CNPJ autorizada no servidor).
 - **Não executado:** auditoria das telas por captura. O `audita-dev` em nuvem não responde (V4) e o Docker Desktop do PC não
   inicia (instalação incompleta). O roteiro de captura (computador 1366 px e celular 390 px, com medições de rolagem
   horizontal, alvos de toque pequenos e erros do navegador) fica pronto para quando houver ambiente de testes.
+
+## AUDITA PROSPECT — Fase 1, etapa 1: banco, regras e carga da base (16/11/2026)
+
+Protótipo e nichos aprovados pelo Diretor em 14/11/2026 ("Aprovado"). Enquanto não há ambiente de testes com Docker,
+esta etapa cobre o que se testa sem ele.
+
+- **Migração `20261114120000_p1_prospect.sql`** (não aplicada em produção): `cnpj_publications`, `ibge_municipalities`,
+  `cnpj_establishments` (empresas-alvo de SP: ativas, sem empresário individual/MEI — espelho recarregável de dado público,
+  fora do backup), `prospect_niches` (6 nichos, 3 de entrada), `prospect_keyword_groups`/`prospect_keywords` (25 palavras),
+  `prospect_searches`/`prospect_search_runs`, `leads`, `lead_stage_history`, `lead_activities`, `contact_suppressions`.
+  Regras no banco: uma empresa por CNPJ no funil; histórico de etapas automático e imutável; contato avança a etapa
+  (primeiro contato; reunião marcada); atividades sem data futura e imutáveis; "perdido" exige motivo; "cliente" exige o
+  cliente e não volta; "não contatar" imutável, bloqueia contato e entrada no funil, e pedido registrado no contato tira a
+  empresa do funil. RLS: administrador e operador; marketing e usuário sem cadastro não veem nada.
+- **Qualificação** (`src/lib/prospect/score.ts`, versão v1): nota 0–100 em 6 critérios explicados (aderência 30, porte 20,
+  contato 15, proximidade 15, tempo de atividade 10, situação 10), faixas prioritário ≥ 80 / alto ≥ 65 / intermediário ≥ 45,
+  serviços sugeridos só entre os liberados e escritos como hipótese; dados ausentes não pontuam.
+- **Carga da base:** `scripts/prospect/cnpj_carga.py` gerou no servidor os arquivos da publicação 2026-10
+  (3.853.320 empresas-alvo; 4.979.861 descartadas por serem MEI/empresário individual; 645/645 municípios com o código
+  da Receita); `scripts/prospect/carregar-base.sh` faz a carga numa transação (só depois do backup, da migração e da
+  autorização do Diretor para publicar); `scripts/prospect/verificar-carga.ts` confere uma amostra contra a migração.
+
+### Evidência (16/11/2026)
+
+- `tests/integration/prospect-p1.test.ts` (PGlite com todas as migrações): **6/6**. Todos os testes de banco embutido:
+  **14 arquivos, 59 passaram, 3 ignorados** (os mesmos de antes), sem regressão.
+- `tests/unit/prospect-score.test.ts`: **9/9**.
+- Amostra de 5.000 linhas espalhadas pelo arquivo + 645 municípios carregados no PGlite com os mesmos COPY da carga:
+  nenhuma recusa (porte 01/03/05; 4.773 com telefone; 4.412 com e-mail; 3.286 com CNAE secundário; busca por nome ok).
+- `npx tsc --noEmit` e `eslint` dos arquivos novos sem erros.
+- **Pendente:** telas (Fase 1, etapa 2) e testes de tela em celular e computador, que dependem do ambiente de testes
+  (Docker do PC a reinstalar). Nada foi publicado em produção.
