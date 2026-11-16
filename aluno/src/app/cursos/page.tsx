@@ -12,7 +12,7 @@ export default async function CursosPage() {
     <PublicPage>
       <section className="bg-navy text-white">
         <div className="mx-auto max-w-6xl px-4 pt-10 pb-12 sm:px-6">
-          <p className="text-sm font-semibold text-green">AUDITA | SSMA &amp; SGI</p>
+          <p className="text-sm font-semibold text-green">Audita Academy</p>
           <h1 className="mt-2 max-w-3xl text-3xl leading-tight font-extrabold sm:text-4xl">Cursos de segurança e saúde no trabalho, no seu ritmo</h1>
           <p className="mt-3 max-w-2xl text-white/80">Apostila, videoaula e avaliação com retorno comentado em cada módulo. Certificado de curso livre com código de verificação.</p>
         </div>

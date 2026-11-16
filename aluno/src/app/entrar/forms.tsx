@@ -5,12 +5,13 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { requestReset, setPassword, signIn, type AuthState } from "./actions";
 
-const inputCls = "w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
+// Campos com 16 px de letra (o iPhone não amplia a tela ao tocar) e 48 px de altura
+const inputCls = "min-h-12 w-full rounded-[10px] border-[1.5px] border-line bg-white px-3.5 text-base text-ink outline-none focus:border-green-dark focus:ring-2 focus:ring-green/25";
 
 function Submit({ children, pending: pendingText }: { children: React.ReactNode; pending: string }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className="w-full rounded-md bg-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-navy-700 disabled:cursor-wait disabled:opacity-70">
+    <button type="submit" disabled={pending} className="min-h-12 w-full rounded-full bg-green px-4 text-[15px] font-semibold text-navy shadow-[0_6px_18px_rgba(128,187,8,0.35)] transition hover:bg-[#8cc912] disabled:cursor-wait disabled:opacity-70">
       {pending ? pendingText : children}
     </button>
   );
@@ -37,9 +38,15 @@ export function SignInForm({ notice }: { notice?: string }) {
         <input name="password" type="password" autoComplete="current-password" className={`${inputCls} mt-1`} />
       </label>
       <Submit pending="Entrando…">Entrar</Submit>
-      <Link href="/esqueci" className="text-center text-sm font-medium text-navy hover:underline">
+      <Link href="/esqueci" className="text-center text-sm font-medium text-navy underline-offset-4 hover:underline">
         Esqueci minha senha
       </Link>
+      <p className="border-t border-line pt-4 text-center text-sm text-muted">
+        Ainda não é aluno?{" "}
+        <Link href="/cursos" className="font-semibold text-green-dark underline-offset-4 hover:underline">
+          Conheça os cursos
+        </Link>
+      </p>
     </form>
   );
 }
@@ -54,7 +61,7 @@ export function ResetForm() {
         <input name="email" type="email" autoComplete="email" defaultValue={state.email} className={`${inputCls} mt-1`} />
       </label>
       <Submit pending="Enviando…">Enviar link</Submit>
-      <Link href="/entrar" className="text-center text-sm font-medium text-navy hover:underline">
+      <Link href="/entrar" className="text-center text-sm font-medium text-navy underline-offset-4 hover:underline">
         Voltar para entrar
       </Link>
     </form>

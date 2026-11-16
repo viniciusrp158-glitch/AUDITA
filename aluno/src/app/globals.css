@@ -28,6 +28,11 @@
   --font-sans: "Inter Variable", Inter, Arial, Helvetica, sans-serif;
 }
 
+/* Títulos da Audita Academy (fonte carregada no layout) */
+@theme inline {
+  --font-display: var(--font-montserrat), Arial, Helvetica, sans-serif;
+}
+
 html {
   color-scheme: light;
 }
