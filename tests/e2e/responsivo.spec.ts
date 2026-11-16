@@ -26,6 +26,10 @@ const PAGES = [
   "/caixa",
   "/demandas/servicos",
   "/configuracoes/institucional",
+  "/prospeccao",
+  "/prospeccao/pesquisar?nicho=construcao&raio=50",
+  "/prospeccao/funil",
+  "/prospeccao/nichos",
 ];
 
 async function login(page: Page) {

@@ -34,6 +34,8 @@ export const LEVELS: AccessLevel[] = ["mestre", "admin", "operador"];
 /** Menu principal por nível. */
 export const NAV_ROLES: Record<string, Role[]> = {
   "/": ["admin"],
+  // AUDITA PROSPECT (AUDDOC020): quem prospecta — administrador e operador
+  "/prospeccao": ["admin", "operador"],
   "/clientes": ["admin", "operador"],
   "/demandas": ["admin", "operador"],
   "/orcamentos": ["admin", "operador"],

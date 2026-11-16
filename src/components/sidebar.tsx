@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  Target,
   UserRound,
   X,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import { NAV_ROLES, ROLE_LABEL, type Role } from "@/lib/permissions";
 
 export const NAV = [
   { href: "/", label: "Início", icon: LayoutDashboard },
+  { href: "/prospeccao", label: "Prospecção", icon: Target },
   { href: "/clientes", label: "Clientes", icon: Building2 },
   { href: "/demandas", label: "Demandas", icon: ClipboardList },
   { href: "/orcamentos", label: "Orçamentos", icon: Calculator },

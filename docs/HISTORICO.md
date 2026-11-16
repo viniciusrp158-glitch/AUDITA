@@ -1624,3 +1624,30 @@ esta etapa cobre o que se testa sem ele.
 - `npx tsc --noEmit` e `eslint` dos arquivos novos sem erros.
 - **Pendente:** telas (Fase 1, etapa 2) e testes de tela em celular e computador, que dependem do ambiente de testes
   (Docker do PC a reinstalar). Nada foi publicado em produção.
+
+## AUDITA PROSPECT — Fase 1, etapa 2: telas do ciclo principal (16/11/2026)
+
+- **Menu:** item "Prospecção" (administrador e operador), com abas Painel, Pesquisar, Funil e Nichos e palavras-chave.
+- **Pesquisar** (`/prospeccao/pesquisar`): nicho, região (50/100/150 km de Sorocaba ou o Estado), município, nome, porte,
+  com telefone, abertas nos últimos 12 meses; esconde quem já é lead, cliente ou "não contatar"; lista ordenada pela nota
+  (lê no máximo 1.500 candidatos por pesquisa e avisa quando há mais); seleção e "Enviar ao funil" (entram como "Lead
+  importado", já com nota, explicação e serviços sugeridos); cada pesquisa fica no histórico.
+- **Funil** (`/prospeccao/funil`): 10 colunas, parados há mais de 7 dias primeiro, filtros por nome/CNPJ, nicho e "só os meus".
+- **Ficha do lead** (`/prospeccao/leads/[id]`): contato assistido — modelo de mensagem por nicho (editável), botão do
+  WhatsApp (link oficial "clique para conversar", envio pela própria pessoa), ligar e e-mail; registro do contato com
+  resultado e próximo retorno; etapa (perdido exige motivo); contato confirmado (o do cadastro da Receita costuma ser do
+  contador — a tela avisa); nota explicada; dados cadastrais com a fonte; linha do tempo; "não contatar".
+- **Painel** (`/prospeccao`): metas da semana (25 contatos, 8 respostas, 2 reuniões — propostas do planejamento),
+  retornos de hoje e atrasados, leads por etapa, parados e "não contatar".
+- **Nichos** (`/prospeccao/nichos`): consulta dos nichos, CNAEs, serviços ligados (riscados se não estiverem liberados)
+  e palavras-chave. Edição e a tela de Regiões (IOC) ficam para a etapa 3.
+- Migração: índices do CNAE com `text_pattern_ops` para a busca por prefixo.
+
+### Evidência (16/11/2026)
+
+- `npx tsc --noEmit`, `eslint` dos arquivos novos e `npx next build` sem erros (5 rotas novas).
+- Unitários: 97 de 98; a falha é a conhecida V11 (`ca12-escopo`, por causa de `tests/e2e-site/site.spec.ts`), sem arquivo
+  novo acusado. Novos: `prospect-labels` (5/5), `prospect-score` (9/9). PGlite: `prospect-p1` 6/6.
+- `tests/e2e/responsivo.spec.ts` inclui as telas do PROSPECT (celular 360 px e tablet).
+- **Não executado:** uso real das telas e testes de navegação — dependem do ambiente de testes (Docker do PC a
+  reinstalar). Nada publicado em produção.

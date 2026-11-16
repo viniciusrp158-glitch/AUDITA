@@ -63,8 +63,9 @@ create table audita.cnpj_establishments (
   search_text      text generated always as (audita.normalize_text(legal_name || ' ' || coalesce(trade_name, ''))) stored
 );
 comment on table audita.cnpj_establishments is 'Empresas-alvo de SP da base pública de CNPJ: ativas, sem empresário individual/MEI. Recarregável, fora do backup.';
-create index cnpj_establishments_mun_cnae on audita.cnpj_establishments (ibge_code, cnae_main);
-create index cnpj_establishments_cnae on audita.cnpj_establishments (cnae_main);
+-- text_pattern_ops: a pesquisa filtra por prefixo do CNAE (cnae_main like '41%')
+create index cnpj_establishments_mun_cnae on audita.cnpj_establishments (ibge_code, cnae_main text_pattern_ops);
+create index cnpj_establishments_cnae on audita.cnpj_establishments (cnae_main text_pattern_ops);
 create index cnpj_establishments_started on audita.cnpj_establishments (started_on);
 create index cnpj_establishments_secondary on audita.cnpj_establishments using gin (cnae_secondary);
 create index cnpj_establishments_search_trgm on audita.cnpj_establishments using gin (search_text extensions.gin_trgm_ops);
