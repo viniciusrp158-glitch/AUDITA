@@ -102,7 +102,7 @@ test("header fica branco e fixo ao rolar", async ({ page }) => {
 
 test("Etapa 3: textos da faixa de destaques, logos oficiais e conteúdo que aparece ao rolar", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Capacitação AUDITA: Cursos EAD")).toBeVisible();
+  await expect(page.getByText("Capacitação: Audita Academy")).toBeVisible();
   await expect(page.getByText("A melhor escolha para sua empresa")).toBeVisible();
   await expect(page.getByText("Atendimento no estado de São Paulo")).toHaveCount(0);
   await expect(page.getByText("Cursos EAD com certificado")).toHaveCount(0);
@@ -127,7 +127,6 @@ test("Etapa 4: páginas internas abrem, sem rolagem lateral e sem frases proibid
     ["/solucoes/", "Nossas soluções"],
     ["/audita-pro/", "Audita PRO"],
     ["/audita-hub/", "Audita HUB"],
-    ["/cursos/", "Cursos EAD"],
     ["/contato/", "Fale conosco"],
     ["/privacidade/", "Política de privacidade do site"],
   ];
@@ -166,16 +165,13 @@ test("Etapa 4: conteúdo obrigatório de cada página", async ({ page }) => {
   await expect(page.locator('a[href="/treinamentos/privacidade"]')).toHaveCount(1);
 });
 
-test("Etapa 4: filtro de cursos por área", async ({ page }) => {
-  await page.goto("/cursos/");
-  await expect(page.getByText("Não substituem capacitação obrigatória de NR")).toBeVisible();
-  await expect(page.locator('a[href="/treinamentos/cursos/L01"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "Meio Ambiente" }).click();
-  await expect(page.getByRole("button", { name: "Meio Ambiente" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator('a[href="/treinamentos/cursos/L01"]')).toHaveCount(0);
-  await expect(page.getByText("Ainda não há curso publicado nesta área")).toBeVisible();
-  await page.getByRole("button", { name: "Segurança" }).click();
-  await expect(page.locator('a[href="/treinamentos/cursos/L01"]')).toHaveCount(1);
+test("Audita Academy: menu, rodapé e página inicial levam à plataforma (16/11/2026)", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('footer a[href="/treinamentos/"]')).toHaveCount(1);
+  await expect(page.locator('footer a[href="/treinamentos/entrar"]')).toHaveCount(1);
+  await expect(page.locator('a[href="/treinamentos/cursos"]').first()).toBeAttached();
+  await expect(page.locator('a[href="/cursos/"]')).toHaveCount(0);
+  await expect(page.getByText("Conhecer a Audita Academy")).toBeVisible();
 });
 
 test("Etapa 4: menu e rodapé levam às páginas internas; mapa do site e dados da empresa", async ({ page, request, isMobile }) => {
@@ -189,7 +185,7 @@ test("Etapa 4: menu e rodapé levam às páginas internas; mapa do site e dados 
   }
   await expect(page.locator('footer a[href="/privacidade/"]')).toHaveCount(1);
   const mapa = await (await request.get("/sitemap.xml")).text();
-  for (const r of ["/a-audita/", "/audita-pro/", "/audita-hub/", "/cursos/", "/contato/", "/privacidade/", "/solucoes/meio-ambiente/"]) expect(mapa).toContain(`https://audita.seg.br${r}`);
+  for (const r of ["/a-audita/", "/audita-pro/", "/audita-hub/", "/contato/", "/privacidade/", "/solucoes/meio-ambiente/"]) expect(mapa).toContain(`https://audita.seg.br${r}`);
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}");
   expect(ld.taxID).toBe("69.563.249/0001-01");
   expect(ld.address.postalCode).toBe("18079-026");

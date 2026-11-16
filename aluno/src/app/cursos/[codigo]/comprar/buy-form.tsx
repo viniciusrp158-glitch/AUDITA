@@ -5,12 +5,13 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { startPurchaseAction, type BuyState } from "./actions";
 
-const inputCls = "w-full rounded-lg border border-line bg-white px-3 py-2.5 text-[15px] text-ink focus:border-navy focus:outline-none";
+// 16 px e 48 px de altura (Audita Academy): o iPhone não amplia a tela ao tocar no campo
+const inputCls = "min-h-12 w-full rounded-[10px] border-[1.5px] border-line bg-white px-3.5 text-base text-ink outline-none focus:border-green-dark focus:ring-2 focus:ring-green/25";
 
 function Submit() {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className="flex min-h-12 w-full items-center justify-center rounded-[10px] bg-green px-5 text-[15px] font-extrabold text-navy disabled:opacity-60" data-testid="go-pay">
+    <button type="submit" disabled={pending} className="flex min-h-12 w-full items-center justify-center rounded-full bg-green px-5 text-[15px] font-semibold text-navy shadow-[0_6px_18px_rgba(128,187,8,0.35)] hover:bg-[#8cc912] disabled:opacity-60" data-testid="go-pay">
       {pending ? "Abrindo o pagamento…" : "Ir para o pagamento"}
     </button>
   );
@@ -53,7 +54,7 @@ export function BuyForm({ code, requireCpf }: { code: string; requireCpf: boolea
         </label>
       </div>
       <label className="flex items-start gap-2.5 text-sm text-ink">
-        <input type="checkbox" name="aceite" required defaultChecked={v.aceite === "on"} className="mt-0.5 size-4 shrink-0 accent-navy" />
+        <input type="checkbox" name="aceite" required defaultChecked={v.aceite === "on"} className="mt-0.5 size-5 shrink-0 accent-green-dark" />
         <span>
           Li e concordo com os{" "}
           <Link href="/termos" target="_blank" className="font-semibold text-navy underline">
@@ -67,7 +68,7 @@ export function BuyForm({ code, requireCpf }: { code: string; requireCpf: boolea
         </span>
       </label>
       <label className="flex items-start gap-2.5 text-sm text-ink">
-        <input type="checkbox" name="novidades" defaultChecked={v.novidades === "on"} className="mt-0.5 size-4 shrink-0 accent-navy" />
+        <input type="checkbox" name="novidades" defaultChecked={v.novidades === "on"} className="mt-0.5 size-5 shrink-0 accent-green-dark" />
         <span>
           Quero receber novidades e ofertas de cursos da AUDITA por e-mail ou WhatsApp.{" "}
           <span className="text-muted">(Opcional; posso cancelar quando quiser.)</span>

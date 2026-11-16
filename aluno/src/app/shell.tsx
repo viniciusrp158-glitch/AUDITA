@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "./entrar/actions";
+import { AcademyLogo } from "./marca";
+
+export { AcademyLogo };
 
 /**
  * Logotipo da AUDITA (recorte de exibição das margens brancas do PNG, como no sistema). Fica nos certificados até o
@@ -18,25 +21,6 @@ export function Logo({ width = 112 }: { width?: number }) {
         style={{ position: "absolute", maxWidth: "none", width: Math.round(1920 * s), height: Math.round(1080 * s), left: -Math.round(crop.x * s), top: -Math.round(crop.y * s) }}
       />
     </span>
-  );
-}
-
-/**
- * Marca da plataforma, Audita Academy (logo enviado pelo Diretor em 16/11/2026; versões aprovadas sem redesenho).
- * "clara" para fundo claro; "escura" para fundo azul-marinho ou foto (letras brancas, verde mantido).
- */
-export function AcademyLogo({ variant = "clara", height = 40 }: { variant?: "clara" | "escura"; height?: number }) {
-  const width = Math.round((height * 640) / 228);
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/treinamentos/brand/audita-academy-${variant === "escura" ? "negativa" : "positiva"}.webp`}
-      alt="Audita Academy"
-      width={width}
-      height={height}
-      className="block shrink-0"
-      style={{ width, height }}
-    />
   );
 }
 

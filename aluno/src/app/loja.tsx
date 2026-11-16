@@ -1,26 +1,52 @@
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import { formatCnpj, formatPhone, storeInfo } from "@/lib/vitrine";
 import { AcademyLogo } from "./shell";
 
-/** Cabeçalho das páginas públicas (vitrine, compra, termos). */
+const MENU = [
+  { href: "/cursos", rotulo: "Cursos" },
+  { href: "/#como", rotulo: "Como funciona" },
+  { href: "/#empresas", rotulo: "Para empresas" },
+  { href: "/certificado", rotulo: "Verificar certificado" },
+];
+
+/** Cabeçalho das páginas públicas (vitrine, compra, termos). No celular, o menu abre num painel (sem script). */
 export function PublicHeader() {
   return (
-    <header className="bg-navy text-white">
-      <div className="mx-auto flex min-h-[72px] max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-        <Link href="/cursos" className="rounded-md" aria-label="Audita Academy, cursos">
+    <header className="sticky top-0 z-40 bg-navy text-white">
+      <div className="relative mx-auto flex min-h-[72px] max-w-6xl items-center gap-x-6 px-4 py-3 sm:px-6">
+        <Link href="/" className="rounded-md" aria-label="Audita Academy, página inicial">
           <AcademyLogo variant="escura" height={44} />
         </Link>
-        <nav aria-label="Principal" className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-1 text-[15px] font-medium">
-          <Link href="/cursos" className="text-white/85 hover:text-white">
-            Cursos
-          </Link>
-          <Link href="/certificado" className="text-white/85 hover:text-white">
-            Verificar certificado
-          </Link>
-          <Link href="/entrar" className="inline-flex min-h-10 items-center rounded-full bg-green px-5 font-semibold text-navy hover:bg-[#8cc912]">
-            Entrar
-          </Link>
+        <nav aria-label="Principal" className="ml-auto hidden items-center gap-x-6 text-[15px] font-medium lg:flex">
+          {MENU.map((m) => (
+            <Link key={m.href} href={m.href} className="border-b-2 border-transparent py-2 text-white/85 hover:border-green hover:text-white">
+              {m.rotulo}
+            </Link>
+          ))}
         </nav>
+        <Link
+          href="/entrar"
+          className="ml-auto inline-flex min-h-11 items-center rounded-full bg-green px-5 font-semibold text-navy hover:bg-[#8cc912] lg:ml-0"
+        >
+          Entrar
+        </Link>
+        <details className="group lg:hidden">
+          <summary
+            className="flex size-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/30 [&::-webkit-details-marker]:hidden"
+            aria-label="Abrir o menu"
+          >
+            <Menu size={20} aria-hidden className="group-open:hidden" />
+            <X size={20} aria-hidden className="hidden group-open:block" />
+          </summary>
+          <nav aria-label="Principal" className="absolute inset-x-0 top-full flex flex-col border-t border-white/15 bg-navy px-4 pb-4 shadow-[0_14px_28px_rgba(0,0,0,0.3)] sm:px-6">
+            {MENU.map((m) => (
+              <Link key={m.href} href={m.href} className="flex min-h-12 items-center border-b border-white/10 text-base font-medium">
+                {m.rotulo}
+              </Link>
+            ))}
+          </nav>
+        </details>
       </div>
     </header>
   );

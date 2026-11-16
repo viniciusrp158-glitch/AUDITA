@@ -62,3 +62,21 @@ body {
     display: none !important;
   }
 }
+
+/* Entrada suave dos destaques da Audita Academy */
+@keyframes entrar {
+  from { opacity: 0.2; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Âncoras da vitrine abaixo do topo fixo */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
+/* Barra de compra fixa no celular: o rodapé não fica escondido atrás dela */
+@media (max-width: 1023px) {
+  body:has(.barra-compra) footer {
+    padding-bottom: 88px;
+  }
+}

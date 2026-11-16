@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Award, Check, ChevronLeft, ListTree, Lock, X } from "lucide-react";
+import { AcademyLogo } from "../../marca";
 
 export type NavStep = { step: "apostila" | "video" | "avaliacao"; label: string; meta: string; done: boolean; open: boolean; href: string };
 export type NavModule = {
@@ -155,6 +156,10 @@ export function PlayerShell({ course, children }: { course: NavCourse; children:
           >
             <ChevronLeft size={18} strokeWidth={2.4} aria-hidden />
           </Link>
+          <Link href="/meus-cursos" className="hidden shrink-0 rounded-md md:block" aria-label="Audita Academy, meus cursos">
+            <AcademyLogo variant="escura" height={34} />
+          </Link>
+          <span className="hidden h-8 w-px bg-navy-line md:block" aria-hidden />
           <p className="min-w-0 flex-1 truncate text-sm font-medium text-white/85 sm:text-[15px]">{course.title}</p>
           <div className="hidden items-center gap-2.5 text-[13px] text-white/85 sm:flex" data-testid="course-progress">
             <span>

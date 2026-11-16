@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { brl, vitrine } from "@/lib/vitrine";
+import { EtapasCompra } from "../../etapas-compra";
 import { PublicPage } from "../../loja";
 import { AutoRefresh } from "./auto-refresh";
 
@@ -33,7 +34,8 @@ export default async function PedidoPage({ params, searchParams }: { params: Pro
 
   return (
     <PublicPage>
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10 sm:px-6">
+        {p && !expired && <EtapasCompra atual={p.status === "aprovado" && p.enrolled ? 3 : 1} />}
         <section className="rounded-2xl border border-line bg-white p-6 sm:p-8" data-testid="order-status">
           {!p ? (
             <>
@@ -47,7 +49,7 @@ export default async function PedidoPage({ params, searchParams }: { params: Pro
               </p>
               <p className="mt-2 text-sm text-muted">Este pedido não foi pago no prazo de 3 dias e não pode mais ser pago. Nenhum valor foi cobrado.</p>
               {p.code && (
-                <Link href={`/cursos/${p.code}/comprar`} className="mt-5 inline-flex min-h-12 items-center rounded-[10px] bg-green px-5 text-[15px] font-extrabold text-navy">
+                <Link href={`/cursos/${p.code}/comprar`} className="mt-5 inline-flex min-h-12 items-center rounded-full bg-green px-6 text-[15px] font-semibold text-navy">
                   Fazer novo pedido
                 </Link>
               )}
@@ -75,14 +77,15 @@ export default async function PedidoPage({ params, searchParams }: { params: Pro
             </>
           ) : p.status === "aprovado" ? (
             <>
-              <p className="flex items-center gap-2 text-xl font-extrabold text-ok">
-                <CheckCircle2 size={24} aria-hidden /> Pagamento aprovado
-              </p>
+              <span className="grid size-16 place-items-center rounded-full bg-lime-50 text-green-dark" aria-hidden>
+                <CheckCircle2 size={36} />
+              </span>
+              <p className="font-display mt-4 text-2xl font-extrabold text-navy">Pagamento aprovado</p>
               <p className="mt-2 text-sm leading-relaxed text-ink">
                 Seu acesso ao <strong>{p.title}</strong> está liberado. Enviamos para <strong>{p.email}</strong> o e-mail “Seu acesso aos treinamentos AUDITA”
                 com o botão para criar sua senha. Se você já tem senha na área do aluno, é só entrar.
               </p>
-              <Link href="/entrar" className="mt-5 inline-flex min-h-12 items-center rounded-[10px] bg-navy px-5 text-[15px] font-bold text-white">
+              <Link href="/entrar" className="mt-5 inline-flex min-h-12 items-center rounded-full bg-green px-6 text-[15px] font-semibold text-navy shadow-[0_6px_18px_rgba(128,187,8,0.35)]">
                 Entrar na área do aluno
               </Link>
             </>
@@ -95,7 +98,7 @@ export default async function PedidoPage({ params, searchParams }: { params: Pro
                 {p.status === "estornado" ? "O valor foi devolvido e o acesso ao curso foi suspenso." : "Nenhum valor foi cobrado por este pedido. Você pode tentar de novo."}
               </p>
               {p.status !== "estornado" && p.code && (
-                <Link href={`/cursos/${p.code}/comprar`} className="mt-5 inline-flex min-h-12 items-center rounded-[10px] bg-green px-5 text-[15px] font-extrabold text-navy">
+                <Link href={`/cursos/${p.code}/comprar`} className="mt-5 inline-flex min-h-12 items-center rounded-full bg-green px-6 text-[15px] font-semibold text-navy">
                   Tentar de novo
                 </Link>
               )}

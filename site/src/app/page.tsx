@@ -37,7 +37,7 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 const DESTAQUES = [
   { texto: "SST, Meio Ambiente e SGI integrados", Icone: Layers },
   { texto: "2 plataformas próprias", Icone: MonitorSmartphone },
-  { texto: "Capacitação AUDITA: Cursos EAD", Icone: GraduationCap },
+  { texto: "Capacitação: Audita Academy", Icone: GraduationCap },
   { texto: "A melhor escolha para sua empresa", Icone: BadgeCheck },
 ];
 
@@ -251,11 +251,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 11 Cursos EAD */}
+        {/* 11 Cursos EAD: Audita Academy (16/11/2026) */}
         <section id="cursos" className="secao" aria-labelledby="cursos-titulo">
           <div className="container grade grade--2">
             <div data-revelar="">
-              <p className="kicker">Cursos EAD</p>
+              <p className="kicker">Audita Academy</p>
               <h2 id="cursos-titulo" className="t2">
                 Capacitação que gera <span className="marca-texto">cultura de segurança</span>.
               </h2>
@@ -277,8 +277,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="acoes">
-                <a className="btn btn--principal btn--bloco" href={`${EMPRESA.treinamentos}/cursos`}>Comprar na plataforma</a>
-                <Link className="btn btn--contorno btn--bloco" href="/cursos/">Ver todos os cursos</Link>
+                <a className="btn btn--principal btn--bloco" href={`${EMPRESA.treinamentos}/`}>Conhecer a Audita Academy</a>
+                <a className="btn btn--contorno btn--bloco" href={`${EMPRESA.treinamentos}/cursos`}>Ver todos os cursos</a>
               </div>
               <p className="aviso" style={{ margin: "24px 0 0" }}>
                 <Info aria-hidden="true" size={20} style={{ flex: "none", marginTop: 1 }} />

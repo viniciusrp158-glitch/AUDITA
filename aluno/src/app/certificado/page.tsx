@@ -3,15 +3,21 @@ import { PublicPage } from "../loja";
 
 export const metadata = { title: "Verificar certificado" };
 
-async function verificar(formData: FormData) {
-  "use server";
-  const code = String(formData.get("codigo") ?? "").trim().toUpperCase().replace(/[^0-9A-F]/g, "");
+function irPara(bruto: string) {
+  const code = bruto.trim().toUpperCase().replace(/[^0-9A-F]/g, "");
   if (code.length !== 12) redirect("/certificado?erro=1");
   redirect(`/certificado/${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8)}`);
 }
 
-export default async function VerificarFormPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
+async function verificar(formData: FormData) {
+  "use server";
+  irPara(String(formData.get("codigo") ?? ""));
+}
+
+export default async function VerificarFormPage({ searchParams }: { searchParams: Promise<{ erro?: string; codigo?: string }> }) {
   const sp = await searchParams;
+  // Formulário da página inicial da Audita Academy (GET ?codigo=)
+  if (sp.codigo) irPara(sp.codigo);
   return (
     <PublicPage>
       <main className="mx-auto w-full max-w-lg flex-1 px-4 py-12 sm:px-6">

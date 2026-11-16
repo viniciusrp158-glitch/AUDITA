@@ -41,8 +41,8 @@ export function Rodape() {
             <ul>
               <li><Link href="/audita-pro/">Audita PRO — Uma solução AUDITA</Link></li>
               <li><Link href="/audita-hub/">Audita HUB — Uma solução AUDITA</Link></li>
-              <li><Link href="/cursos/">Cursos EAD</Link></li>
-              <li><a href={EMPRESA.treinamentos}>Acessar a plataforma de cursos</a></li>
+              <li><a href={`${EMPRESA.treinamentos}/`}>Audita Academy — cursos online</a></li>
+              <li><a href={`${EMPRESA.treinamentos}/entrar`}>Acessar a Audita Academy</a></li>
             </ul>
           </div>
         </div>

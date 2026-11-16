@@ -69,7 +69,7 @@ export function Cabecalho({ ativo }: { ativo?: string }) {
               <a href={EMPRESA.hubLogin} target="_blank" rel="noopener" className="externo">
                 Acessar Audita HUB
               </a>
-              <a href={EMPRESA.treinamentos}>Treinamentos EAD</a>
+              <a href={`${EMPRESA.treinamentos}/`}>Audita Academy</a>
             </span>
           </div>
         </div>
@@ -185,7 +185,7 @@ function MenuCelular({ fechar }: { fechar: () => void }) {
           <a href={EMPRESA.hubLogin} target="_blank" rel="noopener" className="externo">
             Acessar Audita HUB
           </a>
-          <a href={EMPRESA.treinamentos}>Treinamentos EAD</a>
+          <a href={`${EMPRESA.treinamentos}/`}>Audita Academy</a>
         </p>
       </nav>
       <div className="menu-cel__rodape">

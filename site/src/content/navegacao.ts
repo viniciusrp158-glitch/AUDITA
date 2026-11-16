@@ -24,10 +24,10 @@ export const MENU: GrupoMenu[] = [
     ],
   },
   {
-    rotulo: "Cursos EAD",
+    rotulo: "Audita Academy",
     itens: [
-      { rotulo: "Conheça os cursos", href: "/cursos/" },
-      { rotulo: "Acessar a plataforma", href: EMPRESA.treinamentos },
+      { rotulo: "Conheça os cursos", href: `${EMPRESA.treinamentos}/cursos` },
+      { rotulo: "Acessar a plataforma", href: `${EMPRESA.treinamentos}/entrar` },
     ],
   },
 ];
