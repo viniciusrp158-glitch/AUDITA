@@ -2,6 +2,7 @@ import "server-only";
 import { normalizeSearch } from "@/lib/clients/queries";
 import { todaySaoPaulo } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import type { RegionInput } from "./ioc";
 import { isStage, type Stage } from "./labels";
 import { scoreCompany, type Company, type Niche, type Score } from "./score";
 
@@ -15,8 +16,10 @@ export const RANGES = [
   { value: 150, label: "Até 150 km de Sorocaba" },
   { value: 0, label: "Todo o Estado (atendimento on-line)" },
 ];
-/** Candidatos lidos da base por pesquisa: acima disso a pessoa refina os filtros (evita ler milhões de linhas). */
-export const CANDIDATE_LIMIT = 1500;
+/** Candidatos lidos da base por pesquisa: acima disso a pessoa refina os filtros. Igual ao limite de linhas da API
+ *  (PGRST_DB_MAX_ROWS = 1000): pedir mais não traria mais. */
+export const CANDIDATE_LIMIT = 1000;
+const API_MAX_ROWS = 1000;
 export const RESULTS_PAGE = 50;
 
 export type SearchFilters = {
@@ -174,6 +177,37 @@ export async function searchCompanies(f: SearchFilters): Promise<{
   const total = count ?? list.length;
   const start = (Math.max(1, f.page) - 1) * RESULTS_PAGE;
   return { rows: rows.slice(start, start + RESULTS_PAGE), total, scored: rows.length, truncated: total > CANDIDATE_LIMIT, niche };
+}
+
+/** Resumo por município e nicho (tabela recalculada na carga mensal e na edição de nichos), até maxKm (0 = Estado). */
+export async function getRegionInputs(maxKm: number): Promise<{ regions: RegionInput[]; refreshedAt: string | null }> {
+  const supabase = await createClient();
+  const muns = await getMunicipalities(maxKm);
+  const codes = new Set(muns.map((m) => m.ibge_code));
+  // O resumo tem uma linha por município e nicho (milhares no Estado): lido em páginas do tamanho máximo da API
+  const data: { ibge_code: string; niche_id: string | null; niche_count: number; all_count: number; refreshed_at: string }[] = [];
+  for (let from = 0; from < 50_000; from += API_MAX_ROWS) {
+    const { data: page, error } = await supabase
+      .from("prospect_region_stats")
+      .select("ibge_code, niche_id, niche_count, all_count, refreshed_at")
+      .order("ibge_code")
+      .order("niche_id", { nullsFirst: true })
+      .range(from, from + API_MAX_ROWS - 1);
+    if (error || !page?.length) break;
+    data.push(...page);
+    if (page.length < API_MAX_ROWS) break;
+  }
+  const by = new Map<string, RegionInput>();
+  let refreshedAt: string | null = null;
+  for (const m of muns) by.set(m.ibge_code, { ibge: m.ibge_code, name: m.name, km: m.km_from_base, byNiche: {}, allTargets: 0 });
+  for (const r of data) {
+    if (!codes.has(r.ibge_code)) continue;
+    const x = by.get(r.ibge_code)!;
+    x.allTargets = r.all_count;
+    if (r.niche_id) x.byNiche[r.niche_id] = r.niche_count;
+    if (!refreshedAt || r.refreshed_at > refreshedAt) refreshedAt = r.refreshed_at;
+  }
+  return { regions: [...by.values()], refreshedAt };
 }
 
 /** Registra a pesquisa executada (histórico, RP-04). */

@@ -87,12 +87,35 @@ test("pesquisa → funil → contato assistido → retorno → não contatar", a
   await shot(page, "p1-painel");
 });
 
+test("regiões: IOC por município e atalho para a pesquisa do município", async ({ page }) => {
+  await login(page);
+  await page.goto("/empresa/prospeccao/regioes");
+  const first = page.locator("tbody tr").first();
+  await expect(first).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Como o IOC de .+ foi calculado/ })).toBeVisible();
+  // O resumo vem inteiro (a API limita 1.000 linhas por consulta): a sede precisa estar na lista
+  await expect(page.locator("tbody").getByRole("link", { name: "Sorocaba", exact: true })).toBeVisible();
+  await shot(page, "p1-regioes");
+  await first.getByRole("link").click();
+  await expect(page.getByText(/empresas-alvo encontradas/)).toBeVisible({ timeout: 60_000 });
+});
+
+test("nichos: editar as observações recalcula as regiões", async ({ page }) => {
+  await login(page);
+  await page.goto("/empresa/prospeccao/nichos");
+  const d = page.locator("details", { hasText: "Postos de combustíveis" });
+  await d.locator("summary").click();
+  await d.getByLabel("Observações").fill(`[TESTE] revisado em ${new Date().toISOString().slice(0, 16)}`);
+  await d.getByRole("button", { name: "Salvar nicho" }).click();
+  await expect(d.getByText(/Nicho salvo/)).toBeVisible({ timeout: 60_000 });
+});
+
 test("telas do PROSPECT no celular, sem rolagem horizontal", async ({ browser }) => {
   test.setTimeout(240_000);
   const ctx = await browser.newContext({ viewport: { width: 360, height: 780 }, locale: "pt-BR" });
   const page = await ctx.newPage();
   await login(page);
-  for (const p of ["/empresa/prospeccao", "/empresa/prospeccao/pesquisar?nicho=construcao&raio=50", "/empresa/prospeccao/funil", "/empresa/prospeccao/nichos"]) {
+  for (const p of ["/empresa/prospeccao", "/empresa/prospeccao/pesquisar?nicho=construcao&raio=50", "/empresa/prospeccao/funil", "/empresa/prospeccao/regioes", "/empresa/prospeccao/nichos"]) {
     await page.goto(p);
     await page.waitForLoadState("networkidle");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);

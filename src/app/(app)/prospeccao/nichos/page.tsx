@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/page";
 import { Card } from "@/components/ui";
 import { getNiches, getReleasedServices } from "@/lib/prospect/queries";
 import { createClient } from "@/lib/supabase/server";
+import { NicheForm } from "./niche-form";
 
 export const metadata = { title: "Nichos e palavras-chave" };
 
@@ -59,6 +60,21 @@ export default async function NichosPage() {
           </tbody>
         </table>
       </div>
+
+      <section aria-label="Editar nichos" className="mb-6 space-y-2">
+        <h2 className="text-sm font-semibold text-ink">Editar ou criar nichos</h2>
+        {[...niches, null].map((n) => (
+          <details key={n?.id ?? "novo"} className="rounded-xl border border-line bg-white">
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-ink">{n ? n.name : "+ Novo nicho"}</summary>
+            <div className="border-t border-line p-4">
+              <NicheForm
+                niche={n ?? undefined}
+                services={[...released.names].map(([code, name]) => ({ code, name })).sort((a, b) => a.code.localeCompare(b.code))}
+              />
+            </div>
+          </details>
+        ))}
+      </section>
 
       <div className="grid gap-4 md:grid-cols-3">
         {(groups.data ?? []).map((g) => (

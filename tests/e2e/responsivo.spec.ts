@@ -29,6 +29,7 @@ const PAGES = [
   "/prospeccao",
   "/prospeccao/pesquisar?nicho=construcao&raio=50",
   "/prospeccao/funil",
+  "/prospeccao/regioes",
   "/prospeccao/nichos",
 ];
 

@@ -1711,3 +1711,32 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - Unitários: só a falha conhecida V11 (`ca12-escopo`). `tsc`, `eslint` e `next build` sem erros.
 - Observações para calibrar: muitas empresas próximas tiram nota 100 (a ordenação perde força); telefones do cadastro de
   outros DDDs reforçam o aviso de que o contato costuma ser do contador.
+
+## AUDITA PROSPECT — Fase 1, etapa 3: Regiões (IOC) e edição de nichos (16/11/2026)
+
+- **Migração `20261116120000_p2_prospect_regioes.sql`** (não aplicada em produção): `prospect_region_counts(p_max_km)`
+  (SECURITY INVOKER, contagem por município e nicho com junções por igualdade em cada tamanho de prefixo) e
+  `prospect_region_stats` + `refresh_prospect_region_stats()` (resumo pronto: na base real a contagem leva 6,9 s; ler o
+  resumo leva 0,005 s). O recálculo roda na carga mensal (`carregar-base.sh`) e ao salvar um nicho.
+- **Falha encontrada pelo teste antes de publicar:** a primeira versão da permissão do recálculo usava `current_user`, que
+  dentro de função SECURITY DEFINER é o dono da função — qualquer usuário recalcularia. Corrigido para `session_user`
+  (só a carga no servidor) ou `can_operate()`. Conferidas as funções antigas com `current_user`: não são SECURITY DEFINER,
+  sem o mesmo problema.
+- **Limite da API:** o PostgREST devolve no máximo 1.000 linhas por consulta (`PGRST_DB_MAX_ROWS`). O resumo de regiões
+  (3.440 linhas no Estado) passou a ser lido em páginas; a pesquisa lê no máximo 1.000 candidatos (antes pedia 1.500 e
+  recebia 1.000 sem avisar). A captura de tela mostrou o defeito (Sorocaba fora da lista) e o teste agora o cobre.
+- **Telas:** `/prospeccao/regioes` (nichos e raio escolhidos, totais por nicho, municípios ordenados pelo IOC, explicação
+  do primeiro, atalho para pesquisar o município); edição e criação de nichos em `/prospeccao/nichos` (nome, CNAEs,
+  serviços liberados, nicho de entrada, situação, observações; inativação lógica).
+- **IOC** (`src/lib/prospect/ioc.ts`, v1): quantidade 30 (log), concentração 20, distância 10, normalizado para 0–100.
+  Com os três nichos de entrada até 60 km: Sorocaba 87, Salto 80, Indaiatuba 78, Cotia 78…
+- **Anomalia a investigar:** no ambiente de testes, `deploy/servidor/dev/apply.sh` registrou a migração P2 sem criar a
+  função (aplicada depois manualmente). Antes de publicar, conferir o script de migrações da produção e a função criada.
+
+### Evidência (16/11/2026)
+
+- PGlite `prospect-p1`: **7/7** (inclui contagem por município/nicho, prefixos de 2 e 4 dígitos, raio, recálculo e bloqueio
+  para marketing). Unitários: `prospect-ioc` 3/3, `prospect-score` 9/9, `prospect-labels` 5/5.
+- Ambiente de testes com a base real, `tests/e2e/p1-prospect.spec.ts`: **4/4** (fluxo completo; Regiões com Sorocaba na
+  lista e atalho para a pesquisa; edição de nicho com recálculo; celular sem rolagem horizontal, incluindo Regiões).
+- `tsc`, `eslint` e `next build` sem erros. Nada publicado em produção.
