@@ -119,6 +119,39 @@ describe("P1 — AUDITA PROSPECT (PGlite)", () => {
     });
   });
 
+  it("regiões: contagem por município e nicho (prefixos de 2 e 4 dígitos) e sem acesso para quem não prospecta", async () => {
+    await db.exec(`
+      insert into audita.ibge_municipalities (ibge_code, name, rfb_code, km_from_base) values ('3552403', 'Sumaré', '7149', 120), ('3509502', 'Campinas', '6291', 77);
+      insert into audita.cnpj_establishments (cnpj, is_headquarters, legal_name, legal_nature, size_code, cnae_main, ibge_code, publication) values
+        ('22333444000181', true, '[TESTE] Atacado', '2062', '01', '4691500', '3552205', '2026-10'),
+        ('33444555000181', true, '[TESTE] Oficina', '2062', '01', '4520001', '3552205', '2026-10'),
+        ('44555666000181', true, '[TESTE] Software', '2062', '01', '6201501', '3552205', '2026-10'),
+        ('55666777000181', true, '[TESTE] Obra longe', '2062', '03', '4120400', '3552403', '2026-10');
+    `);
+    await asUser(db, OPER, async () => {
+      const rows = await q<{ name: string; code: string | null; niche_count: number; all_count: number }>(`
+        select r.name, n.code, r.niche_count::int, r.all_count::int
+        from audita.prospect_region_counts(100) r left join audita.prospect_niches n on n.id = r.niche_id order by r.name, n.code`);
+      // Sumaré (120 km) fica fora do raio de 100 km; Campinas não tem empresa e não aparece
+      expect(rows.map((r) => r.name)).toEqual(["Sorocaba", "Sorocaba", "Sorocaba"]);
+      expect(rows.map((r) => `${r.code}:${r.niche_count}`)).toEqual(["atacado_logistica:1", "construcao:1", "oficinas:1"]);
+      expect(rows.every((r) => r.all_count === 4)).toBe(true);
+      expect((await q(`select 1 from audita.prospect_region_counts(0) where name = 'Sumaré'`))).toHaveLength(1);
+    });
+    // Resumo pronto: recalculado por quem prospecta; marketing não vê nem recalcula
+    await asUser(db, OPER, async () => {
+      const n = (await q<{ n: number }>(`select audita.refresh_prospect_region_stats() as n`))[0].n;
+      expect(n).toBeGreaterThan(0);
+      expect((await q<{ c: number }>(`select sum(niche_count)::int as c from audita.prospect_region_stats where ibge_code = '3552205'`))[0].c).toBe(3);
+      expect(await err(db.query(`delete from audita.prospect_region_stats`))).not.toBeNull();
+    });
+    await asUser(db, MKT, async () => {
+      expect(await q(`select 1 from audita.prospect_region_counts(0)`)).toHaveLength(0);
+      expect(await q(`select 1 from audita.prospect_region_stats`)).toHaveLength(0);
+      expect(await err(db.query(`select audita.refresh_prospect_region_stats()`))).not.toBeNull();
+    });
+  });
+
   it("nichos e pesquisas: autor permanente, data de alteração e histórico só de inclusão", async () => {
     await asUser(db, OPER, async () => {
       const before = (await q<{ updated_at: string }>(`select updated_at from audita.prospect_niches where code = 'oficinas'`))[0].updated_at;

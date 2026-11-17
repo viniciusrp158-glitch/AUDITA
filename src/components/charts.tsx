@@ -62,8 +62,9 @@ export type MonthPoint = { key: string; label: string; quoted: number; accepted:
 /** Colunas agrupadas por mês (mesma unidade, um só eixo): valor cotado × valor aceito. */
 export function MonthlyColumns({ data, unit = "" }: { data: MonthPoint[]; unit?: string }) {
   const max = niceMax(Math.max(0, ...data.flatMap((d) => [d.quoted, d.accepted])));
-  const ticks = [1, 0.75, 0.5, 0.25, 0];
   const empty = data.every((d) => d.quoted === 0 && d.accepted === 0);
+  // Sem valores, o eixo arredondado repetia "R$ 1" e "R$ 0": mostra só a linha do zero
+  const ticks = empty ? [0] : [1, 0.75, 0.5, 0.25, 0];
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-4">

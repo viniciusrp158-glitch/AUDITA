@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page";
 import { Alert } from "@/components/form";
 import {
+  CANDIDATE_LIMIT,
   getCurrentPublication,
   getMunicipalities,
   getNiches,
@@ -22,7 +23,7 @@ type SP = { nicho?: string; raio?: string; mun?: string; porte?: string | string
 
 export default async function PesquisarPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
-  const [niches, muns, pub] = await Promise.all([getNiches(), getMunicipalities(150), getCurrentPublication()]);
+  const [niches, muns, pub] = await Promise.all([getNiches(), getMunicipalities(), getCurrentPublication()]);
   const portes = (Array.isArray(sp.porte) ? sp.porte : sp.porte ? [sp.porte] : SIZES).filter((x): x is SizeCode => SIZES.includes(x as SizeCode));
   const filters: SearchFilters = {
     niche: niches.some((n) => n.code === sp.nicho) ? sp.nicho! : (niches.find((n) => n.isEntry)?.code ?? ""),
@@ -86,7 +87,8 @@ export default async function PesquisarPage({ searchParams }: { searchParams: Pr
             Município (opcional)
             <select name="mun" defaultValue={filters.ibge ?? ""} className={`mt-1 ${sel}`}>
               <option value="">Todos da região</option>
-              {muns.map((m) => (
+              {/* Lista: até 150 km da sede, mais o município vindo da tela de Regiões */}
+              {muns.filter((m) => (m.km_from_base ?? 999) <= 150 || m.ibge_code === filters.ibge).map((m) => (
                 <option key={m.ibge_code} value={m.ibge_code}>
                   {m.name} ({Math.round(m.km_from_base ?? 0)} km)
                 </option>
@@ -132,7 +134,7 @@ export default async function PesquisarPage({ searchParams }: { searchParams: Pr
                 <strong className="text-lg tabular-nums">{res.total.toLocaleString("pt-BR")}</strong> empresas-alvo encontradas
                 {res.truncated && (
                   <span className="block text-xs text-warn">
-                    Para ordenar pela nota, o sistema lê as {(1500).toLocaleString("pt-BR")} mais recentes. Refine pelo município, porte ou nome para ver as demais.
+                    Para ordenar pela nota, o sistema lê as {CANDIDATE_LIMIT.toLocaleString("pt-BR")} mais recentes. Refine pelo município, porte ou nome para ver as demais.
                   </span>
                 )}
               </p>
@@ -144,7 +146,7 @@ export default async function PesquisarPage({ searchParams }: { searchParams: Pr
                   cnae: r.cnae_main,
                   municipality: r.municipality,
                   km: r.km,
-                  size: SIZE_LABEL[r.size_code],
+                  size: ({ "01": "ME", "03": "EPP", "05": "Demais" } as const)[r.size_code],
                   hasPhone: !!(r.phone1 || r.phone2),
                   hasEmail: !!r.email,
                   score: r.score.score,
