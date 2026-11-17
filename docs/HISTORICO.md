@@ -1805,3 +1805,37 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   imagem do `audita-web` levaria junto a prospecção, ainda não liberada). Envio dos avisos por e-mail: decisão do Diretor.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261117-academy2 .env && docker compose up -d aluno`. A
   migração só acrescenta colunas opcionais, tabelas e funções; a área do aluno anterior funciona com ela no banco.
+
+## Frente A — melhoria geral do sistema, 1ª entrega (17/11/2026)
+
+- **Pedido do Diretor:** "Sim, comece" (Frente A) e "Siga executando conforme documentado, faça o máximo que puder sem
+  mim, depois publique no sistema real para minha validação". Planejamento: `docs/PLANEJAMENTO_MELHORIAS_E_PROSPECT.md` §2.
+- **A3 — menu por área** (`src/components/sidebar.tsx`): Início; Comercial (Prospecção, Clientes, Demandas, Orçamentos);
+  Operação (Serviços em execução, Treinamentos); Gestão (Caixa, Biblioteca, Configurações). Serviços em execução e Caixa,
+  antes só acessíveis por dentro de Demandas e do Início, ganharam item (só administrador, como as telas já exigiam).
+  Item ativo = endereço mais específico. Menu compactado: cabe inteiro em 1366×768.
+- **A5 — "Meu dia" no Início** (`src/lib/indicators/meu-dia.ts`, `src/components/my-day.tsx`): retornos da prospecção
+  atrasados e de hoje, demandas com prazo vencido ou aguardando o cliente há mais de 48 h, propostas emitidas vencidas
+  ou a vencer em 7 dias, leads novos da semana; cada linha abre o registro. O Início continua só do administrador
+  (o operador segue entrando em Clientes, como no AUDDOC017).
+- **A4 — busca global** (`src/components/global-search.tsx`, `src/lib/search/actions.ts`): Ctrl+K, campo no menu e lupa
+  no celular; clientes, leads, demandas, orçamentos (código ou cliente) e, para o administrador, Biblioteca e
+  Treinamentos. Cada palavra precisa aparecer, em qualquer ordem; consultas pela RLS do usuário.
+- **A8 — cadastro pelo CNPJ** (`src/lib/prospect/cnpj-lookup.ts`): botão "Preencher pelo CNPJ" no formulário de
+  cliente (pessoa jurídica), pela base pública já carregada (ativas de SP, sem MEI). Preenche razão social, fantasia,
+  CNAE, telefone, e-mail e endereço; nada é salvo sem o usuário conferir; fora da base, avisa.
+- **A10 — celular:** barra inferior com 4 atalhos do nível do usuário e "Mais" (menu completo), barra superior fixa com
+  busca, toques maiores no menu.
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** `tests/e2e/a-frente-a.spec.ts` **3/3** (menu do administrador e do operador, Meu dia,
+  busca com Enter e Esc, cadastro pelo CNPJ real e não encontrado, barra inferior, sem rolagem lateral em 6 telas no
+  celular, menu inteiro em 1366×768); `i1-acesso` **5/5** (atualizado: lista do menu sem a Comunicação e o link
+  duplicado pela barra inferior); `p1-prospect` 5/5; `tsc` e `eslint` sem erros; Vitest 164 passaram, 1 falha antiga
+  (`ca12-escopo`, V11). `responsivo.spec.ts` não roda no ambiente de testes (não há cliente cadastrado para abrir a ficha).
+- **Defeito achado nos testes e corrigido:** a busca por "AC. GESSO" não achava o lead (pontuação); passou a buscar
+  palavra por palavra.
+- **Produção (17/11/2026):** backup `*_2026-11-17_1621`; imagem `audita-sistema:20261117-frente-a` (commit `82d42db`),
+  testada na porta 3299 e trocada só no `audita-web`; endereços públicos normais, sem erro no registro.
+- **Para voltar:** `AUDITA_WEB_TAG=20261117-prospect2` no `.env` de `~/audita/audita-sistema` e `docker compose up -d web`.
+- **Falta da Frente A:** A2 (padrão de tabelas com ordenar/filtrar/exportar), A6 (ficha 360° do cliente), A7 (quadro em
+  colunas para Demandas e Orçamentos), A9 (formulários), A11 (filtros salvos e exportações) e listas em cartões no celular.
