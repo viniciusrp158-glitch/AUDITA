@@ -1714,7 +1714,7 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 
 ## AUDITA PROSPECT — Fase 1, etapa 3: Regiões (IOC) e edição de nichos (16/11/2026)
 
-- **Migração `20261116120000_p2_prospect_regioes.sql`** (não aplicada em produção): `prospect_region_counts(p_max_km)`
+- **Migração `20261117120000_p2_prospect_regioes.sql`** (não aplicada em produção): `prospect_region_counts(p_max_km)`
   (SECURITY INVOKER, contagem por município e nicho com junções por igualdade em cada tamanho de prefixo) e
   `prospect_region_stats` + `refresh_prospect_region_stats()` (resumo pronto: na base real a contagem leva 6,9 s; ler o
   resumo leva 0,005 s). O recálculo roda na carga mensal (`carregar-base.sh`) e ao salvar um nicho.

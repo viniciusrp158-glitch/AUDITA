@@ -40,6 +40,6 @@ LINHAS=$(python3 -c "import json;print(json.load(open('$D/carga_resumo.json'))['
   echo "cluster audita.cnpj_establishments using cnpj_establishments_mun_cnae;"
   echo "commit;"
   echo "vacuum analyze audita.cnpj_establishments;"
-  # Resumo por município e nicho da tela de Regiões (migração 20261116120000_p2_prospect_regioes)
+  # Resumo por município e nicho da tela de Regiões (migração 20261117120000_p2_prospect_regioes)
   echo "select 'resumo de regiões: ' || audita.refresh_prospect_region_stats() || ' linhas';"
 } | docker exec -i "$DB" psql -U postgres -At
