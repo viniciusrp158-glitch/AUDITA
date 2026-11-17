@@ -1651,3 +1651,24 @@ esta etapa cobre o que se testa sem ele.
 - `tests/e2e/responsivo.spec.ts` inclui as telas do PROSPECT (celular 360 px e tablet).
 - **Não executado:** uso real das telas e testes de navegação — dependem do ambiente de testes (Docker do PC a
   reinstalar). Nada publicado em produção.
+
+## S9 — Audita Academy: marca, vitrine, compra e início do aluno (16/11/2026)
+
+- **Pedido:** o Diretor renomeou a plataforma de treinamentos para **Audita Academy** (logo próprio) e aprovou o
+  planejamento e o protótipo. Situação das etapas e mudanças de banco pendentes em `docs/ACADEMY.md`.
+- **Etapas 1 a 4** (ramo `feat/academy-etapa1-marca`), só visual, sem mudança no banco:
+  - marca nas telas de acesso, topo, rodapé, títulos das abas e no e-mail de convite;
+  - página inicial da Academy em `/treinamentos`, catálogo, página do curso com quadro e barra de compra;
+  - compra com indicador de etapas e retorno do pagamento;
+  - Meus cursos com "Continuar de onde parei" e progresso; logo no topo da sala de aula;
+  - certificado continua com o logo da AUDITA até decisão do Diretor.
+- **Site institucional:** "Cursos EAD" virou "Audita Academy" no menu, rodapé e página inicial; página `/cursos` do
+  site retirada; `/cursos`, `/auditaacademy` e `/academy` levam à plataforma (Nginx do site).
+- **Testes:** site 48/48; área do aluno conferida com Supabase simulado no PC (18 telas, computador e iPhone 13, sem
+  rolagem lateral e sem erros).
+- **Produção (16/11/2026, com o "Pode, etapas 1 a 4" do Diretor):** imagens `audita-aluno:20261116-academy` e
+  `audita-site:20261116-academy`, testadas antes nas portas 3498 e 3499; modelo `email/convite-aluno.html` trocado
+  (assunto do e-mail sem mudança). Conferido no ar: páginas 200, redirecionamentos 301, `/empresa/login`, PRO e HUB,
+  `noindex` mantido, console sem erros.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261116-academy .env && docker compose up -d aluno site`
+  e `cp email/convite-aluno.html.bak-20261116 email/convite-aluno.html`.
