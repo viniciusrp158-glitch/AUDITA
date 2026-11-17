@@ -1839,3 +1839,14 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - **Para voltar:** `AUDITA_WEB_TAG=20261117-prospect2` no `.env` de `~/audita/audita-sistema` e `docker compose up -d web`.
 - **Falta da Frente A:** A2 (padrão de tabelas com ordenar/filtrar/exportar), A6 (ficha 360° do cliente), A7 (quadro em
   colunas para Demandas e Orçamentos), A9 (formulários), A11 (filtros salvos e exportações) e listas em cartões no celular.
+
+### Frente A — ajuste após validação: "Audita Academy" (17/11/2026, 18h30)
+
+- **Pedido do Diretor:** "Validado, apenas troque o nome "Treinamentos" por "Audita Academy"".
+- Menu (Operação), título da tela `/treinamentos` e grupo da busca global passam a se chamar **Audita Academy**
+  (o endereço continua `/empresa/treinamentos`). Commit `243a5de`. Sem mudança no banco.
+- **Testes (ambiente de testes):** `a-frente-a` + `i1-acesso` **8/8**; `tsc` sem erros.
+- **Produção:** cópia de segurança `*_2026-11-17_1830`; imagem `audita-sistema:20261117-academy-menu` pré-testada na
+  porta 3299 (login 200, sem erros no log); no ar com `/empresa/login` 200, `/empresa` 307, site 200.
+- **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a` no `.env` (cópia `.env.bak-20261117-academy-menu`) e
+  `docker compose up -d web`.
