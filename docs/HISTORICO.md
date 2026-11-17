@@ -1850,3 +1850,24 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   porta 3299 (login 200, sem erros no log); no ar com `/empresa/login` 200, `/empresa` 307, site 200.
 - **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a` no `.env` (cópia `.env.bak-20261117-academy-menu`) e
   `docker compose up -d web`.
+
+## Frente A — 2ª entrega (17/11/2026, 19h15)
+
+- **Pedido do Diretor:** "Sim, siga" (continuar a Frente A).
+- **A6 — ficha 360° do cliente** (`src/lib/clients/timeline.ts`, `src/components/client-timeline.tsx`): resumo no topo
+  (demandas em aberto, orçamentos/aceitos, serviços ativos só para o administrador, último contato) e aba "Linha do
+  tempo" com prospecção, demandas, propostas emitidas/decididas, serviços, OS e caixa, filtro por tipo, pela RLS.
+  A aba "Demandas e propostas" passou a listar os orçamentos.
+- **A7 — quadro em colunas** (`src/components/board.tsx`) em Demandas (por situação, respeitando o grupo) e Orçamentos
+  (por situação; a tela ganhou filtro de situação). Alternância Lista | Quadro.
+- **A2/A11 — exportação CSV** (`src/lib/csv.ts`; rotas `/clientes/exportar`, `/demandas/exportar`,
+  `/orcamentos/exportar`) com os filtros da tela, ";" + BOM para o Excel, proteção contra fórmula, até 1000 linhas,
+  sem valores de preço.
+- **A10 — Clientes em cartões no celular.**
+- **Correção (anomalia encontrada):** a lista de Orçamentos falhava desde 25/10 (`quote_items(count)` negado pela
+  restrição de colunas da seg1, erro 42501). Passou a contar pelos ids. Sem mudança no banco.
+- **Testes (ambiente de testes):** `a-frente-a-2` **4/4**, `a-frente-a` **3/3**, `i1-acesso` 5/5, unidade `csv` 5/5;
+  unidade geral 99/100 (ca12 já falhava). `i5-precificacao` falha no login por espera de 5 s (mesmo problema já
+  corrigido no i1) — pendente ajustar o teste.
+- **Produção:** cópia `*_2026-11-17_1915`; imagem `audita-sistema:20261117-frente-a2` pré-testada na porta 3299; no ar
+  (healthy, login 200). **Reversão:** `AUDITA_WEB_TAG=20261117-academy-menu` e `docker compose up -d web`.
