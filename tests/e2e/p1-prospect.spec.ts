@@ -87,6 +87,18 @@ test("pesquisa → funil → contato assistido → retorno → não contatar", a
   await shot(page, "p1-painel");
 });
 
+test("pesquisa em raio grande: indústria até 150 km e no Estado inteiro (falhava por tempo limite em 17/11/2026)", async ({ page }) => {
+  test.setTimeout(180_000);
+  await login(page);
+  for (const raio of ["150", "0"]) {
+    const t0 = Date.now();
+    await page.goto(`/empresa/prospeccao/pesquisar?nicho=industria&raio=${raio}&run=1`);
+    await expect(page.getByText(/empresas-alvo encontradas/)).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText("Não foi possível pesquisar na base")).toHaveCount(0);
+    console.log(`pesquisa indústria raio ${raio}: ${Date.now() - t0} ms`);
+  }
+});
+
 test("regiões: IOC por município e atalho para a pesquisa do município", async ({ page }) => {
   await login(page);
   await page.goto("/empresa/prospeccao/regioes");

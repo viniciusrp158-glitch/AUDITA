@@ -136,24 +136,32 @@ export async function searchCompanies(f: SearchFilters): Promise<{
   const munMap = new Map(muns.map((m) => [m.ibge_code, m]));
   if (!muns.length) return { rows: [], total: 0, scored: 0, truncated: false, niche };
 
-  let q = supabase
-    .from("cnpj_establishments")
-    .select(EST_COLUMNS, { count: "exact" })
-    .or(niche.cnaePrefixes.map((p) => `cnae_main.like.${p}*`).join(","))
-    .in("size_code", f.sizes.length ? f.sizes : SIZES);
-  if (f.ibge || f.maxKm > 0) q = q.in("ibge_code", muns.map((m) => m.ibge_code));
-  if (f.withPhone) q = q.not("phone1", "is", null);
+  // Função do banco (migração P3): a região vai como subconsulta, não como lista de municípios, para o banco usar os
+  // índices em qualquer raio (com a lista, 150 km lia a tabela inteira e passava do limite de 8 s da API)
+  let since: string | null = null;
   if (f.recent) {
     const d = new Date(`${todaySaoPaulo()}T12:00:00Z`);
     d.setUTCFullYear(d.getUTCFullYear() - 1);
-    q = q.gte("started_on", d.toISOString().slice(0, 10));
+    since = d.toISOString().slice(0, 10);
   }
-  const term = normalizeSearch(f.q);
-  if (term) q = q.like("search_text", `%${term}%`);
-  const { data, count, error } = await q.order("started_on", { ascending: false, nullsFirst: false }).limit(CANDIDATE_LIMIT);
-  if (error) return { rows: [], total: 0, scored: 0, truncated: false, niche, error: "Não foi possível pesquisar na base. Tente novamente." };
+  const { data, error } = await supabase.rpc("prospect_search", {
+    p_prefixes: niche.cnaePrefixes,
+    p_max_km: f.maxKm,
+    p_ibge: f.ibge,
+    p_sizes: f.sizes.length ? f.sizes : SIZES,
+    p_with_phone: f.withPhone,
+    p_since: since,
+    p_term: normalizeSearch(f.q) || null,
+    p_limit: CANDIDATE_LIMIT,
+  });
+  if (error) {
+    console.error("prospect_search", error.code, error.message);
+    return { rows: [], total: 0, scored: 0, truncated: false, niche, error: "Não foi possível pesquisar na base. Tente novamente." };
+  }
 
-  const list = (data ?? []) as Establishment[];
+  const raw = (data ?? []) as (Establishment & { total: number })[];
+  const count = raw.length ? Number(raw[0].total) : 0;
+  const list: Establishment[] = raw.map((r) => { const e: Partial<typeof r> = { ...r }; delete e.total; return e as Establishment; });
   const known = await knownCnpjs(list.map((e) => e.cnpj));
   const today = todaySaoPaulo();
   let rows: SearchRow[] = list.map((e) => {

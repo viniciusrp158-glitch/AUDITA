@@ -152,6 +152,29 @@ describe("P1 — AUDITA PROSPECT (PGlite)", () => {
     });
   });
 
+  it("pesquisa (P3): filtros de CNAE, região, porte, telefone, abertura e nome, com total; RLS e entradas validadas", async () => {
+    type R = { cnpj: string; total: string };
+    const s = (args: string) => q<R>(`select cnpj, total::text from audita.prospect_search(${args})`);
+    await asUser(db, OPER, async () => {
+      expect(await s(`array['41'], 50`)).toEqual([{ cnpj: CNPJ_A, total: "1" }]);
+      expect(await s(`array['4120'], 0`)).toHaveLength(2); // Estado inteiro: inclui a obra de Sumaré (120 km)
+      expect((await s(`array['4120'], 150`))[0].total).toBe("2");
+      expect(await s(`array['4120'], 100`)).toHaveLength(1);
+      expect(await s(`array['41'], 50, '3552205', array['03'], true, '2022-01-01', 'alfa'`)).toHaveLength(1);
+      expect(await s(`array['62'], 50`)).toHaveLength(1); // outro nicho (software)
+      expect(await s(`array['47'], 50`)).toHaveLength(0);
+      expect(await s(`array['41', '4120', '41'], 0`)).toHaveLength(2); // prefixos sobrepostos não duplicam
+      expect(await s(`array['41'], 50, null, array['01']`)).toHaveLength(0); // outro porte
+      expect(await s(`array['41'], 50, null, null, false, '2023-01-01'`)).toHaveLength(0); // aberta antes
+      expect(await s(`array['41'], 50, null, null, false, null, 'beta'`)).toHaveLength(0); // outro nome
+      expect(await err(db.query(`select * from audita.prospect_search(array['41'' or true or ''x'])`))).not.toBeNull();
+      expect(await err(db.query(`select * from audita.prospect_search(array['41'], 50, '1; drop')`))).not.toBeNull();
+    });
+    await asUser(db, MKT, async () => {
+      expect((await err(db.query(`select * from audita.prospect_search(array['41'], 0)`)))?.code).toBe("42501"); // quem não prospecta não pesquisa
+    });
+  });
+
   it("nichos e pesquisas: autor permanente, data de alteração e histórico só de inclusão", async () => {
     await asUser(db, OPER, async () => {
       const before = (await q<{ updated_at: string }>(`select updated_at from audita.prospect_niches where code = 'oficinas'`))[0].updated_at;
