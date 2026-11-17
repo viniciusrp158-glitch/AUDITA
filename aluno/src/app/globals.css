@@ -80,3 +80,15 @@ section[id] {
     padding-bottom: 88px;
   }
 }
+
+/* Histórico e documentos do Financeiro: impressão em A4 retrato (o certificado continua deitado) */
+@media print {
+  @page retrato {
+    size: A4 portrait;
+    margin: 14mm;
+  }
+  .impressao-retrato {
+    page: retrato;
+    padding: 0 !important;
+  }
+}

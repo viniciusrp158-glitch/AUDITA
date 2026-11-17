@@ -93,8 +93,8 @@ export default async function MeusCursosPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <StudentHeader name={student.full_name} />
-      <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6">
+      <StudentHeader ativo="inicio" />
+      <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pt-8 pb-28 sm:px-6 md:pb-12">
         {sp.bemvindo && (
           <p role="status" className="rounded-xl border border-ok/30 bg-ok/5 px-4 py-3 text-sm text-ok">
             Senha salva. Boas-vindas à Audita Academy!

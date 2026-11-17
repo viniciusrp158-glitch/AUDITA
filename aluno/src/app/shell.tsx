@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { Bell, BookOpen, ChevronDown, History, House, LogOut, MessageCircle, Receipt, UserRound } from "lucide-react";
+import { whatsapp } from "@/lib/academy";
+import { createClient, currentStudent } from "@/lib/supabase/server";
 import { signOut } from "./entrar/actions";
 import { AcademyLogo } from "./marca";
 
@@ -24,30 +26,165 @@ export function Logo({ width = 112 }: { width?: number }) {
   );
 }
 
-/** Cabeçalho da área do aluno (fundo claro, como no protótipo aprovado). */
-export function StudentHeader({ name }: { name?: string }) {
+const iniciais = (nome: string) =>
+  nome
+    .replace(/\[.*?\]/g, "")
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length > 2 || /^[A-ZÀ-Ú]/.test(p))
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("") || "A";
+
+/** Avisos não lidos do aluno da sessão (0 se a função não responder). */
+async function naoLidos(): Promise<number> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("training_unread_notifications");
+  return typeof data === "number" ? data : 0;
+}
+
+type Aba = "inicio" | "historico" | "avisos" | "perfil" | "financeiro";
+
+/**
+ * Topo da área do aluno (Audita Academy, etapa 5): logo, atalhos, sino de avisos e o menu do aluno, que abre ao tocar
+ * nas iniciais (Meus cursos, Histórico, Financeiro, Notificações, Meu Perfil, WhatsApp e Sair). No celular, uma barra
+ * inferior leva às telas mais usadas.
+ */
+export async function StudentHeader({ ativo }: { name?: string; ativo?: Aba } = {}) {
+  const student = await currentStudent();
+  const avisos = student ? await naoLidos() : 0;
+  const nome = student?.full_name ?? "";
+  const itens = [
+    { href: "/meus-cursos", rotulo: "Meus cursos", Icone: BookOpen },
+    { href: "/historico", rotulo: "Histórico de cursos", Icone: History },
+    { href: "/financeiro", rotulo: "Financeiro", Icone: Receipt },
+    { href: "/notificacoes", rotulo: "Notificações", Icone: Bell, extra: avisos },
+    { href: "/perfil", rotulo: "Meu Perfil", Icone: UserRound },
+  ];
+  const atalhos: { href: string; rotulo: string; aba: Aba }[] = [
+    { href: "/meus-cursos", rotulo: "Início", aba: "inicio" },
+    { href: "/historico", rotulo: "Histórico", aba: "historico" },
+    { href: "/cursos", rotulo: "Catálogo", aba: "inicio" },
+  ];
   return (
-    <header className="border-b border-line bg-white">
-      <div className="mx-auto flex min-h-[68px] max-w-6xl flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
-        <Link href="/meus-cursos" aria-label="Audita Academy, meus cursos" className="rounded-md">
-          <AcademyLogo height={40} />
-        </Link>
-        <span className="flex-1" />
-        {name && (
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden max-w-[16rem] truncate text-muted sm:inline">{name}</span>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line px-4 text-sm font-medium text-ink hover:bg-surface"
+    <>
+      <header className="no-print sticky top-0 z-40 border-b border-line bg-white">
+        <div className="mx-auto flex min-h-[68px] max-w-6xl items-center gap-3 px-4 py-2 sm:px-6">
+          <Link href="/meus-cursos" aria-label="Audita Academy, meus cursos" className="rounded-md">
+            <AcademyLogo height={40} />
+          </Link>
+          {student && (
+            <nav aria-label="Atalhos" className="ml-4 hidden gap-1 md:flex">
+              {atalhos.map((a) => (
+                <Link
+                  key={a.href}
+                  href={a.href}
+                  className={`rounded-lg px-3 py-2 text-[15px] font-medium ${a.href !== "/cursos" && ativo === a.aba ? "bg-lime-50 text-green-dark" : "text-ink hover:bg-surface"}`}
+                >
+                  {a.rotulo}
+                </Link>
+              ))}
+            </nav>
+          )}
+          <span className="flex-1" />
+          {student ? (
+            <>
+              <Link
+                href="/notificacoes"
+                className="relative grid size-11 place-items-center rounded-full border border-line text-ink hover:bg-surface"
+                aria-label={avisos ? `Notificações, ${avisos} não ${avisos === 1 ? "lida" : "lidas"}` : "Notificações"}
+                data-testid="bell"
               >
+                <Bell size={19} aria-hidden />
+                {avisos > 0 && (
+                  <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
+                    {avisos > 99 ? "99+" : avisos}
+                  </span>
+                )}
+              </Link>
+              <details className="group relative">
+                <summary
+                  className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-full border border-line py-1 pr-3 pl-1 hover:bg-surface [&::-webkit-details-marker]:hidden"
+                  aria-label="Abrir o menu do aluno"
+                  data-testid="menu-aluno"
+                >
+                  <span className="font-display grid size-9 place-items-center rounded-full bg-navy text-sm font-bold text-white" aria-hidden>
+                    {iniciais(nome)}
+                  </span>
+                  <ChevronDown size={16} className="text-muted transition group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
+                </summary>
+                <div className="absolute top-[calc(100%+8px)] right-0 z-50 w-[290px] max-w-[calc(100vw-32px)] rounded-2xl border border-line bg-white p-2 shadow-[0_14px_32px_rgba(3,27,53,0.16)]">
+                  <div className="border-b border-line px-3 pt-2 pb-3">
+                    <p className="truncate font-semibold text-ink">{nome}</p>
+                    <p className="truncate text-xs text-muted">{student.email}</p>
+                  </div>
+                  <nav aria-label="Menu do aluno" className="flex flex-col py-1">
+                    {itens.map((i) => (
+                      <Link key={i.href} href={i.href} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] text-ink hover:bg-surface">
+                        <i.Icone size={18} className="text-green-dark" aria-hidden /> <span className="flex-1">{i.rotulo}</span>
+                        {i.extra ? <span className="rounded-full bg-danger px-2 text-xs font-bold text-white">{i.extra}</span> : null}
+                      </Link>
+                    ))}
+                    <a
+                      href={whatsapp(`Olá! Sou aluno(a) da Audita Academy (${nome}) e preciso de ajuda.`)}
+                      target="_blank"
+                      rel="noopener"
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] text-ink hover:bg-surface"
+                    >
+                      <MessageCircle size={18} className="text-green-dark" aria-hidden /> Falar no WhatsApp
+                    </a>
+                  </nav>
+                  <form action={signOut} className="border-t border-line pt-1">
+                    <button type="submit" className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-[15px] text-muted hover:bg-surface">
+                      <LogOut size={18} aria-hidden /> Sair
+                    </button>
+                  </form>
+                </div>
+              </details>
+            </>
+          ) : (
+            <form action={signOut}>
+              <button type="submit" className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line px-4 text-sm font-medium text-ink hover:bg-surface">
                 <LogOut size={15} aria-hidden /> Sair
               </button>
             </form>
-          </div>
-        )}
-      </div>
-    </header>
+          )}
+        </div>
+      </header>
+      {student && (
+        <nav
+          aria-label="Atalhos do aluno"
+          className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-white px-2 pt-1 pb-[calc(4px+env(safe-area-inset-bottom))] md:hidden"
+        >
+          {[
+            { href: "/meus-cursos", rotulo: "Início", Icone: House, aba: "inicio" },
+            { href: "/historico", rotulo: "Histórico", Icone: History, aba: "historico" },
+            { href: "/notificacoes", rotulo: "Avisos", Icone: Bell, aba: "avisos" },
+            { href: "/perfil", rotulo: "Perfil", Icone: UserRound, aba: "perfil" },
+          ].map((t) => (
+            <Link
+              key={t.href}
+              href={t.href}
+              className={`relative flex min-h-12 flex-col items-center justify-center gap-0.5 text-xs font-medium ${ativo === t.aba ? "text-green-dark" : "text-muted"}`}
+            >
+              <t.Icone size={20} aria-hidden />
+              {t.rotulo}
+              {t.aba === "avisos" && avisos > 0 && <span className="absolute top-1 right-[calc(50%-18px)] size-2.5 rounded-full bg-danger" aria-hidden />}
+            </Link>
+          ))}
+        </nav>
+      )}
+    </>
+  );
+}
+
+/** Moldura das páginas do aluno: topo, conteúdo e espaço para a barra inferior no celular. */
+export async function AreaAluno({ ativo, children, largura = "max-w-6xl" }: { ativo?: Aba; children: React.ReactNode; largura?: string }) {
+  return (
+    <>
+      <StudentHeader ativo={ativo} />
+      <main className={`impressao-retrato mx-auto flex ${largura} flex-col gap-6 px-4 pt-8 pb-28 sm:px-6 md:pb-12`}>{children}</main>
+    </>
   );
 }
 
@@ -60,7 +197,7 @@ export function AuthCard({ title, subtitle, children }: { title: string; subtitl
         <img src="/treinamentos/brand/acesso.webp" alt="" className="absolute inset-0 size-full object-cover" />
         <span className="absolute inset-0 bg-gradient-to-b from-navy/50 via-navy/70 to-navy/95" aria-hidden />
         <div className="relative flex flex-col gap-4 p-5 sm:p-8 lg:p-12">
-          <Link href="/cursos" aria-label="Audita Academy, cursos" className="self-start rounded-md">
+          <Link href="/" aria-label="Audita Academy, página inicial" className="self-start rounded-md">
             <AcademyLogo variant="escura" height={58} />
           </Link>
           <div className="hidden flex-col gap-3 lg:flex">
