@@ -1672,3 +1672,42 @@ esta etapa cobre o que se testa sem ele.
   `noindex` mantido, console sem erros.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261116-academy .env && docker compose up -d aluno site`
   e `cp email/convite-aluno.html.bak-20261116 email/convite-aluno.html`.
+
+## Incidente no Audita PRO e ambiente de testes no servidor (16/11/2026)
+
+**Incidente (causado na montagem do ambiente de testes).** O arquivo `supabase-audita/dev/docker-compose.dev.yml` que já
+estava na VPS não era o do projeto: não tinha `name:` nem `container_name`. Copiado para a pasta de testes e usado com o
+`docker-compose.yml` (que tem `name: supabase`), o Docker tratou o ambiente de testes como o projeto do **Audita PRO** e
+recriou o container `supabase-db` (e reiniciou o `realtime` dele) apontando para a pasta vazia de testes. **PRO e HUB ficaram
+com o banco errado das 00:29 às 06:17 de 16/11/2026**; 4 tentativas de login no período. Os dados do PRO não foram tocados
+(`/home/deploy/audita/supabase/volumes/db/data`, 118 MB). Restauração autorizada pelo Diretor: `docker compose up -d db` na
+pasta do próprio PRO (`/home/deploy/audita/supabase`, configuração original). Conferido: `auth.users` = 14, PostgREST com
+217 relações, todos os serviços do PRO saudáveis, PRO/HUB respondendo.
+**Prevenção:** o ambiente de testes usa o arquivo do projeto (`deploy/servidor/supabase-audita-dev/docker-compose.dev.yml`,
+`name: supabase-audita-dev`, containers `auditadev-*`), `COMPOSE_PROJECT_NAME` no `.env` e `-p supabase-audita-dev` em todo
+comando; antes de ligar, `docker compose config` foi conferido (nenhum nome de container, volume ou rede coincide com PRO
+ou produção). A pasta de dados criada pelo container errado ficou separada (`volumes/db/data.descartado-20261116`).
+
+**Ambiente de testes** (`deploy/servidor/dev/montar-ambiente-testes.sh`): `~/audita/supabase-audita-dev`, chaves e senhas
+novas (nenhuma igual à produção), API só em 127.0.0.1:8200 (túnel SSH), serviços mínimos (~0,9 GB). 37 migrações aplicadas
+(`deploy/servidor/dev/apply.sh`), usuários fictícios administrador, operador e sem acesso (credenciais em
+`usuarios-teste.env` no servidor e em `.env.dev-servidor` no PC, fora do Git). Testes de tela:
+`playwright.dev-servidor.config.ts`.
+
+**Base de CNPJ no ambiente de testes:** `carregar-base.sh 2026-10 auditadev-db` — 3.853.320 empresas e 645 municípios numa
+transação (1,86 GB). A primeira tentativa falhou e foi desfeita inteira (CSV com CRLF; corrigido no gerador e no script).
+Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depois de ordenar a tabela por município e CNAE
+(`CLUSTER` + `VACUUM ANALYZE`, agora parte da carga mensal), "atacado e logística até 100 km" leva 1,4 s no banco.
+
+### Evidência (16/11/2026)
+
+- `tests/e2e/p1-prospect.spec.ts` no ambiente de testes, **2/2** (repetível): pesquisa na base real (9.449 empresas de
+  construção até 50 km), envio de 3 ao funil sem duplicar, ficha com WhatsApp pelo link oficial, registro com retorno
+  (etapa vai a "Aguardando retorno"), "não contatar" bloqueando o contato, painel; telas do PROSPECT no celular (360 px)
+  sem rolagem horizontal. Tempo da pesquisa na tela, com o sistema no PC e o banco pelo túnel: 7–11 s.
+- **Auditoria das telas atuais** (26 telas × computador 1366 px e celular 390 px, roteiro de captura): todas 200, nenhuma
+  rolagem horizontal, nenhum erro do navegador. Corrigidos: Registro de atividades no celular (123.850 px → 15.906 px, resumo
+  longo recolhido) e eixo do gráfico do Início sem dados (repetia "R$ 1"). Lista "Porte" da pesquisa abreviada (ME/EPP).
+- Unitários: só a falha conhecida V11 (`ca12-escopo`). `tsc`, `eslint` e `next build` sem erros.
+- Observações para calibrar: muitas empresas próximas tiram nota 100 (a ordenação perde força); telefones do cadastro de
+  outros DDDs reforçam o aviso de que o contato costuma ser do contador.

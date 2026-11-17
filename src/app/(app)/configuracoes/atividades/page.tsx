@@ -54,9 +54,17 @@ export default async function AtividadesPage({ searchParams }: { searchParams: P
                   <td className="whitespace-nowrap px-4 py-2.5 text-muted">{ENTIDADES[row.entity] ?? row.entity}</td>
                   <td className="px-4 py-2.5">
                     {Object.keys(row.summary ?? {}).length > 0 ? (
-                      <code className="block max-w-xl overflow-hidden text-ellipsis whitespace-pre-wrap break-all text-xs text-muted">
-                        {JSON.stringify(row.summary)}
-                      </code>
+                      // Resumo longo (ex.: cadastro com muitos campos) fica recolhido: a tela não vira uma rolagem sem fim
+                      JSON.stringify(row.summary).length > 240 ? (
+                        <details className="max-w-xl text-xs text-muted">
+                          <summary className="cursor-pointer break-all">{JSON.stringify(row.summary).slice(0, 200)}… ver tudo</summary>
+                          <code className="mt-1 block max-h-80 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(row.summary, null, 1)}</code>
+                        </details>
+                      ) : (
+                        <code className="block max-w-xl overflow-hidden text-ellipsis whitespace-pre-wrap break-all text-xs text-muted">
+                          {JSON.stringify(row.summary)}
+                        </code>
+                      )
                     ) : (
                       <span className="text-xs text-muted">—</span>
                     )}

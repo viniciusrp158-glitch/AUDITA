@@ -50,7 +50,7 @@ for r in rows("Municipios.zip"):
         rfb_to_ibge[r[0]] = ibge[k]["ibge"]
         ibge[k]["rfb"] = r[0]
 with open(os.path.join(SP, "carga_municipios.csv"), "w", encoding="utf-8", newline="") as f:
-    w = csv.writer(f)
+    w = csv.writer(f, lineterminator="\n")
     w.writerow(["ibge_code", "name", "uf", "rfb_code", "lat", "lon", "km_from_base", "immediate_region"])
     for m in sorted(ibge.values(), key=lambda x: x["ibge"]):
         w.writerow([m["ibge"], m["nome"], "SP", m.get("rfb", ""), f'{m["lat"]:.6f}', f'{m["lon"]:.6f}', f'{m["km_sorocaba"]:.1f}', m["regiao_imediata"]])
@@ -77,7 +77,7 @@ COLS = ["cnpj", "is_headquarters", "legal_name", "trade_name", "legal_nature", "
 with gzip.open(os.path.join(SP, "estab_sp_ativos.csv.gz"), "rt", encoding="utf-8") as gz, \
      gzip.open(os.path.join(SP, "carga_estabelecimentos.csv.gz"), "wt", encoding="utf-8", newline="") as out:
     rd = csv.reader(gz, delimiter=";"); next(rd)
-    w = csv.writer(out); w.writerow(COLS)
+    w = csv.writer(out, lineterminator="\n"); w.writerow(COLS)
     for r in rd:
         cnpj, matriz, fantasia, inicio, cnae, cnae_sec, tipo_log, logr, num, compl, bairro, cep, mun, tel1, tel2, email = r
         b = cnpj[:8]

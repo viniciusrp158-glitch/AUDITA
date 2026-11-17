@@ -144,7 +144,7 @@ export default async function PesquisarPage({ searchParams }: { searchParams: Pr
                   cnae: r.cnae_main,
                   municipality: r.municipality,
                   km: r.km,
-                  size: SIZE_LABEL[r.size_code],
+                  size: ({ "01": "ME", "03": "EPP", "05": "Demais" } as const)[r.size_code],
                   hasPhone: !!(r.phone1 || r.phone2),
                   hasEmail: !!r.email,
                   score: r.score.score,
