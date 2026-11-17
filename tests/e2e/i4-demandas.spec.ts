@@ -13,7 +13,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/empresa");
+  await expect(page).toHaveURL(new RegExp("/empresa/?$"), { timeout: 30_000 });
 }
 
 async function createTestClient(page: Page, name: string) {
@@ -54,7 +54,7 @@ test("FL-05: demanda do registro ao encerramento", async ({ page }) => {
   await page.getByRole("link", { name: "Demandas e propostas" }).click();
   await expect(page.getByText("Nenhuma demanda registrada para este cliente.")).toBeVisible();
   await page.getByRole("link", { name: "Nova demanda" }).click();
-  await expect(page.getByLabel(/^Cliente/)).toHaveValue(/[0-9a-f-]{36}/);
+  await expect(page.locator('input[type="hidden"][name="client_id"]')).toHaveValue(new RegExp("^[0-9a-f-]{36}$"));
 
   // Validação: resumo obrigatório
   await page.getByRole("button", { name: "Registrar demanda" }).click();

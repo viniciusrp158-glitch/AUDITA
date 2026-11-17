@@ -25,12 +25,15 @@ export function ClientForm({
   submitLabel,
   cancelHref,
   isDev,
+  hidden,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   initial?: ClientFormValues;
   submitLabel: string;
   cancelHref: string;
   isDev: boolean;
+  /** Campos ocultos extras (ex.: lead da prospecção que está sendo convertido). */
+  hidden?: Record<string, string>;
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(action, {});
   const v = { ...formatInitial(initial), ...(state.values ?? {}) };
@@ -64,6 +67,9 @@ export function ClientForm({
 
   return (
     <form ref={formRef} action={formAction} className="space-y-6" noValidate>
+      {Object.entries(hidden ?? {}).map(([k, val]) => (
+        <input key={k} type="hidden" name={k} value={val} />
+      ))}
       {state.error && <Alert kind="error">{state.error}</Alert>}
 
       {(state.duplicates ?? []).length > 0 && (

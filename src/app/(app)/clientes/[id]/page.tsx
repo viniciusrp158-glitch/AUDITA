@@ -61,7 +61,7 @@ export default async function ClientePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ aba?: string; criado?: string; salvo?: string; editar?: string; novo?: string; tipo?: string }>;
+  searchParams: Promise<{ aba?: string; criado?: string; salvo?: string; editar?: string; novo?: string; tipo?: string; lead?: string }>;
 }) {
   const user = await requireAppUser(OPERATE);
   const { id } = await params;
@@ -120,6 +120,16 @@ export default async function ClientePage({
         <div className="mb-4">
           <Alert kind="info">
             Cliente cadastrado com o código <strong>{client.client_code}</strong>. Este código é permanente.
+            {sp.lead && (
+              <>
+                {" "}
+                O lead da prospecção ficou vinculado a este cliente. Próximo passo:{" "}
+                <Link href={`/demandas/nova?cliente=${client.id}`} className="font-semibold underline">
+                  abrir a demanda
+                </Link>
+                ; a etapa do lead muda sozinha quando a proposta for emitida e aceita.
+              </>
+            )}
           </Alert>
         </div>
       )}

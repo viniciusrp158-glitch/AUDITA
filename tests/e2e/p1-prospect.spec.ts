@@ -62,6 +62,16 @@ test("pesquisa → funil → contato assistido → retorno → não contatar", a
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const wa = page.getByRole("link", { name: "Abrir no WhatsApp" });
   if (await wa.count()) await expect(wa).toHaveAttribute("href", /^https:\/\/wa\.me\/55\d{10,11}\?text=Ol%C3%A1/);
+  // Sem celular (quase toda a base da Receita só tem fixo): tentativa pelo fixo do cadastro (pedido do Diretor, 17/11)
+  else {
+    const fixo = page.getByRole("link", { name: "Tentar no WhatsApp pelo fixo do cadastro" });
+    const semNumero = page.getByText("Sem celular para WhatsApp — confirme o número abaixo");
+    await expect(fixo.or(semNumero)).toBeVisible();
+    if (await fixo.count()) {
+      await expect(fixo).toHaveAttribute("href", /^https:\/\/wa\.me\/55\d{10,11}\?text=Ol%C3%A1/);
+      await expect(page.getByText(/Muitas usam o WhatsApp Business no telefone fixo/)).toBeVisible();
+    }
+  }
   await page.getByLabel("Canal").selectOption("whatsapp");
   await page.getByLabel("Como foi").selectOption("enviado");
   await page.getByLabel("Observação").fill("[TESTE] mensagem enviada pelo modelo");

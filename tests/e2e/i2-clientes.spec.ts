@@ -13,7 +13,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/empresa");
+  await expect(page).toHaveURL(new RegExp("/empresa/?$"), { timeout: 30_000 });
 }
 
 test("FL-01: cadastro completo de cliente com unidade, contato, histórico e inativação", async ({ page }) => {

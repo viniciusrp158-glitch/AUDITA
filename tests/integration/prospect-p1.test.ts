@@ -119,6 +119,40 @@ describe("P1 — AUDITA PROSPECT (PGlite)", () => {
     });
   });
 
+  it("conversão (P4, RP-12): proposta emitida leva o lead a \"Proposta enviada\" e aceita a \"Cliente conquistado\"", async () => {
+    const CNPJ_D = "60701190000104";
+    const client = (await q<{ id: string }>(`insert into audita.clients (client_code, legal_name, tax_id, is_test) values ('CLI-TESTE-P4', '[TESTE] Distribuidora Delta Ltda', $1, true) returning id`, [CNPJ_D]))[0].id;
+    let lead = "";
+    let lost = "";
+    await asUser(db, OPER, async () => {
+      lead = (await q<{ id: string }>(`insert into audita.leads (cnpj, legal_name, stage, is_test) values ($1, '[TESTE] Distribuidora Delta Ltda', 'negociacao', true) returning id`, [CNPJ_D]))[0].id;
+      // Vínculo ao cliente (feito pela tela) não muda a etapa
+      await db.query(`update audita.leads set client_id = $2 where id = $1`, [lead, client]);
+      lost = (await q<{ id: string }>(`insert into audita.leads (legal_name, stage, lost_reason, client_id, is_test) values ('[TESTE] Delta filial perdida', 'perdido', '[TESTE] sem interesse', $1, true) returning id`, [client]))[0].id;
+    });
+    const stage = async (id: string) => (await q<{ stage: string }>(`select stage from audita.leads where id = $1`, [id]))[0].stage;
+    expect(await stage(lead)).toBe("negociacao");
+    await db.exec(`set session_replication_role = replica`);
+    await db.query(`insert into audita.demands (id, demand_code, client_id, summary, status, is_test) values ('00000000-0000-4000-8000-0000000004d1', 'DEM-2026-9401', $1, '[TESTE] PGR', 'em_analise', true)`, [client]);
+    await db.query(`insert into audita.quotes (id, quote_code, demand_id, client_id, status, is_test) values ('00000000-0000-4000-8000-0000000004e1', 'PROP-2026-9401', '00000000-0000-4000-8000-0000000004d1', $1, 'revisada', true)`, [client]);
+    await db.exec(`set session_replication_role = origin`);
+    // O gatilho é só o da etapa; as regras de emissão (funções SECURITY DEFINER) não entram neste teste
+    await db.exec(`alter table audita.quotes disable trigger user; alter table audita.quotes enable trigger leads_follow_quote;`);
+    await db.query(`update audita.quotes set status = 'emitida' where id = '00000000-0000-4000-8000-0000000004e1'`);
+    expect(await stage(lead)).toBe("proposta");
+    expect(await stage(lost)).toBe("perdido");
+    const hist = await q<{ to_stage: string }>(`select to_stage from audita.lead_stage_history where lead_id = $1 order by changed_at desc, id desc limit 1`, [lead]);
+    expect(hist[0].to_stage).toBe("proposta");
+    await db.query(`update audita.quotes set status = 'aceita' where id = '00000000-0000-4000-8000-0000000004e1'`);
+    expect(await stage(lead)).toBe("cliente");
+    expect(await stage(lost)).toBe("cliente");
+    await db.exec(`alter table audita.quotes enable trigger user;`);
+    // A função não fica exposta à API
+    await asUser(db, ADMIN, async () => {
+      expect(await err(db.query(`select audita.leads_follow_quote()`))).not.toBeNull();
+    });
+  });
+
   it("regiões: contagem por município e nicho (prefixos de 2 e 4 dígitos) e sem acesso para quem não prospecta", async () => {
     await db.exec(`
       insert into audita.ibge_municipalities (ibge_code, name, rfb_code, km_from_base) values ('3552403', 'Sumaré', '7149', 120), ('3509502', 'Campinas', '6291', 77);

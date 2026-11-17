@@ -3,7 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { Alert, SubmitButton } from "@/components/form";
 import { ACTIVITY_KINDS, OUTCOMES, renderTemplate, STAGES, TEMPLATES, whatsappLink } from "@/lib/prospect/labels";
-import { moveStageAction, registerActivityAction, suppressAction, updateContactAction, type ProspectState } from "../../actions";
+import { linkLeadToClientAction, moveStageAction, registerActivityAction, suppressAction, updateContactAction, type ProspectState } from "../../actions";
 
 const input = "w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
 const label = "block text-sm font-medium text-ink";
@@ -36,6 +36,9 @@ export function ContactPanel({
   const [kind, setKind] = useState<string>("whatsapp");
   const [state, action] = useActionState<ProspectState, FormData>(registerActivityAction, {});
   const wa = useMemo(() => whatsappLink(whatsapp, text), [whatsapp, text]);
+  // Sem celular: muitas empresas usam o WhatsApp Business no telefone fixo; a tentativa é do usuário, e o próprio
+  // WhatsApp avisa se o número não tiver conta (pedido do Diretor, 17/11/2026).
+  const waLandline = useMemo(() => (wa ? null : whatsappLink(phone, text)), [wa, phone, text]);
   const mail = email ? `mailto:${email}?subject=${encodeURIComponent(`AUDITA | SSMA & SGI — ${company}`)}&body=${encodeURIComponent(text)}` : null;
 
   if (blocked) return <Alert kind="warning">Empresa na lista &quot;não contatar&quot;: o contato pelo sistema está bloqueado. Só anotações internas.</Alert>;
@@ -68,6 +71,16 @@ export function ContactPanel({
           <a href={wa} target="_blank" rel="noopener noreferrer" onClick={() => setKind("whatsapp")} className="rounded-md bg-ok px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90">
             Abrir no WhatsApp
           </a>
+        ) : waLandline ? (
+          <a
+            href={waLandline}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setKind("whatsapp")}
+            className="rounded-md border border-ok bg-white px-3 py-2.5 text-center text-sm font-semibold text-ok hover:bg-ok/5"
+          >
+            Tentar no WhatsApp pelo fixo do cadastro
+          </a>
         ) : (
           <span className="rounded-md border border-dashed border-line px-3 py-2 text-center text-xs text-muted">Sem celular para WhatsApp — confirme o número abaixo</span>
         )}
@@ -87,6 +100,12 @@ export function ContactPanel({
         )}
       </div>
       {whatsappSource && <p className="text-xs text-muted">{whatsappSource}</p>}
+      {waLandline && (
+        <p className="text-xs text-muted">
+          A base pública não traz celular para esta empresa. Muitas usam o WhatsApp Business no telefone fixo: se o número
+          não tiver WhatsApp, o aplicativo avisa — nesse caso, ligue e confirme o número em &quot;Contato confirmado&quot;.
+        </p>
+      )}
 
       <form action={action} className="space-y-3 rounded-lg border border-line bg-surface/40 p-3">
         <input type="hidden" name="id" value={leadId} />
@@ -236,6 +255,20 @@ export function SuppressForm({ leadId }: { leadId: string }) {
       <SubmitButton pendingText="Registrando…" variant="danger">
         Confirmar &quot;não contatar&quot;
       </SubmitButton>
+    </form>
+  );
+}
+
+/** Vincula o lead ao cliente que já existe com o mesmo CNPJ (AUDDOC020 RP-12). */
+export function LinkClientForm({ leadId, clientId, label }: { leadId: string; clientId: string; label: string }) {
+  const [state, action] = useActionState<ProspectState, FormData>(linkLeadToClientAction, {});
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="id" value={leadId} />
+      <input type="hidden" name="client_id" value={clientId} />
+      {state.error && <Alert kind="error">{state.error}</Alert>}
+      {state.ok && <Alert kind="info">{state.ok}</Alert>}
+      <SubmitButton pendingText="Vinculando…">{label}</SubmitButton>
     </form>
   );
 }

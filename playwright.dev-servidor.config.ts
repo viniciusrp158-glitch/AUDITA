@@ -11,6 +11,8 @@ export default defineConfig({
   testDir: "tests/e2e",
   timeout: 240_000,
   retries: 0,
+  // O banco de testes fica no servidor (túnel SSH): gravações levam mais que os 5 s padrão das verificações
+  expect: { timeout: 20_000 },
   reporter: [["list"]],
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
