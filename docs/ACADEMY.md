@@ -13,20 +13,19 @@ redirecionamento é o Nginx do site (`deploy/vps/site/nginx.conf`).
 | Etapa | Entrega | Situação |
 |---|---|---|
 | 0 | Protótipo navegável | Aprovado (16/11/2026) |
-| 1 | Marca: logo, topo, rodapé, telas de acesso, títulos e e-mail de convite | Feita no ramo `feat/academy-etapa1-marca`. Aprovada para publicar. Imagem `audita-aluno:20261116-academy1` gerada na VPS e testada na porta 3498. Falta trocar o container no ar e o arquivo `email/convite-aluno.html` |
-| 2 | Página inicial da Academy, catálogo, página do curso, endereços curtos e item no site institucional | Feita no mesmo ramo. Aguarda aprovação |
-| 3 | Compra com indicador de etapas e retorno do pagamento | Feita no mesmo ramo. Aguarda aprovação |
-| 4 | Meus cursos com "Continuar de onde parei" e progresso; logo na sala de aula | Feita no mesmo ramo. Aguarda aprovação |
-| 5 | Menu do aluno (iniciais, sino, barra inferior no celular), Meu Perfil, WhatsApp e Histórico de cursos | Feita (16/11/2026). Migração `20261116120000_a5_academy_aluno.sql` aplicada no desenvolvimento (VPS, `auditadev-db`); aguarda aprovação para a produção |
-| 6 | Financeiro, comprovante e relatório anual (imprimir ou salvar em PDF) | Feita (16/11/2026), mesma migração; aguarda aprovação |
-| 7 | Notificações (automáticas, aviso de prazo calculado na leitura) e comunicados em `/empresa/treinamentos/comunicados` | Feita (16/11/2026), mesma migração; envio por e-mail ainda não existe (decisão do Diretor) |
+| 1 | Marca: logo, topo, rodapé, telas de acesso, títulos e e-mail de convite | No ar desde 16/11/2026 (S9) |
+| 2 | Página inicial da Academy, catálogo, página do curso, endereços curtos e item no site institucional | No ar desde 16/11/2026 (S9) |
+| 3 | Compra com indicador de etapas e retorno do pagamento | No ar desde 16/11/2026 (S9) |
+| 4 | Meus cursos com "Continuar de onde parei" e progresso; logo na sala de aula | No ar desde 16/11/2026 (S9) |
+| 5 | Menu do aluno (iniciais, sino, barra inferior no celular), Meu Perfil, WhatsApp e Histórico de cursos | No ar desde 17/11/2026 (S10). Migração `20261116120000_a5_academy_aluno.sql` aplicada no desenvolvimento e na produção |
+| 6 | Financeiro, comprovante e relatório anual (imprimir ou salvar em PDF) | No ar desde 17/11/2026 (S10) |
+| 7 | Notificações (automáticas, aviso de prazo calculado na leitura) e comunicados em `/empresa/treinamentos/comunicados` | Notificações no ar desde 17/11/2026 (S10). A tela de comunicados está no código e entra na próxima publicação do sistema (`audita-web`). Envio por e-mail ainda não existe (decisão do Diretor) |
 
 Os dados de apresentação que não ficam no banco (capa e área de cada curso, WhatsApp) estão em `aluno/src/lib/academy.ts`.
 Curso sem capa usa `aluno/public/capas/padrao.webp`. Curso sem área cadastrada não mostra o selo de área.
 
 ## Decisões do Diretor ainda em aberto
 
-- Quem faz as mudanças no banco: esta sessão (com autorização) ou a sessão do Sistema de Operação.
 - Logo no certificado: Audita Academy, AUDITA ou os dois. Até a decisão, o certificado continua com o da AUDITA.
 - Dados obrigatórios para emitir o certificado.
 - Notificações também por e-mail.
@@ -36,7 +35,7 @@ Curso sem capa usa `aluno/public/capas/padrao.webp`. Curso sem área cadastrada 
 
 ## Mudanças de banco (etapas 5 a 7)
 
-Feitas na migração `20261116120000_a5_academy_aluno.sql` (teste `tests/integration/academy-a5.test.ts`). Na produção, aplicar **só esta migração**: a `20261114120000_p1_prospect.sql` é de outra frente e não foi liberada para a produção. Diferença em relação ao plano: o aviso de prazo é calculado na leitura (sem `pg_cron`).
+Feitas na migração `20261116120000_a5_academy_aluno.sql` (teste `tests/integration/academy-a5.test.ts`). Aplicada na produção em 17/11/2026, sozinha: a `20261114120000_p1_prospect.sql` é de outra frente e continua fora da produção. Diferença em relação ao plano: o aviso de prazo é calculado na leitura (sem `pg_cron`).
 
 Plano original:
 

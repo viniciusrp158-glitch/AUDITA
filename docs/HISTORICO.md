@@ -1672,3 +1672,23 @@ esta etapa cobre o que se testa sem ele.
   `noindex` mantido, console sem erros.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261116-academy .env && docker compose up -d aluno site`
   e `cp email/convite-aluno.html.bak-20261116 email/convite-aluno.html`.
+
+## S10 — Audita Academy: menu do aluno, Perfil, Histórico, Financeiro e Notificações (17/11/2026)
+
+- **Etapas 5 a 7** (ramo `feat/academy-etapa1-marca`, commits a48721c e 268ef3f): menu do aluno (iniciais, sino e
+  barra inferior no celular), Meu Perfil com busca de endereço pelo CEP, Histórico de cursos com PDF, Financeiro com
+  comprovante e relatório anual de pagamentos (sem promessa de dedução no IR) e Notificações automáticas com aviso de
+  prazo de acesso.
+- **Banco:** migração `20261116120000_a5_academy_aluno.sql` (md5 a807daf2e5389a1dd2d0b1d1bafbc271), primeiro no
+  desenvolvimento e, em 17/11/2026, na produção (`audita-db`), sozinha: a `20261114120000_p1_prospect.sql` continua
+  fora da produção. Cópia antes da mudança: `~/audita/backups/audita-db-antes-a5-20261117.sql.gz` (esquemas `audita` e
+  `supabase_migrations`). Conferido: funções novas visíveis na API e negadas para visitante sem login.
+- **Testes:** integração 9/9 novos e 30 existentes; 16 telas conferidas com Supabase simulado (computador e iPhone 13).
+- **Produção (17/11/2026, com o "Pode publicar" do Diretor):** imagem `audita-aluno:20261117-academy2`, testada antes
+  na porta 3498. Só o container `audita-aluno` foi trocado; `audita-web` e `audita-site` sem mudança. Conferido no ar:
+  páginas 200, áreas logadas levam ao login, redirecionamentos 301, `/empresa/login`, celular sem rolagem lateral e
+  console sem erros.
+- **Fica para a próxima publicação do sistema:** a tela `/empresa/treinamentos/comunicados` (está no código, mas a
+  imagem do `audita-web` levaria junto a prospecção, ainda não liberada). Envio dos avisos por e-mail: decisão do Diretor.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261117-academy2 .env && docker compose up -d aluno`. A
+  migração só acrescenta colunas opcionais, tabelas e funções; a área do aluno anterior funciona com ela no banco.
