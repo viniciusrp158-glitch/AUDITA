@@ -1871,3 +1871,32 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   corrigido no i1) — pendente ajustar o teste.
 - **Produção:** cópia `*_2026-11-17_1915`; imagem `audita-sistema:20261117-frente-a2` pré-testada na porta 3299; no ar
   (healthy, login 200). **Reversão:** `AUDITA_WEB_TAG=20261117-academy-menu` e `docker compose up -d web`.
+
+## PROSPECT — conversão do lead (RP-12), WhatsApp pelo fixo e AUDDOC020 aprovado (17/11/2026, 20h)
+
+- **Pedidos do Diretor:** "Sobre o botão “Tentar no WhatsApp pelo fixo do cadastro” > execute"; "AUDDOC020 aprovado na
+  biblioteca"; "Continue executando conforme documentado, faça o máximo que puder sem mim".
+- **AUDDOC020 (evidência):** no banco de produção, `AUDDOC020 | Rev.00 | vigente | aprovado 2026-11-17 | emitido
+  2026-11-17` (consulta só leitura em `audita.library_revisions`).
+- **WhatsApp pelo fixo** (`src/app/(app)/prospeccao/leads/[id]/lead-forms.tsx`): sem celular, aparece "Tentar no
+  WhatsApp pelo fixo do cadastro" (link oficial wa.me com a mensagem do modelo), com o aviso de que o próprio WhatsApp
+  informa se o número não tiver conta. Continua assistido: quem envia é a pessoa.
+- **RP-12 — converter lead em cliente** (`src/lib/prospect/conversion.ts`, `clientes/novo?lead=…`, quadro "Cliente" na
+  ficha do lead): formulário de cliente já preenchido pelo lead e pela Receita (contato confirmado tem preferência);
+  verificação por CNPJ — se a empresa já é cliente, "Vincular a este cliente" (confere CNPJ igual) em vez de cadastrar
+  de novo; ao cadastrar, o lead fica vinculado (`leads.client_id`) e a tela indica "abrir a demanda". O orçamento segue
+  o fluxo atual. "Cliente conquistado" manual passa a ser aceito quando o lead já tem cliente.
+- **Migração aditiva `20261118120000_p4_prospect_conversao`:** função `audita.leads_follow_quote` (SECURITY DEFINER,
+  `search_path = ''`, sem acesso pela API) e gatilho em `audita.quotes`: orçamento emitido → leads ativos do cliente em
+  "Proposta enviada" (exceto proposta/cliente/perdido); aceito → "Cliente conquistado". Histórico de etapas registra.
+- **Testes (ambiente de testes):** PGlite `prospect-p1` **9/9** (novo: emissão → proposta, perdido continua perdido,
+  aceite → cliente, histórico, função fechada à API); e2e `p4-conversao` **1/1**, `p1-prospect` **5/5** (com o botão
+  do fixo), `i5-precificacao` **3/3**, `i4-demandas` **2/2**, `a-frente-a` 3/3, `a-frente-a-2` 4/4, `i1-acesso` 5/5;
+  unidade 17/18 arquivos (ca12 já falhava).
+- **Testes antigos ajustados:** espera do login (30 s, `new RegExp("/empresa/?$")`) em 14 arquivos e espera padrão das
+  verificações de 20 s em `playwright.dev-servidor.config.ts` (banco de testes remoto); `i4` usa o campo oculto do
+  seletor de cliente atual.
+- **Produção:** cópia `*_2026-11-17_2005`; migração aplicada pelo `apply-migrations.sh` (41 registradas, gatilho
+  conferido); imagem `audita-sistema:20261117-prospect4` pré-testada na 3299 e no ar (healthy, login 200).
+  **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a2` + `docker compose up -d web` (o gatilho só muda etapas; para
+  desligá-lo, `drop trigger leads_follow_quote on audita.quotes` com aprovação).
