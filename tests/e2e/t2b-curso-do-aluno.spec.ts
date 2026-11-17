@@ -215,8 +215,10 @@ test("aluno: curso completo em sequência, final com segunda tentativa e certifi
   await expect(a.getByTestId("certificate-name")).toHaveText(ALUNA.nome);
   const code = (await a.getByTestId("certificate-code").textContent())!.replace("Código: ", "").trim();
   expect(code).toMatch(/^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
-  await expect(a.getByTestId("certificate")).toContainText("10/10 na avaliação final (mínimo para aprovação: 7/10)");
+  await expect(a.getByTestId("certificate-facts").first()).toContainText("10/10 (mín. 7)");
+  await expect(a.getByTestId("certificate-program")).toContainText("Esta página integra o certificado de código " + code);
   await a.getByTestId("certificate").screenshot({ path: `${SHOTS}/t2b-09-certificado.png` });
+  await a.getByTestId("certificate-program").screenshot({ path: `${SHOTS}/t2b-09b-conteudo-programatico.png` });
 
   // Verificação pública, sem login
   const pub = await (await browser.newContext()).newPage();

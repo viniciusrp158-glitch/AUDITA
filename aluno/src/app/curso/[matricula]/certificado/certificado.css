@@ -1,0 +1,77 @@
+/* Certificado AUDITA Academy — modelo "Moldura clássica" aprovado pelo Diretor em 17/11/2026.
+   A folha tem 1123 × 794 px (A4 deitado a 96 dpi), então 1 mm de tela = 1 mm na impressão. */
+@font-face { font-family: "Cert Montserrat"; src: url("/treinamentos/brand/fonts/Montserrat-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Cert Montserrat"; src: url("/treinamentos/brand/fonts/Montserrat-Medium.ttf") format("truetype"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Cert Montserrat"; src: url("/treinamentos/brand/fonts/Montserrat-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: block; }
+@font-face { font-family: "Cert Montserrat"; src: url("/treinamentos/brand/fonts/Montserrat-Bold.ttf") format("truetype"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Cert Montserrat"; src: url("/treinamentos/brand/fonts/Montserrat-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Cert Playfair"; src: url("/treinamentos/brand/fonts/PlayfairDisplay-SemiBoldItalic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: block; }
+@font-face { font-family: "Cert Playfair"; src: url("/treinamentos/brand/fonts/PlayfairDisplay-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: block; }
+
+.cert {
+  --c-navy: #031b35;
+  --c-green: #80bb08;
+  --c-green-d: #3e7a00;
+  --c-grey: #66758a;
+  --c-line: #dce4ec;
+  position: relative;
+  box-sizing: border-box;
+  width: 1123px;
+  height: 794px;
+  overflow: hidden;
+  background: #fbfaf5;
+  color: var(--c-navy);
+  font-family: "Cert Montserrat", Arial, sans-serif;
+  font-weight: 400;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cert * { box-sizing: border-box; margin: 0; padding: 0; }
+.cert .c-abs { position: absolute; }
+.cert .c-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cert .c-logo { left: 50%; transform: translateX(-50%); top: 17mm; width: 52mm; height: auto; }
+.cert .c-meta { right: 18mm; top: 17mm; text-align: right; font-size: 6.4pt; line-height: 1.55; color: var(--c-grey); }
+.cert .c-meta b { color: var(--c-navy); }
+.cert .c-fit { left: 30mm; right: 30mm; top: 46mm; height: 86mm; text-align: center; overflow: hidden; }
+.cert h1 { font-family: "Cert Playfair", Georgia, serif; font-weight: 700; font-size: 25pt; letter-spacing: 0.16em; margin-right: -0.16em; line-height: 1.2; }
+.cert h2 { margin-top: 1.6mm; font-size: 8pt; font-weight: 700; letter-spacing: 0.55em; color: var(--c-green-d); text-transform: uppercase; margin-right: -0.55em; }
+.cert .c-lead { margin-top: 7mm; font-size: 10pt; color: var(--c-grey); font-weight: 500; }
+.cert .c-name { margin-top: 1.5mm; font-family: "Cert Playfair", Georgia, serif; font-style: italic; font-weight: 600; font-size: 38pt; line-height: 1.1; }
+.cert .c-cpf { margin-top: 1.5mm; font-size: 8.4pt; color: var(--c-grey); letter-spacing: 0.06em; }
+.cert .c-cpf b { color: var(--c-navy); }
+.cert .c-orn { width: 60mm; height: 3mm; margin: 3mm auto 0; display: block; }
+.cert .c-text { margin: 3.5mm auto 0; max-width: 205mm; font-size: 10.4pt; line-height: 1.6; color: #23344a; }
+.cert .c-text strong { color: var(--c-navy); font-weight: 700; }
+.cert .c-facts { margin-top: 4mm; font-size: 8.6pt; font-weight: 600; color: var(--c-navy); letter-spacing: 0.02em; }
+.cert .c-facts .c-l { font-style: normal; color: var(--c-green-d); font-size: 6.4pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-right: 1.2mm; }
+.cert .c-facts .c-sep { font-style: normal; color: var(--c-green); margin: 0 3mm; }
+.cert .c-sign { left: 30mm; bottom: 28mm; width: 72mm; text-align: center; }
+.cert .c-sign img { display: block; position: relative; height: 18mm; width: auto; margin: 0 auto -3.4mm; }
+.cert .c-sign .c-rule { border-top: 0.3mm solid var(--c-navy); }
+.cert .c-sign b { display: block; margin-top: 2.6mm; font-size: 8.8pt; font-weight: 700; }
+.cert .c-sign .c-role { font-size: 6.8pt; color: var(--c-grey); margin-top: 0.4mm; }
+.cert .c-seal { left: 130.3mm; top: 139.8mm; width: 36.4mm; height: 36.4mm; overflow: visible; }
+.cert .c-verify { right: 30mm; bottom: 28mm; display: flex; gap: 3mm; align-items: flex-end; }
+.cert .c-qr { width: 21mm; height: 21mm; background: #fff; border-radius: 2mm; padding: 1.8mm; border: 0.3mm solid var(--c-line); }
+.cert .c-qr svg { width: 100%; height: 100%; display: block; }
+.cert .c-vt { text-align: right; font-size: 7pt; color: var(--c-grey); line-height: 1.45; }
+.cert .c-vt b { display: block; color: var(--c-navy); font-size: 9pt; letter-spacing: 0.08em; font-weight: 700; }
+.cert .c-aviso { left: 40mm; right: 40mm; bottom: 14.5mm; text-align: center; font-size: 5.8pt; line-height: 1.45; color: var(--c-grey); }
+
+/* Página 2 — conteúdo programático */
+.cert .c-fit2 { left: 30mm; right: 30mm; top: 44mm; height: 100mm; text-align: center; overflow: hidden; }
+.cert .c-fit2 h1 { font-size: 21pt; }
+.cert .c-course { margin-top: 5mm; font-family: "Cert Playfair", Georgia, serif; font-style: italic; font-weight: 600; font-size: 17pt; line-height: 1.2; }
+.cert .c-who { margin-top: 1.4mm; font-size: 8pt; color: var(--c-grey); }
+.cert .c-who b { color: var(--c-navy); font-weight: 700; }
+.cert .c-mods { margin: 5mm auto 0; max-width: 220mm; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12mm; text-align: left; border-top: 0.3mm solid #d8dccb; }
+.cert .c-mods.c-dense .c-mod { padding: 1.4mm 0; }
+.cert .c-mod { display: grid; grid-template-columns: 10mm 1fr auto; align-items: center; gap: 2mm; padding: 2.3mm 0; border-bottom: 0.3mm solid #d8dccb; font-family: "Inter Variable", Inter, Arial, sans-serif; }
+.cert .c-mod .c-n { font-weight: 700; font-size: 12pt; color: var(--c-green-d); font-variant-numeric: tabular-nums; }
+.cert .c-mod .c-t { font-size: 9.4pt; font-weight: 500; letter-spacing: -0.005em; color: var(--c-navy); }
+.cert .c-mod .c-ok { font-size: 6pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-green-d); white-space: nowrap; }
+.cert .c-fit2 .c-facts { margin-top: 5mm; }
+
+@media print {
+  .cert { width: 297mm; height: 210mm; }
+}
