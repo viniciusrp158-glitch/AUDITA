@@ -1766,6 +1766,26 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   da Academy); entra na próxima publicação do `audita-web`.
 - **Não conferido:** login e uso das telas do PROSPECT em produção (só com a senha do Diretor); fica para o primeiro uso.
 
+### Correção da pesquisa em raio grande (17/11/2026, 15h)
+
+- **Falha relatada pelo Diretor** no primeiro uso: Indústria, "Até 150 km" → "Não foi possível pesquisar na base".
+  Registro da API: `57014 canceling statement due to statement timeout` (limite de 8 s do papel `authenticated`).
+- **Causa:** a região ia como lista literal de 181 municípios e, sob RLS, o banco não usa índice no `LIKE` (operador não
+  "leakproof"): lia a tabela inteira (1,7 GB), 9,8 s para buscar + 5,6 s para contar. Nos testes (50 km, cache quente)
+  não aparecia. No Estado inteiro o mesmo acontecia.
+- **Correção:** migração `20261117130000_p3_prospect_pesquisa` — função `audita.prospect_search` (SECURITY DEFINER,
+  `search_path` vazio, confere `audita.can_operate()` no início; sem acesso para `anon`), um ramo por prefixo de CNAE
+  (UNION) lido só no índice novo `cnpj_establishments_busca` (282 MB), região como subconsulta e total junto. O sistema
+  passa a chamar a função (`src/lib/prospect/queries.ts`). Commit `8a6d118`.
+- **Testes:** PGlite `prospect-p1` 8/8 (novo: filtros, raio, prefixos sobrepostos, entradas inválidas, permissão 42501),
+  unitários 17/17, `tsc` e `eslint` sem erros; ambiente de testes, `p1-prospect.spec.ts` **5/5** (novo: indústria em
+  150 km e no Estado inteiro, sem erro).
+- **Produção:** backup `*_2026-11-17_1512`; P3 aplicada (40 migrações registradas, 35 s com o índice); imagem
+  `audita-sistema:20261117-prospect2` (commit `8a6d118`, já com a tela de comunicados da S10) testada na porta 3299 e
+  trocada só no `audita-web`. Com o perfil do Diretor, só leitura: Estado inteiro (indústria) 1,9 s, indústria até
+  150 km 0,9 s (86.458 empresas), construção até 50 km 1,4 s (9.449). Endereços públicos normais.
+- **Para voltar:** `AUDITA_WEB_TAG=20261117-prospect` no `.env` e `docker compose up -d web` (a função e o índice podem ficar).
+
 ## S10 — Audita Academy: menu do aluno, Perfil, Histórico, Financeiro e Notificações (17/11/2026)
 
 - **Etapas 5 a 7** (ramo `feat/academy-etapa1-marca`, commits a48721c e 268ef3f): menu do aluno (iniciais, sino e
