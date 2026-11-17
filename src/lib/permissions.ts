@@ -39,6 +39,9 @@ export const NAV_ROLES: Record<string, Role[]> = {
   "/clientes": ["admin", "operador"],
   "/demandas": ["admin", "operador"],
   "/orcamentos": ["admin", "operador"],
+  // Itens próprios no menu por área (Frente A, A3): antes ficavam dentro de Demandas e do Início
+  "/demandas/servicos": ["admin"],
+  "/caixa": ["admin"],
   "/biblioteca": ["admin"],
   "/treinamentos": ["admin"],
   "/configuracoes": ["admin"],

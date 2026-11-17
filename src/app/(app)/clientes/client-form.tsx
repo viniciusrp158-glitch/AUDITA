@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
+import { Search } from "lucide-react";
 import { Alert, CheckboxField, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
 import { formatCep, formatCnae, formatPhone, formatTaxId, UFS } from "@/lib/br";
+import { lookupCnpj } from "@/lib/prospect/cnpj-lookup";
 import type { ActionState } from "./actions";
 
 export type ClientFormValues = Partial<
@@ -35,9 +37,33 @@ export function ClientForm({
   const e = state.fieldErrors ?? {};
   const [personType, setPersonType] = useState(v.person_type || "PJ");
   const hasNameDuplicates = (state.duplicates ?? []).length > 0 && !state.error;
+  // Frente A, A8: preencher pela base pública de CNPJ (o usuário confere antes de salvar)
+  const formRef = useRef<HTMLFormElement>(null);
+  const [lookup, setLookup] = useState<{ kind: "info" | "warning"; text: string } | null>(null);
+  const [looking, startLookup] = useTransition();
+  const fillFromCnpj = () => {
+    const form = formRef.current;
+    if (!form) return;
+    const cnpj = (form.elements.namedItem("tax_id") as HTMLInputElement | null)?.value ?? "";
+    startLookup(async () => {
+      const r = await lookupCnpj(cnpj);
+      if (!r.ok) return setLookup({ kind: "warning", text: r.message });
+      let filled = 0;
+      for (const [name, value] of Object.entries(r.values)) {
+        const el = form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
+        if (!el || !value || el.value === value) continue;
+        el.value = value;
+        filled++;
+      }
+      setLookup({
+        kind: "info",
+        text: `${filled} campo(s) preenchido(s) pela base pública da Receita (publicação ${r.publication}). Confira antes de salvar: o telefone e o e-mail do cadastro muitas vezes são do contador.`,
+      });
+    });
+  };
 
   return (
-    <form action={formAction} className="space-y-6" noValidate>
+    <form ref={formRef} action={formAction} className="space-y-6" noValidate>
       {state.error && <Alert kind="error">{state.error}</Alert>}
 
       {(state.duplicates ?? []).length > 0 && (
@@ -121,6 +147,19 @@ export function ClientForm({
             placeholder={personType === "PJ" ? "00.000.000/0000-00" : "000.000.000-00"}
           />
         </div>
+        {personType === "PJ" && (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={fillFromCnpj}
+              disabled={looking}
+              className="inline-flex items-center gap-2 rounded-md border border-navy/30 bg-white px-3 py-2 text-sm font-semibold text-navy hover:bg-surface disabled:opacity-60"
+            >
+              <Search size={16} aria-hidden /> {looking ? "Buscando…" : "Preencher pelo CNPJ"}
+            </button>
+            {lookup && <Alert kind={lookup.kind}>{lookup.text}</Alert>}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Ramo de atividade / segmento" name="segment" required={false} defaultValue={v.segment} error={e.segment} className="sm:col-span-2" />
           <Field label="CNAE principal" name="cnae" required={false} inputMode="numeric" defaultValue={v.cnae} error={e.cnae} placeholder="0000-0/00" />

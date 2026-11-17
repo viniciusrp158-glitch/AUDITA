@@ -20,7 +20,7 @@ export function ThemeToggle({ initial }: { initial: "claro" | "escuro" }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 border-t border-line px-5 py-3">
+    <div className="flex items-center justify-between gap-2 border-t border-line px-5 py-2">
       <span className={`flex items-center gap-1.5 text-xs ${dark ? "text-muted" : "font-semibold text-ink"}`}>
         <Sun size={15} aria-hidden /> Tema claro
       </span>

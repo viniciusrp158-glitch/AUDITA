@@ -10,6 +10,8 @@ import { todaySaoPaulo } from "@/lib/format";
 import { PRESETS, resolvePeriod, type PresetKey } from "@/lib/indicators/period";
 import { MONTH_PRESETS, TARGETS } from "@/lib/indicators/targets";
 import { getAlerts, getIndicators, getMonthlySeries } from "@/lib/indicators/queries";
+import { getMyDay } from "@/lib/indicators/meu-dia";
+import { MyDayPanel } from "@/components/my-day";
 import { formatBRL, formatPercent } from "@/lib/pricing/engine";
 import { QUOTE_STATUS, type QuoteStatus } from "@/lib/pricing/labels";
 import { monthlyCash } from "@/lib/execucao/cash";
@@ -103,11 +105,12 @@ export default async function InicioPage({
   // Dados de teste: fora por padrão em produção; no desenvolvimento (só há dados fictícios) entram por padrão, com aviso.
   const includeTest = sp.teste === "1" ? true : sp.teste === "0" ? false : !isProduction;
   const cashYear = Number(today.slice(0, 4));
-  const [ind, alerts, monthly, cashEntries] = await Promise.all([
+  const [ind, alerts, monthly, cashEntries, myDay] = await Promise.all([
     getIndicators(period.from, period.to, includeTest),
     getAlerts(today, includeTest),
     getMonthlySeries(period.to < today ? period.to : today, includeTest),
     listCashEntries(cashYear),
+    getMyDay(today, includeTest),
   ]);
   // RF-30: entradas e saídas efetivas do caixa (mês corrente e acumulado do exercício)
   const cash = monthlyCash(includeTest ? cashEntries : cashEntries.filter((e) => !e.is_test), cashYear);
@@ -137,7 +140,9 @@ export default async function InicioPage({
 
   return (
     <>
-      <PageHeader title={`Olá, ${primeiroNome}`} description="Indicadores calculados a partir dos registros do sistema (AUDDOC017 §14)." />
+      <PageHeader title={`Olá, ${primeiroNome}`} description="O que pede ação hoje e os indicadores calculados a partir dos registros do sistema (AUDDOC017 §14)." />
+
+      <MyDayPanel day={myDay} />
 
       <form className="mb-4 flex flex-wrap items-end gap-3" aria-label="Período dos indicadores">
         <label className="min-w-0 flex-1 basis-44 sm:flex-none">

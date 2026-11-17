@@ -35,7 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             "/demandas": `${waiting} demanda(s) aguardando o cliente há mais de 48 horas`,
           }}
         />
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-8">
+        <main className="min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-8 lg:py-8">
           <Suspense fallback={null}>
             <NoPermissionNotice />
           </Suspense>
