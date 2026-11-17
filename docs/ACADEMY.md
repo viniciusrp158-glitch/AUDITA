@@ -17,9 +17,9 @@ redirecionamento é o Nginx do site (`deploy/vps/site/nginx.conf`).
 | 2 | Página inicial da Academy, catálogo, página do curso, endereços curtos e item no site institucional | Feita no mesmo ramo. Aguarda aprovação |
 | 3 | Compra com indicador de etapas e retorno do pagamento | Feita no mesmo ramo. Aguarda aprovação |
 | 4 | Meus cursos com "Continuar de onde parei" e progresso; logo na sala de aula | Feita no mesmo ramo. Aguarda aprovação |
-| 5 | Menu do aluno, Meu Perfil, WhatsApp e Histórico de cursos | Depende do banco (abaixo) |
-| 6 | Financeiro e relatório anual | Depende do banco (abaixo) |
-| 7 | Notificações e comunicados da gestão | Depende do banco e de uma tela em `/empresa` |
+| 5 | Menu do aluno (iniciais, sino, barra inferior no celular), Meu Perfil, WhatsApp e Histórico de cursos | Feita (16/11/2026). Migração `20261116120000_a5_academy_aluno.sql` aplicada no desenvolvimento (VPS, `auditadev-db`); aguarda aprovação para a produção |
+| 6 | Financeiro, comprovante e relatório anual (imprimir ou salvar em PDF) | Feita (16/11/2026), mesma migração; aguarda aprovação |
+| 7 | Notificações (automáticas, aviso de prazo calculado na leitura) e comunicados em `/empresa/treinamentos/comunicados` | Feita (16/11/2026), mesma migração; envio por e-mail ainda não existe (decisão do Diretor) |
 
 Os dados de apresentação que não ficam no banco (capa e área de cada curso, WhatsApp) estão em `aluno/src/lib/academy.ts`.
 Curso sem capa usa `aluno/public/capas/padrao.webp`. Curso sem área cadastrada não mostra o selo de área.
@@ -34,7 +34,11 @@ Curso sem capa usa `aluno/public/capas/padrao.webp`. Curso sem área cadastrada 
 - Assunto do e-mail de convite: hoje é "Seu acesso aos treinamentos AUDITA". Para mudar, é preciso alterar
   `GOTRUE_MAILER_SUBJECTS_INVITE` e recriar o `audita-auth`, que também atende o login do sistema.
 
-## Mudanças de banco necessárias (etapas 5 a 7)
+## Mudanças de banco (etapas 5 a 7)
+
+Feitas na migração `20261116120000_a5_academy_aluno.sql` (teste `tests/integration/academy-a5.test.ts`). Na produção, aplicar **só esta migração**: a `20261114120000_p1_prospect.sql` é de outra frente e não foi liberada para a produção. Diferença em relação ao plano: o aviso de prazo é calculado na leitura (sem `pg_cron`).
+
+Plano original:
 
 Regras: migração nova em `supabase/migrations`, primeiro no desenvolvimento (`supabase-audita-dev`), com RLS e nada para
 `anon`, e trilha em `audit_log`.

@@ -66,6 +66,7 @@ export default async function NotificacoesPage() {
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white" data-testid="avisos">
           {avisos.map((a, i) => {
             const Icone = ICONES[a.kind] ?? BellRing;
+            // Sem pré-carregamento: abrir o aviso marca como lido, e isso só pode acontecer no toque
             const destino = a.id ? `/notificacoes/ler?id=${a.id}` : a.link;
             const conteudo = (
               <>
@@ -86,7 +87,7 @@ export default async function NotificacoesPage() {
             return (
               <li key={a.id ?? `prazo-${i}`}>
                 {destino ? (
-                  <Link href={destino} className="flex gap-4 px-4 py-4 hover:bg-surface sm:px-5">
+                  <Link href={destino} prefetch={false} className="flex gap-4 px-4 py-4 hover:bg-surface sm:px-5">
                     {conteudo}
                   </Link>
                 ) : (

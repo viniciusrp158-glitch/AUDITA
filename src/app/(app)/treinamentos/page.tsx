@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileArchive, GraduationCap, Plus, Search, ShoppingCart } from "lucide-react";
+import { FileArchive, GraduationCap, Megaphone, Plus, Search, ShoppingCart } from "lucide-react";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, CodeBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
@@ -26,6 +26,9 @@ export default async function TreinamentosPage({ searchParams }: { searchParams:
         <div className="flex flex-wrap gap-2">
           <ButtonLink href="/treinamentos/vendas" variant="secondary">
             <ShoppingCart size={16} /> Vendas
+          </ButtonLink>
+          <ButtonLink href="/treinamentos/comunicados" variant="secondary">
+            <Megaphone size={16} /> Comunicados
           </ButtonLink>
           <ButtonLink href="/treinamentos/importar" variant="secondary">
             <FileArchive size={16} /> Importar pacote (.zip)

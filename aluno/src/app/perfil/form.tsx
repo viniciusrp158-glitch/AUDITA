@@ -204,8 +204,8 @@ export function PerfilForm({ p }: { p: Perfil }) {
         <label className="flex items-start gap-3 text-[15px] text-ink">
           <input type="checkbox" name="avisos_email" defaultChecked={p.email_notices} className="mt-0.5 size-5 shrink-0 accent-green-dark" />
           <span>
-            Quero receber por e-mail os avisos da plataforma (resultado de avaliação, certificado e prazo de acesso).
-            <span className="block text-sm text-muted">Os avisos continuam aparecendo em Notificações.</span>
+            Aceito receber por e-mail os avisos da plataforma (resultado de avaliação, certificado e prazo de acesso), quando esse envio estiver disponível.
+            <span className="block text-sm text-muted">Por enquanto, os avisos aparecem em Notificações.</span>
           </span>
         </label>
       </Bloco>
