@@ -1900,3 +1900,20 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   conferido); imagem `audita-sistema:20261117-prospect4` pré-testada na 3299 e no ar (healthy, login 200).
   **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a2` + `docker compose up -d web` (o gatilho só muda etapas; para
   desligá-lo, `drop trigger leads_follow_quote on audita.quotes` com aprovação).
+
+## PROSPECT — resultados da prospecção (RP-13) (17/11/2026, 20h45)
+
+- **Pedido do Diretor:** "Sim, siga" (painel de resultados da prospecção, AUDDOC020 RP-13).
+- **Tela "Resultados"** (`/prospeccao/resultados`, nova aba da Prospecção; `src/lib/prospect/results.ts` e cálculo puro em
+  `results-calc.ts`): período 7/30/90 dias ou desde o início; indicadores — pesquisas feitas e empresas encontradas
+  (soma das pesquisas), leads no funil, qualificados, prioritários, contatos (WhatsApp/ligação/e-mail), respostas,
+  reuniões marcadas, propostas e clientes; conversão por etapa (dos leads que entraram no período, quantos chegaram a
+  cada etapa); tabelas por nicho e por canal. Mesmas definições das metas da semana do Painel.
+- **Exportação CSV** (`/prospeccao/resultados/exportar`): um lead por linha (empresa, CNPJ, município, nicho, etapa,
+  nota, faixa, entrada, contatos e respostas no período, último contato, se virou cliente).
+- Na produção os dados marcados como teste ficam de fora; consultas pela RLS e em páginas de 1000 linhas (limite da
+  API). **Sem mudança no banco.**
+- **Testes (ambiente de testes):** unidade `prospect-resultados` **4/4** (indicadores, conversão, nicho, canal, período);
+  e2e `p5-resultados` **2/2** (períodos, tabelas, CSV, celular sem rolagem lateral — corrigida a grade que esticava).
+- **Produção:** cópia `*_2026-11-17_2044`; imagem `audita-sistema:20261117-prospect5` pré-testada na 3299 e no ar
+  (healthy, login 200). **Reversão:** `AUDITA_WEB_TAG=20261117-prospect4` + `docker compose up -d web`.
