@@ -1730,8 +1730,12 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   serviços liberados, nicho de entrada, situação, observações; inativação lógica).
 - **IOC** (`src/lib/prospect/ioc.ts`, v1): quantidade 30 (log), concentração 20, distância 10, normalizado para 0–100.
   Com os três nichos de entrada até 60 km: Sorocaba 87, Salto 80, Indaiatuba 78, Cotia 78…
-- **Anomalia a investigar:** no ambiente de testes, `deploy/servidor/dev/apply.sh` registrou a migração P2 sem criar a
-  função (aplicada depois manualmente). Antes de publicar, conferir o script de migrações da produção e a função criada.
+- **Anomalia esclarecida (17/11/2026):** no ambiente de testes a P2 foi "registrada" sem criar a função porque a
+  migração `20261116120000_a5_academy_aluno` (sessão da Academy, ramo `feat/academy-etapa1-marca`) usa **a mesma
+  versão** e já estava registrada; o aplicador pula versões existentes. O script estava certo (teste com migração
+  fictícia `29990101000000_teste_apply`, depois removida). Correção: a P2 passou a `20261117120000_p2_prospect_regioes`
+  (commit `bbdaf7a`), registrada também no ambiente de testes. Regra prática: antes de criar uma migração, conferir as
+  versões dos outros ramos e do registro da produção.
 
 ### Evidência (16/11/2026)
 
@@ -1740,6 +1744,27 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - Ambiente de testes com a base real, `tests/e2e/p1-prospect.spec.ts`: **4/4** (fluxo completo; Regiões com Sorocaba na
   lista e atalho para a pesquisa; edição de nicho com recálculo; celular sem rolagem horizontal, incluindo Regiões).
 - `tsc`, `eslint` e `next build` sem erros. Nada publicado em produção.
+
+### Publicação em produção (17/11/2026, 03h54–04h20, com o "Sim, publique" do Diretor)
+
+- **Backup antes:** `audita-sistema-backup` → `~/backups/audita-sistema/*_2026-11-17_0354` (banco, Storage e configurações).
+- **Migrações:** `20261114120000_p1_prospect` e `20261117120000_p2_prospect_regioes` pelo `apply-migrations.sh`
+  (**39 registradas**); conferidas as funções `is_suppressed`, `prospect_region_counts` e `refresh_prospect_region_stats`,
+  RLS ligada nas tabelas novas e os 6 nichos.
+- **Base de CNPJ:** `carregar-base.sh 2026-10 audita-db` → **3.853.320** empresas-alvo, publicação `2026-10` vigente,
+  tabela de 1,7 GB ordenada por município e CNAE; resumo de regiões com 3.440 linhas. Construção até 50 km: 9.449
+  empresas em 0,3 s (igual à Fase 0). O PRO continuou respondendo durante a carga.
+- **Sistema:** imagem `audita-sistema:20261117-prospect` (commit `bbdaf7a`, 401 MB), testada antes na porta 3299, e
+  trocada só no `audita-web` (área do aluno e site sem mudança). Endereços públicos: `/empresa/login`, `/treinamentos/entrar`
+  e `/` com 200, `/empresa/prospeccao` pedindo login, PRO e HUB abrindo; nenhum erro no registro.
+- **Para voltar o sistema:** em `~/audita/audita-sistema`, trocar `AUDITA_WEB_TAG` no `.env` para `20261028-sem-comunicacao`
+  e `docker compose up -d web` (não copiar o `.env.bak-20261117-prospect` inteiro: a sessão da Academy trocou o
+  `audita-aluno` no mesmo dia). As tabelas novas podem ficar: nada antigo depende delas.
+- **Atenção:** o backup diário passa a levar a base de CNPJ (~300 MB a mais por dia comprimido, ~4 GB nos 14 dias; 49 GB
+  livres no disco).
+- **Fora desta imagem:** a tela `/empresa/treinamentos/comunicados` da S10 (a imagem saiu do `develop` antes da junção
+  da Academy); entra na próxima publicação do `audita-web`.
+- **Não conferido:** login e uso das telas do PROSPECT em produção (só com a senha do Diretor); fica para o primeiro uso.
 
 ## S10 — Audita Academy: menu do aluno, Perfil, Histórico, Financeiro e Notificações (17/11/2026)
 
