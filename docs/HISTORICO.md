@@ -1355,3 +1355,20 @@ Testes só locais (PGlite e unidade), nunca contra a produção (regra 7).
   novo; `audita.seg.br` pelo Cloudflare com `/caixa-de-testes/` 404 e HSTS). Vendas reabertas; backups rodados na VPS
   nova (60 MB e 7,9 MB); crons instalados; crons e containers do Audita parados na VPS 1 (reserva até 02/11/2026).
 - A equipe do AUDITA precisa entrar de novo uma vez (cookie `audita-equipe` HttpOnly).
+
+## Novo modelo de certificado do curso livre — "Moldura clássica" (17/11/2026)
+
+- Modelo aprovado pelo Diretor em 17/11/2026, depois de 5 opções e ajustes (selo AUDITA | SSMA & SGI sem fitas, cantos
+  sem losango, módulos em Inter). Arquivos de aprovação e versão editável em `certificado-academy/` (pasta do projeto).
+- Área do aluno (`aluno/src/app/curso/[matricula]/certificado/`): o certificado passa a ter **duas páginas** — certificado
+  e conteúdo programático (módulos do curso com "Concluído"). Mesmos dados congelados em `training_certificates`; nenhuma
+  migração.
+- Novidades no documento: logo AUDITA Academy, nome do aluno em Playfair Display itálico (encolhe sozinho quando é longo),
+  **CPF mascarado** (`***.456.789-**`, lido do próprio cadastro do aluno via RLS `training_students_self_select`; sem CPF a
+  linha some), selo AUDITA | SSMA & SGI e **assinatura digitalizada do Diretor**, exibida só quando o instrutor do curso é
+  "Vinicius Rocha Pereira" (para outro instrutor fica só a linha).
+- Fontes e imagens servidas pelo próprio site (`aluno/public/brand/fonts` e `aluno/public/brand/certificado`), sem
+  depender de serviço externo na impressão.
+- Testes: `tests/unit/certificado-cpf.test.ts` (máscara do CPF); e2e `t2b-curso-do-aluno.spec.ts` ajustado ao novo texto
+  da nota e à página 2. Conferência visual local (desktop, celular 390 px sem rolagem lateral, PDF A4 deitado com 2 páginas,
+  nome de 60 caracteres e instrutor sem assinatura).
