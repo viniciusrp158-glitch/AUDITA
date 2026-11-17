@@ -54,6 +54,6 @@ export async function globalSearch(raw: string): Promise<SearchHit[]> {
   for (const d of (docs.data ?? []) as { id: string; doc_code: string; title: string }[])
     out.push({ group: "Biblioteca", href: `/biblioteca/${d.id}`, title: d.doc_code, detail: d.title });
   for (const c of (courses.data ?? []) as { id: string; course_code: string; title: string }[])
-    out.push({ group: "Treinamentos", href: `/treinamentos/${c.id}`, title: c.title, detail: c.course_code });
+    out.push({ group: "Audita Academy", href: `/treinamentos/${c.id}`, title: c.title, detail: c.course_code });
   return out;
 }

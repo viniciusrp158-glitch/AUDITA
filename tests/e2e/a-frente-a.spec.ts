@@ -26,7 +26,7 @@ test("menu por área e Meu dia no Início (administrador)", async ({ page }) => 
   await login(page, ADMIN);
   const menu = page.getByRole("complementary", { name: "Menu principal" });
   for (const area of ["Comercial", "Operação", "Gestão"]) await expect(menu.getByText(area, { exact: true })).toBeVisible();
-  for (const item of ["Início", "Prospecção", "Clientes", "Demandas", "Orçamentos", "Serviços em execução", "Treinamentos", "Caixa", "Biblioteca", "Configurações"])
+  for (const item of ["Início", "Prospecção", "Clientes", "Demandas", "Orçamentos", "Serviços em execução", "Audita Academy", "Caixa", "Biblioteca", "Configurações"])
     await expect(menu.getByRole("link", { name: item, exact: true })).toBeVisible();
   // Notebook comum (1366×768): o menu inteiro cabe na tela, sem rolar (antes, Gestão ficava escondida)
   await page.setViewportSize({ width: 1366, height: 768 });

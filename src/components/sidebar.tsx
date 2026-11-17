@@ -46,7 +46,7 @@ export const NAV_GROUPS: { title: string | null; items: Item[] }[] = [
     title: "Operação",
     items: [
       { href: "/demandas/servicos", label: "Serviços em execução", icon: Wrench, short: "Serviços" },
-      { href: "/treinamentos", label: "Treinamentos", icon: GraduationCap },
+      { href: "/treinamentos", label: "Audita Academy", icon: GraduationCap },
     ],
   },
   {

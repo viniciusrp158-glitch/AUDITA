@@ -42,7 +42,7 @@ test("administrador entra, navega, vê a trilha e sai", async ({ page }) => {
 
   const menu = page.getByRole("complementary", { name: "Menu principal" });
   // Menu por área (Frente A, 17/11/2026); a Comunicação saiu em 28/10/2026
-  for (const item of ["Início", "Prospecção", "Clientes", "Demandas", "Orçamentos", "Serviços em execução", "Treinamentos", "Caixa", "Biblioteca", "Configurações"]) {
+  for (const item of ["Início", "Prospecção", "Clientes", "Demandas", "Orçamentos", "Serviços em execução", "Audita Academy", "Caixa", "Biblioteca", "Configurações"]) {
     await expect(menu.getByRole("link", { name: item })).toBeVisible();
   }
   await page.screenshot({ path: `${SHOTS}/03-inicio.png`, fullPage: true });

@@ -8,7 +8,7 @@ import { formatBRL } from "@/lib/pricing/engine";
 import { formatMinutes, VERSION_STATUS } from "@/lib/training/labels";
 import { listCourses } from "@/lib/training/queries";
 
-export const metadata = { title: "Treinamentos" };
+export const metadata = { title: "Audita Academy" };
 
 export default async function TreinamentosPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requireAppUser(ADMIN_ONLY);
@@ -20,7 +20,7 @@ export default async function TreinamentosPage({ searchParams }: { searchParams:
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader
-          title="Treinamentos"
+          title="Audita Academy"
           description="Cursos EAD da AUDITA: ficha técnica, módulos (Apostila → Videoaula → Avaliação) e materiais do aluno e da equipe, com versões preservadas."
         />
         <div className="flex flex-wrap gap-2">
