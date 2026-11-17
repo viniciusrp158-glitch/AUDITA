@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Inbox, Link2, Plus, Search } from "lucide-react";
+import { ExportLink } from "@/components/board";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, CodeBadge, StatusBadge, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
@@ -35,6 +36,7 @@ export default async function ClientesPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader title="Clientes" description="Cadastro mestre de empresas, unidades e contatos. O código CLI é permanente." />
         <div className="flex flex-wrap gap-2">
+          <ExportLink href={`/clientes/exportar?${new URLSearchParams({ ...(q && { q }), situacao })}`} />
           {isAdmin && (
           <>
           <ButtonLink href="/clientes/solicitacoes" variant="secondary">
@@ -89,7 +91,33 @@ export default async function ClientesPage({
           Não foi possível carregar os clientes.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-line bg-white">
+        <>
+        <ul className="space-y-2 md:hidden" aria-label="Clientes">
+          {rows.map((c) => (
+            <li key={c.id}>
+              <Link href={`/clientes/${c.id}`} className="block rounded-xl border border-line bg-white p-3 active:bg-surface">
+                <span className="flex items-center justify-between gap-2">
+                  <CodeBadge code={c.client_code} />
+                  <span className="flex items-center gap-1.5">
+                    <StatusBadge status={c.status} />
+                    {c.is_test && <TestBadge />}
+                  </span>
+                </span>
+                <span className="mt-1 block text-sm font-medium text-ink">{c.legal_name}</span>
+                {c.trade_name && <span className="block text-xs text-muted">{c.trade_name}</span>}
+                <span className="mt-1 block text-xs tabular-nums text-muted">
+                  {[formatTaxId(c.tax_id), c.address_city && `${c.address_city}${c.address_state ? `/${c.address_state}` : ""}`].filter(Boolean).join(" · ") || "—"}
+                </span>
+              </Link>
+            </li>
+          ))}
+          {rows.length === 0 && (
+            <li className="rounded-xl border border-line bg-white px-4 py-10 text-center text-sm text-muted">
+              {q ? "Nenhum cliente encontrado para esta pesquisa." : "Nenhum cliente cadastrado ainda."}
+            </li>
+          )}
+        </ul>
+        <div className="hidden overflow-x-auto rounded-xl border border-line bg-white md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-navy text-xs uppercase tracking-wide text-white">
               <tr>
@@ -138,6 +166,7 @@ export default async function ClientesPage({
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <nav className="mt-4 flex items-center justify-between text-sm text-muted" aria-label="Paginação">

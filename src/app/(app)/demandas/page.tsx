@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge, WaitingBadge } from "@/components/demand-status";
+import { BOARD_CARD, Board, ExportLink, ViewToggle } from "@/components/board";
 import { PageHeader } from "@/components/page";
 import { ButtonLink, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
 import { OPERATE } from "@/lib/permissions";
-import { DEMAND_STATUS, DEMAND_STATUS_KEYS, WAITING_LIMIT_HOURS, waitingHours } from "@/lib/demands/labels";
+import { CLOSED_STATUSES, DEMAND_STATUS, DEMAND_STATUS_KEYS, OPEN_STATUSES, WAITING_LIMIT_HOURS, waitingHours, type DemandStatus } from "@/lib/demands/labels";
 import { countWaitingTooLong, listDemands, PAGE_SIZE } from "@/lib/demands/queries";
 import { formatDay, todaySaoPaulo } from "@/lib/format";
 import { DemandTabs } from "./servicos/shared";
 
 export const metadata = { title: "Demandas" };
+
+/** Quantas demandas o quadro carrega de uma vez (o restante, pela pesquisa ou pela lista). */
+const BOARD_LIMIT = 500;
 
 const GRUPOS = [
   { value: "abertas", label: "Em aberto" },
@@ -21,7 +25,7 @@ const GRUPOS = [
 export default async function DemandasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; grupo?: string; situacao?: string; p?: string; alerta?: string }>;
+  searchParams: Promise<{ q?: string; grupo?: string; situacao?: string; p?: string; alerta?: string; visao?: string }>;
 }) {
   const user = await requireAppUser(OPERATE);
   const sp = await searchParams;
@@ -30,19 +34,31 @@ export default async function DemandasPage({
   const situacao = (DEMAND_STATUS_KEYS as string[]).includes(sp.situacao ?? "") ? sp.situacao! : "";
   const page = Math.max(1, Number(sp.p) || 1);
   const waiting = sp.alerta === "aguardando";
-  const [{ rows, total, error }, waitingCount] = await Promise.all([listDemands({ q, grupo, situacao, page, waiting }), countWaitingTooLong()]);
+  const board = sp.visao === "quadro";
+  const [{ rows, total, error }, waitingCount] = await Promise.all([
+    listDemands({ q, grupo, situacao, page: board ? 1 : page, waiting, size: board ? BOARD_LIMIT : PAGE_SIZE }),
+    countWaitingTooLong(),
+  ]);
   const now = Date.now();
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const today = todaySaoPaulo();
-  const qs = (p: number) => `?${new URLSearchParams({ ...(q && { q }), grupo, ...(situacao && { situacao }), ...(waiting && { alerta: "aguardando" }), p: String(p) })}`;
+  const filters = { ...(q && { q }), grupo, ...(situacao && { situacao }), ...(waiting && { alerta: "aguardando" }) };
+  const qs = (p: number) => `?${new URLSearchParams({ ...filters, p: String(p) })}`;
+  const listHref = `?${new URLSearchParams(filters)}`;
+  const boardHref = `?${new URLSearchParams({ ...filters, visao: "quadro" })}`;
+  // Colunas do quadro: as situações do grupo escolhido (ou só a situação filtrada)
+  const columnKeys = situacao ? [situacao as DemandStatus] : waiting ? (["aguardando_cliente"] as DemandStatus[]) : grupo === "abertas" ? OPEN_STATUSES : grupo === "encerradas" ? CLOSED_STATUSES : DEMAND_STATUS_KEYS;
 
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader title="Demandas" description="Registro Único de Atendimento (AUDDOC009): solicitações, análise, acompanhamento e encerramento." />
-        <ButtonLink href="/demandas/nova">
-          <Plus size={16} /> Nova demanda
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ExportLink href={`/demandas/exportar${listHref}`} />
+          <ButtonLink href="/demandas/nova">
+            <Plus size={16} /> Nova demanda
+          </ButtonLink>
+        </div>
       </div>
       <DemandTabs active="demandas" showServices={user.role === "admin"} />
 
@@ -68,7 +84,7 @@ export default async function DemandasPage({
         {GRUPOS.map((g) => (
           <Link
             key={g.value}
-            href={`?${new URLSearchParams({ ...(q && { q }), grupo: g.value })}`}
+            href={`?${new URLSearchParams({ ...(q && { q }), grupo: g.value, ...(board && { visao: "quadro" }) })}`}
             aria-current={g.value === grupo && !situacao ? "page" : undefined}
             className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm ${g.value === grupo && !situacao ? "border-green font-semibold text-navy" : "border-transparent text-muted hover:text-navy"}`}
           >
@@ -79,6 +95,7 @@ export default async function DemandasPage({
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">
         <input type="hidden" name="grupo" value={grupo} />
+        {board && <input type="hidden" name="visao" value="quadro" />}
         <label className="min-w-0 flex-1 basis-64">
           <span className="sr-only">Pesquisar</span>
           <span className="relative block">
@@ -105,12 +122,47 @@ export default async function DemandasPage({
         <button type="submit" className="rounded-md border border-line bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-navy/40">
           Filtrar
         </button>
+        <span className="ml-auto">
+          <ViewToggle board={board} listHref={listHref} boardHref={boardHref} />
+        </span>
       </form>
 
       {error ? (
         <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
           Não foi possível carregar as demandas.
         </p>
+      ) : board ? (
+        <>
+          <Board
+            columns={columnKeys.map((k) => ({
+              key: k,
+              label: DEMAND_STATUS[k].label,
+              items: rows
+                .filter((d) => d.status === k)
+                .map((d) => ({
+                  id: d.id,
+                  node: (
+                    <Link href={`/demandas/${d.id}`} className={BOARD_CARD}>
+                      <span className="font-mono text-xs font-semibold text-navy">{d.demand_code}</span>
+                      <span className="mt-0.5 block text-sm font-semibold leading-snug text-ink">{d.summary}</span>
+                      <span className="mt-1 block text-xs text-muted">{d.clients?.trade_name || d.clients?.legal_name}</span>
+                      <span className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted">
+                        {d.due_on ? `Prazo ${formatDay(d.due_on)}` : `Recebida ${formatDay(d.received_on)}`}
+                        {isOverdue(d, today) && <OverdueBadge />}
+                        {waitingHours(d, now) !== null && <WaitingBadge hours={waitingHours(d, now)!} />}
+                        {d.is_test && <TestBadge />}
+                      </span>
+                    </Link>
+                  ),
+                })),
+            }))}
+          />
+          {total > rows.length && (
+            <p className="mt-2 text-xs text-muted">
+              Mostrando {rows.length} de {total} demandas. Use a pesquisa ou a lista para ver as demais.
+            </p>
+          )}
+        </>
       ) : (
         <>
           <div className="hidden overflow-hidden rounded-xl border border-line bg-white md:block">

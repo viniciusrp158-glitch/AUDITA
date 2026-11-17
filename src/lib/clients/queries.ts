@@ -83,10 +83,12 @@ export async function listClients({
   q,
   situacao,
   page,
+  size = PAGE_SIZE,
 }: {
   q?: string;
   situacao?: string;
   page: number;
+  size?: number;
 }): Promise<{ rows: ClientListRow[]; total: number; error: boolean }> {
   const supabase = await createClient();
   let query = supabase
@@ -95,7 +97,7 @@ export async function listClients({
       count: "exact",
     })
     .order("legal_name", { ascending: true })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * size, page * size - 1);
 
   if (situacao === "inativos") query = query.eq("status", "inativo");
   else if (situacao !== "todos") query = query.eq("status", "ativo");
