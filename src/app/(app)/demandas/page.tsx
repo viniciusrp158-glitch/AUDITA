@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { SavedFilters } from "@/components/saved-filters";
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { DemandStatusPill, isOverdue, OverdueBadge, RecurringBadge, WaitingBadge } from "@/components/demand-status";
@@ -126,6 +128,9 @@ export default async function DemandasPage({
           <ViewToggle board={board} listHref={listHref} boardHref={boardHref} />
         </span>
       </form>
+      <Suspense>
+        <SavedFilters listKey="demandas" />
+      </Suspense>
 
       {error ? (
         <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">

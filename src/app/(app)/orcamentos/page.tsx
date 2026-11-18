@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { SavedFilters } from "@/components/saved-filters";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { BOARD_CARD, Board, ExportLink, ViewToggle } from "@/components/board";
@@ -73,6 +75,9 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
           <ViewToggle board={board} listHref={listHref} boardHref={boardHref} />
         </span>
       </form>
+      <Suspense>
+        <SavedFilters listKey="orcamentos" />
+      </Suspense>
 
       {error ? (
         <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">

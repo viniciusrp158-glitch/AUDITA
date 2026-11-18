@@ -28,6 +28,7 @@ export default async function NovaDemandaPage({ searchParams }: { searchParams: 
           submitLabel="Registrar demanda"
           cancelHref={preselected ? `/clientes/${preselected}?aba=relacionamento` : "/demandas"}
           isDev={!isProduction}
+          draftKey={preselected ? `demanda-nova-${preselected}` : "demanda-nova"}
         />
       </div>
     </>

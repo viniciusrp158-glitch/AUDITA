@@ -1,6 +1,17 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { applyMask, type MaskKind } from "@/lib/mask";
+
+/** Formata o campo enquanto a pessoa digita (só quando o cursor está no fim, para não atrapalhar a correção no meio). */
+export function maskOnInput(kind: MaskKind) {
+  return (e: React.FormEvent<HTMLInputElement>) => {
+    const el = e.currentTarget;
+    if (el.selectionStart !== el.value.length) return;
+    const v = applyMask(kind, el.value);
+    if (v !== el.value) el.value = v;
+  };
+}
 
 const inputCls =
   "w-full rounded-md border bg-white px-3 py-2 text-sm text-ink shadow-xs outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/15 disabled:bg-surface disabled:text-muted";
@@ -56,7 +67,10 @@ export function Field({
   inputMode,
   maxLength,
   className,
+  mask,
 }: BaseProps & {
+  /** Máscara de digitação (CNPJ, CPF, telefone, CEP, CNAE). */
+  mask?: MaskKind;
   type?: string;
   autoComplete?: string;
   defaultValue?: string | null;
@@ -72,10 +86,11 @@ export function Field({
         type={type}
         autoComplete={autoComplete}
         required={required}
-        defaultValue={defaultValue ?? undefined}
+        defaultValue={mask && defaultValue ? applyMask(mask, defaultValue) : (defaultValue ?? undefined)}
         placeholder={placeholder}
         inputMode={inputMode}
         maxLength={maxLength}
+        onInput={mask ? maskOnInput(mask) : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
         className={`${inputCls} ${error ? "border-danger" : "border-line"}`}

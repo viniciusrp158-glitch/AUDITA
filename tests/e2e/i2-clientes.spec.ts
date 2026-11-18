@@ -120,7 +120,7 @@ test("FL-01: cadastro completo de cliente com unidade, contato, histórico e ina
 
   // Inativo não aparece no filtro padrão
   await page.goto(`/clientes?q=${code}`);
-  await expect(page.getByText("Nenhum cliente encontrado")).toBeVisible();
+  await expect(page.locator("table").getByText("Nenhum cliente encontrado")).toBeVisible();
   await page.goto(`/clientes?q=${code}&situacao=inativos`);
   await expect(page.getByRole("link", { name: nome })).toBeVisible();
 });

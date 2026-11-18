@@ -56,7 +56,7 @@ test("autocadastro por link individual com aprovação", async ({ page, browser 
   // Os dados digitados permanecem após o erro (inclusive listas de seleção)
   await expect(c.locator('select[name="address_state"]')).toHaveValue("SP");
   await expect(c.locator('input[name="units.0.name"]')).toHaveValue("Filial Votorantim");
-  await expect(c.locator('input[name="tax_id"]')).toHaveValue(cnpj);
+  await expect(c.locator('input[name="tax_id"]')).toHaveValue(cnpj.replace(new RegExp("^(..)(...)(...)(....)(..)$"), "$1.$2.$3/$4-$5")); // com a máscara (A9)
 
   // Termo recolhido, expansível
   await expect(c.getByText("O envio deste formulário não constitui contratação")).toBeHidden();

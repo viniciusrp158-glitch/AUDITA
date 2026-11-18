@@ -35,10 +35,10 @@ export function UnitForm({ action, unit, cancelHref }: { action: Action; unit?: 
       {state.error && <Alert kind="error">{state.error}</Alert>}
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Nome da unidade" name="name" defaultValue={v.name} error={e.name} className="sm:col-span-2" placeholder="Ex.: Matriz, Filial Votorantim" />
-        <Field label="CNPJ da unidade" name="tax_id" required={false} inputMode="numeric" defaultValue={v.tax_id} error={e.tax_id} />
+        <Field label="CNPJ da unidade" name="tax_id" mask="cnpj" required={false} inputMode="numeric" defaultValue={v.tax_id} error={e.tax_id} />
       </div>
       <div className="grid gap-4 sm:grid-cols-6">
-        <Field label="CEP" name="address_zip" required={false} inputMode="numeric" defaultValue={v.address_zip} error={e.address_zip} className="sm:col-span-2" />
+        <Field label="CEP" name="address_zip" mask="cep" required={false} inputMode="numeric" defaultValue={v.address_zip} error={e.address_zip} className="sm:col-span-2" />
         <Field label="Logradouro" name="address_street" required={false} defaultValue={v.address_street} error={e.address_street} className="sm:col-span-4" />
         <Field label="Número" name="address_number" required={false} defaultValue={v.address_number} error={e.address_number} />
         <Field label="Complemento" name="address_complement" required={false} defaultValue={v.address_complement} error={e.address_complement} className="sm:col-span-2" />
@@ -96,7 +96,7 @@ export function ContactForm({
         <Field label="Nome" name="full_name" defaultValue={v.full_name} error={e.full_name} />
         <Field label="Cargo / função" name="role_title" required={false} defaultValue={v.role_title} error={e.role_title} />
         <Field label="E-mail" name="email" type="email" required={false} defaultValue={v.email} error={e.email} />
-        <Field label="Telefone" name="phone" required={false} inputMode="tel" defaultValue={v.phone} error={e.phone} />
+        <Field label="Telefone" name="phone" mask="phone" required={false} inputMode="tel" defaultValue={v.phone} error={e.phone} />
         <SelectField label="Vínculo" name="unit_id" options={unitOptions} defaultValue={v.unit_id} error={e.unit_id} />
         <Field label="Finalidade do contato" name="purpose" required={false} defaultValue={v.purpose} error={e.purpose} hint="Ex.: comercial, financeiro, técnico (LGPD: só o necessário)." />
       </div>

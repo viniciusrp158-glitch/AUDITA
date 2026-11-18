@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { Alert, CheckboxField, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
 import { formatCep, formatCnae, formatPhone, formatTaxId, UFS } from "@/lib/br";
 import { lookupCnpj } from "@/lib/prospect/cnpj-lookup";
+import { FormDraft, useFocusFirstError } from "@/components/form-draft";
 import type { ActionState } from "./actions";
 
 export type ClientFormValues = Partial<
@@ -26,6 +27,7 @@ export function ClientForm({
   cancelHref,
   isDev,
   hidden,
+  draftKey,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   initial?: ClientFormValues;
@@ -34,6 +36,8 @@ export function ClientForm({
   isDev: boolean;
   /** Campos ocultos extras (ex.: lead da prospecção que está sendo convertido). */
   hidden?: Record<string, string>;
+  /** Rascunho automático neste aparelho (só no cadastro novo). */
+  draftKey?: string;
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(action, {});
   const v = { ...formatInitial(initial), ...(state.values ?? {}) };
@@ -42,6 +46,7 @@ export function ClientForm({
   const hasNameDuplicates = (state.duplicates ?? []).length > 0 && !state.error;
   // Frente A, A8: preencher pela base pública de CNPJ (o usuário confere antes de salvar)
   const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, state);
   const [lookup, setLookup] = useState<{ kind: "info" | "warning"; text: string } | null>(null);
   const [looking, startLookup] = useTransition();
   const fillFromCnpj = () => {
@@ -67,6 +72,7 @@ export function ClientForm({
 
   return (
     <form ref={formRef} action={formAction} className="space-y-6" noValidate>
+      {draftKey && <FormDraft formRef={formRef} storageKey={draftKey} />}
       {Object.entries(hidden ?? {}).map(([k, val]) => (
         <input key={k} type="hidden" name={k} value={val} />
       ))}
@@ -146,6 +152,7 @@ export function ClientForm({
             label={personType === "PJ" ? "CNPJ" : "CPF"}
             name="tax_id"
             required={false}
+            mask={personType === "PJ" ? "cnpj" : "cpf"}
             inputMode="numeric"
             defaultValue={v.tax_id}
             error={e.tax_id}
@@ -168,7 +175,7 @@ export function ClientForm({
         )}
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Ramo de atividade / segmento" name="segment" required={false} defaultValue={v.segment} error={e.segment} className="sm:col-span-2" />
-          <Field label="CNAE principal" name="cnae" required={false} inputMode="numeric" defaultValue={v.cnae} error={e.cnae} placeholder="0000-0/00" />
+          <Field label="CNAE principal" name="cnae" mask="cnae" required={false} inputMode="numeric" defaultValue={v.cnae} error={e.cnae} placeholder="0000-0/00" />
         </div>
       </fieldset>
 
@@ -176,14 +183,14 @@ export function ClientForm({
         <legend className="mb-2 text-sm font-semibold text-navy">Contato geral</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="E-mail" name="email" type="email" required={false} defaultValue={v.email} error={e.email} />
-          <Field label="Telefone" name="phone" required={false} inputMode="tel" defaultValue={v.phone} error={e.phone} placeholder="(15) 3333-4444" />
+          <Field label="Telefone" name="phone" mask="phone" required={false} inputMode="tel" defaultValue={v.phone} error={e.phone} placeholder="(15) 3333-4444" />
         </div>
       </fieldset>
 
       <fieldset className="space-y-4">
         <legend className="mb-2 text-sm font-semibold text-navy">Endereço da sede</legend>
         <div className="grid gap-4 sm:grid-cols-6">
-          <Field label="CEP" name="address_zip" required={false} inputMode="numeric" defaultValue={v.address_zip} error={e.address_zip} className="sm:col-span-2" placeholder="00000-000" />
+          <Field label="CEP" name="address_zip" mask="cep" required={false} inputMode="numeric" defaultValue={v.address_zip} error={e.address_zip} className="sm:col-span-2" placeholder="00000-000" />
           <Field label="Logradouro" name="address_street" required={false} defaultValue={v.address_street} error={e.address_street} className="sm:col-span-4" />
           <Field label="Número" name="address_number" required={false} defaultValue={v.address_number} error={e.address_number} />
           <Field label="Complemento" name="address_complement" required={false} defaultValue={v.address_complement} error={e.address_complement} className="sm:col-span-2" />

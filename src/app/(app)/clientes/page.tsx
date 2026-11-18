@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { SavedFilters } from "@/components/saved-filters";
 import Link from "next/link";
 import { Inbox, Link2, Plus, Search } from "lucide-react";
 import { ExportLink } from "@/components/board";
@@ -85,6 +87,9 @@ export default async function ClientesPage({
           Filtrar
         </button>
       </form>
+      <Suspense>
+        <SavedFilters listKey="clientes" />
+      </Suspense>
 
       {error ? (
         <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">

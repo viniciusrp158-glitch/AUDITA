@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Alert, SubmitButton } from "@/components/form";
+import { Alert, maskOnInput, SubmitButton } from "@/components/form";
+import { applyMask } from "@/lib/mask";
 import { ACTIVITY_KINDS, OUTCOMES, renderTemplate, STAGES, TEMPLATES, whatsappLink } from "@/lib/prospect/labels";
 import { linkLeadToClientAction, moveStageAction, registerActivityAction, suppressAction, updateContactAction, type ProspectState } from "../../actions";
 
@@ -213,12 +214,12 @@ export function ConfirmedContactForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <label className={label}>
           WhatsApp confirmado
-          <input name="whatsapp_confirmed" defaultValue={values.whatsapp_confirmed} inputMode="tel" placeholder="DDD + número" className={`mt-1 ${input}`} />
+          <input name="whatsapp_confirmed" defaultValue={applyMask("phone", values.whatsapp_confirmed)} onInput={maskOnInput("phone")} inputMode="tel" placeholder="DDD + número" className={`mt-1 ${input}`} />
           {err(state, "whatsapp_confirmed")}
         </label>
         <label className={label}>
           Telefone confirmado
-          <input name="phone_confirmed" defaultValue={values.phone_confirmed} inputMode="tel" placeholder="DDD + número" className={`mt-1 ${input}`} />
+          <input name="phone_confirmed" defaultValue={applyMask("phone", values.phone_confirmed)} onInput={maskOnInput("phone")} inputMode="tel" placeholder="DDD + número" className={`mt-1 ${input}`} />
           {err(state, "phone_confirmed")}
         </label>
       </div>

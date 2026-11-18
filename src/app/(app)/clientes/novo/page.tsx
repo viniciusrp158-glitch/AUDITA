@@ -53,6 +53,7 @@ export default async function NovoClientePage({ searchParams }: { searchParams: 
               isDev={!isProduction}
               initial={draft?.initial}
               hidden={draft ? { lead_id: draft.lead.id } : undefined}
+              draftKey={draft ? `cliente-lead-${draft.lead.id}` : "cliente-novo"}
             />
           </div>
         </>

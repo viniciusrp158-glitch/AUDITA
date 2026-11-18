@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { SavedFilters } from "@/components/saved-filters";
 import Link from "next/link";
 import { PageHeader } from "@/components/page";
 import { Alert } from "@/components/form";
@@ -48,6 +50,9 @@ export default async function FunilPage({ searchParams }: { searchParams: Promis
           Filtrar
         </button>
       </form>
+      <Suspense>
+        <SavedFilters listKey="funil" />
+      </Suspense>
       {error && <Alert kind="error">{error}</Alert>}
 
       <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-8 sm:px-8">
