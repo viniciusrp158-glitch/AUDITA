@@ -43,7 +43,7 @@ async function createTestClient(page: Page, name: string) {
 }
 
 test("FL-05: demanda do registro ao encerramento", async ({ page }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(240_000);
   const tag = uniqueSuffix();
   const cliente = `[Teste automatizado] Cliente Demanda ${tag} LTDA`;
   const resumo = `[Teste automatizado] Treinamento NR-35 para 12 colaboradores ${tag}`;

@@ -6,6 +6,7 @@ import { QuoteStatusPill } from "@/components/pricing-status";
 import { getQuoteByDemand } from "@/lib/pricing/queries";
 import { createQuoteAction } from "@/app/(app)/orcamentos/actions";
 import { StatusPill } from "@/components/service-status";
+import { ContactActions, ContactActionsSpacer } from "@/components/contact-actions";
 import { ButtonLink, Card, CodeBadge, DefinitionList, TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
 import { OPERATE } from "@/lib/permissions";
@@ -29,7 +30,7 @@ export default async function DemandaPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ criada?: string; salva?: string; erro_cotacao?: string }>;
 }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
   const { id } = await params;
   const sp = await searchParams;
   const d = await getDemandOr404(id);
@@ -64,9 +65,20 @@ export default async function DemandaPage({
             {d.clients.status === "inativo" ? " · cliente inativo" : ""}
           </p>
         </div>
-        <ButtonLink href={`/demandas/${d.id}/editar`} variant="secondary">
-          <Pencil size={15} /> Editar
-        </ButtonLink>
+        <div className="flex flex-wrap items-center gap-2">
+          {contact && (contact.phone || contact.email) && (
+            <ContactActions
+              name={contact.full_name}
+              phone={contact.phone}
+              email={contact.email}
+              greeting={`Olá, ${contact.full_name.split(" ")[0]}! Aqui é ${user.fullName.split(" ")[0]}, da AUDITA | SSMA & SGI, sobre a demanda ${d.demand_code} (${d.summary}).`}
+              subject={`AUDITA | SSMA & SGI — ${d.demand_code}: ${d.summary}`}
+            />
+          )}
+          <ButtonLink href={`/demandas/${d.id}/editar`} variant="secondary">
+            <Pencil size={15} /> Editar
+          </ButtonLink>
+        </div>
       </header>
 
       {waitingFor !== null && (
@@ -227,6 +239,7 @@ export default async function DemandaPage({
           </Card>
         </div>
       </div>
+      {contact && (contact.phone || contact.email) && <ContactActionsSpacer />}
     </>
   );
 }

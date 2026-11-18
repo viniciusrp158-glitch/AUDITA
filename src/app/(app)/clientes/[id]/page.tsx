@@ -12,6 +12,7 @@ import { listDemands } from "@/lib/demands/queries";
 import { DemandStatusPill, isOverdue, OverdueBadge } from "@/components/demand-status";
 import { QuoteStatusPill } from "@/components/pricing-status";
 import { ClientTimeline } from "@/components/client-timeline";
+import { ContactActions, ContactActionsSpacer } from "@/components/contact-actions";
 import { getClientQuotes, getClientTimeline, TIMELINE_KINDS, type TimelineKind } from "@/lib/clients/timeline";
 import type { QuoteStatus } from "@/lib/pricing/labels";
 import {
@@ -80,6 +81,8 @@ export default async function ClientePage({
   const today = todaySaoPaulo();
   const base = `/clientes/${id}`;
   const unitNames = Object.fromEntries(units.map((u) => [u.id, u.name]));
+  // Contato para WhatsApp/ligação/e-mail: o principal ativo (com telefone ou e-mail) ou o do cadastro do cliente
+  const who = contacts.find((c) => c.is_primary && c.status === "ativo" && (c.phone || c.email)) ?? contacts.find((c) => c.status === "ativo" && (c.phone || c.email)) ?? null;
 
   return (
     <>
@@ -97,9 +100,19 @@ export default async function ClientePage({
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{client.legal_name}</h1>
           {client.trade_name && <p className="text-sm text-muted">{client.trade_name}</p>}
         </div>
-        <ButtonLink href={`${base}/editar`} variant="secondary">
-          <Pencil size={15} /> Editar
-        </ButtonLink>
+        <div className="flex flex-wrap items-center gap-2">
+          <ContactActions
+            name={who?.full_name ?? client.trade_name ?? client.legal_name}
+            phone={who?.phone ?? client.phone}
+            email={who?.email ?? client.email}
+            greeting={`Olá${who ? `, ${who.full_name.split(" ")[0]}` : ""}! Aqui é ${user.fullName.split(" ")[0]}, da AUDITA | SSMA & SGI.`}
+            subject={`AUDITA | SSMA & SGI — ${client.trade_name || client.legal_name}`}
+            primary={client.status === "ativo" ? { href: `/demandas/nova?cliente=${client.id}`, label: "Demanda" } : undefined}
+          />
+          <ButtonLink href={`${base}/editar`} variant="secondary">
+            <Pencil size={15} /> Editar
+          </ButtonLink>
+        </div>
       </header>
 
       <dl className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Resumo do cliente">
@@ -413,6 +426,7 @@ export default async function ClientePage({
           )}
         </Card>
       )}
+      <ContactActionsSpacer />
     </>
   );
 }

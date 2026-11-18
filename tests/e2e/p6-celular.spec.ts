@@ -65,3 +65,32 @@ test("celular: funil por etapa, ficha com ações rápidas e pesquisa com toque"
   expect(eb.y + eb.height).toBeLessThanOrEqual(nb.y);
   await shot(page, "p6-pesquisa");
 });
+
+test("celular: ficha do cliente e demanda com WhatsApp, ligação e e-mail à mão", async ({ page }) => {
+  test.setTimeout(150_000);
+  const ADMIN = { email: process.env.TEST_ADMIN_EMAIL!, password: process.env.TEST_ADMIN_PASSWORD! };
+  await page.goto("/empresa/login");
+  await page.getByLabel("E-mail").fill(ADMIN.email);
+  await page.getByLabel("Senha").fill(ADMIN.password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.waitForURL(/\/empresa(\/clientes|\/?)$/, { timeout: 60_000 });
+  // Demanda do teste I4 (contato "Responsável Fictício", com e-mail) e a ficha do cliente dela
+  await page.goto(`/empresa/demandas?grupo=todas&q=${encodeURIComponent("Treinamento NR-35")}`);
+  const dem = page.getByRole("listitem").getByRole("link", { name: /DEM-/ }).first();
+  test.skip(!(await dem.count()), "Sem a demanda do teste I4 no ambiente de testes");
+  await dem.click();
+  let acoes = page.getByRole("group", { name: "Ações rápidas" });
+  await expect(acoes.getByRole("link", { name: "E-mail para Responsável Fictício" })).toHaveAttribute("href", /^mailto:responsavel@exemplo\.test\?subject=.*DEM-/);
+  expect(await noOverflow(page)).toBe(true);
+  await shot(page, "p6-demanda");
+  await page.locator("header").getByRole("link", { name: /CLI-/ }).click();
+  acoes = page.getByRole("group", { name: "Ações rápidas" });
+  await expect(acoes).toBeVisible();
+  await expect(acoes.getByRole("link", { name: "E-mail para Responsável Fictício" })).toHaveAttribute("href", /^mailto:responsavel@exemplo\.test\?subject=/);
+  await expect(acoes.getByRole("link", { name: "Demanda" })).toHaveAttribute("href", /\/demandas\/nova\?cliente=/);
+  const nav = (await page.getByRole("navigation", { name: "Atalhos" }).boundingBox())!;
+  const box = (await acoes.boundingBox())!;
+  expect(box.y + box.height).toBeLessThanOrEqual(nav.y + 1);
+  expect(await noOverflow(page)).toBe(true);
+  await shot(page, "p6-cliente");
+});
