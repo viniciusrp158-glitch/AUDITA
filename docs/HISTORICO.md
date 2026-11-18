@@ -1917,3 +1917,27 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   e2e `p5-resultados` **2/2** (períodos, tabelas, CSV, celular sem rolagem lateral — corrigida a grade que esticava).
 - **Produção:** cópia `*_2026-11-17_2044`; imagem `audita-sistema:20261117-prospect5` pré-testada na 3299 e no ar
   (healthy, login 200). **Reversão:** `AUDITA_WEB_TAG=20261117-prospect4` + `docker compose up -d web`.
+
+## Frente A — formulários (A9) e filtros salvos (A11) (17/11/2026, 21h15)
+
+- **Pedido do Diretor:** "Sim, siga executando conforme documentado, faça o máximo que puder sem mim".
+- **Máscaras de digitação** (`src/lib/mask.ts`, propriedade `mask` do `Field`): CNPJ (inclusive alfanumérico), CPF,
+  telefone fixo/celular (tira o 55), CEP e CNAE — cliente, unidade, contato, autocadastro público, vendas do Academy
+  e contato confirmado do lead. Só formata com o cursor no fim; o servidor continua tirando a pontuação.
+- **Rascunho automático** (`src/components/form-draft.tsx`) em Novo cliente (inclusive a conversão do lead) e Nova
+  demanda: guarda no navegador do aparelho a cada digitação, oferece "Recuperar rascunho"/"Descartar" ao voltar, apaga
+  ao enviar, vale 7 dias; não guarda campos ocultos, senhas nem arquivos; não vai ao servidor.
+- **Validação mais clara:** com erro do servidor, a tela rola até o primeiro campo com problema e põe o cursor nele
+  (cliente, demanda e autocadastro público).
+- **Filtros salvos** (`src/components/saved-filters.tsx`) em Clientes, Demandas, Orçamentos e Funil: "+ Salvar este
+  filtro" com nome, até 8 por lista, neste aparelho; remover pelo ×. (Exportações já entregues na 2ª entrega.)
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** unidade `mask` **4/4**; e2e `a-frente-a-3` **2/2** (máscaras, rascunho recuperar e
+  descartar, foco no CNPJ inválido, filtro salvo e reaberto); regressão `a-frente-a` 3/3, `a-frente-a-2` 4/4,
+  `i2-clientes` 1/1 e `i2-1-autocadastro` 1/1 (ajustados para a máscara e para a lista em cartões), `i4` 2/2, `p4` 1/1.
+- **Produção:** cópia `*_2026-11-17_2112`; imagem `audita-sistema:20261117-frente-a3` pré-testada na 3299 e no ar
+  (healthy). **Reversão:** `AUDITA_WEB_TAG=20261117-prospect5` + `docker compose up -d web`.
+- **Novo pedido do Diretor (registrado para a próxima etapa):** "Na maior parte do tempo a prospecção de clientes vai ser
+  feita via mobile. Quero adaptação completa do Sistema AUDITA de Operação para o celular, pode ser um layout próprio
+  para mobile com navegação de telas pensada para usar no celular, mantendo as funcionalidades, integração com o
+  whatsapp, e-mail etc."
