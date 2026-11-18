@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { Alert, maskOnInput, SubmitButton } from "@/components/form";
 import { applyMask } from "@/lib/mask";
+import { ClipboardCheck, Mail, MessageCircle, Phone } from "lucide-react";
 import { ACTIVITY_KINDS, OUTCOMES, renderTemplate, STAGES, TEMPLATES, whatsappLink } from "@/lib/prospect/labels";
 import { linkLeadToClientAction, moveStageAction, registerActivityAction, suppressAction, updateContactAction, type ProspectState } from "../../actions";
 
@@ -67,7 +68,52 @@ export function ContactPanel({
         Mensagem (revise antes de enviar)
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={7} maxLength={1500} className={`mt-1 ${input}`} />
       </label>
-      <div className="grid gap-2 sm:grid-cols-3">
+      {/* Celular (layout próprio): ações sempre à mão numa barra fixa acima da barra de atalhos */}
+      <div
+        role="group"
+        aria-label="Ações rápidas"
+        className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-20 grid grid-cols-4 gap-1.5 border-t border-line bg-white px-2 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] lg:hidden"
+      >
+        {wa || waLandline ? (
+          <a
+            href={wa ?? waLandline ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setKind("whatsapp")}
+            aria-label={wa ? "Abrir no WhatsApp" : "Tentar no WhatsApp pelo fixo do cadastro"}
+            className={`flex min-h-12 flex-col items-center justify-center rounded-md text-xs font-semibold ${wa ? "bg-ok text-white" : "border border-ok text-ok"}`}
+          >
+            <MessageCircle size={18} /> WhatsApp
+            {!wa && <span className="text-[10px] font-medium leading-none">pelo fixo</span>}
+          </a>
+        ) : (
+          <span className="flex min-h-12 flex-col items-center justify-center rounded-md border border-dashed border-line text-[11px] text-muted">
+            <MessageCircle size={18} /> Sem celular
+          </span>
+        )}
+        {phone ? (
+          <a href={`tel:+55${phone}`} onClick={() => setKind("ligacao")} aria-label="Ligar" className="flex min-h-12 flex-col items-center justify-center rounded-md border border-line text-xs font-semibold text-ink">
+            <Phone size={18} /> Ligar
+          </a>
+        ) : (
+          <span className="flex min-h-12 flex-col items-center justify-center rounded-md border border-dashed border-line text-[11px] text-muted">
+            <Phone size={18} /> Sem telefone
+          </span>
+        )}
+        {mail ? (
+          <a href={mail} onClick={() => setKind("email")} aria-label="Escrever e-mail" className="flex min-h-12 flex-col items-center justify-center rounded-md border border-line text-xs font-semibold text-ink">
+            <Mail size={18} /> E-mail
+          </a>
+        ) : (
+          <span className="flex min-h-12 flex-col items-center justify-center rounded-md border border-dashed border-line text-[11px] text-muted">
+            <Mail size={18} /> Sem e-mail
+          </span>
+        )}
+        <a href="#registrar" className="flex min-h-12 flex-col items-center justify-center rounded-md bg-navy text-xs font-semibold text-white">
+          <ClipboardCheck size={18} /> Registrar
+        </a>
+      </div>
+      <div className="hidden gap-2 lg:grid lg:grid-cols-3">
         {wa ? (
           <a href={wa} target="_blank" rel="noopener noreferrer" onClick={() => setKind("whatsapp")} className="rounded-md bg-ok px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90">
             Abrir no WhatsApp
@@ -108,7 +154,7 @@ export function ContactPanel({
         </p>
       )}
 
-      <form action={action} className="space-y-3 rounded-lg border border-line bg-surface/40 p-3">
+      <form id="registrar" action={action} className="scroll-mt-20 space-y-3 rounded-lg border border-line bg-surface/40 p-3">
         <input type="hidden" name="id" value={leadId} />
         <input type="hidden" name="template_code" value={tpl} />
         <p className="text-sm font-semibold text-ink">Registrar o contato</p>

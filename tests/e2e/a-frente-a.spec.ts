@@ -55,7 +55,7 @@ test("operador vê só a área Comercial; busca global e cadastro pelo CNPJ", as
 
   // Um lead do funil para procurar pela busca global
   await page.goto("/empresa/prospeccao/funil");
-  const lead = page.locator("section li a").first();
+  const lead = page.getByTestId("funil-quadro").locator("section li a").first();
   const leadName = (await lead.locator("span.font-semibold").first().innerText()).trim();
   const term = leadName.replace(/^\[TESTE\]\s*/, "").split(/\s+/).slice(0, 2).join(" ");
 

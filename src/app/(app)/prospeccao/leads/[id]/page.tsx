@@ -82,8 +82,9 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
       {sp.ok === "nao-contatar" && <div className="mb-4"><Alert kind="info">Registrado em &quot;não contatar&quot;. A empresa saiu do funil.</Alert></div>}
       {lead.stage === "perdido" && lead.lost_reason && <div className="mb-4"><Alert kind="warning">Perdido ou desqualificado: {lead.lost_reason}</Alert></div>}
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-3">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-5">
+        <div className="contents lg:col-span-3 lg:block lg:space-y-6">
+          <div className="order-1">
           <Card title="Contatar">
             <ContactPanel
               leadId={lead.id}
@@ -97,7 +98,9 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               blocked={suppressed || closed}
             />
           </Card>
+          </div>
 
+          <div className="order-6">
           <Card title={`Por que esta nota${lead.score !== null ? ` (${lead.score} de 100)` : ""}`}>
             {items.length ? (
               <ul className="space-y-2.5">
@@ -133,7 +136,9 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               </div>
             )}
           </Card>
+          </div>
 
+          <div className="order-7">
           <Card title="Dados cadastrais">
             <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               {field("Razão social", lead.legal_name, rfb)}
@@ -147,9 +152,11 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
             </dl>
             <p className="mt-3 text-xs text-muted">Telefone e e-mail do cadastro da Receita costumam ser do contador que abriu a empresa. Confirme antes da abordagem.</p>
           </Card>
+          </div>
         </div>
 
-        <div className="space-y-6 lg:col-span-2">
+        <div className="contents lg:col-span-2 lg:block lg:space-y-6">
+          <div className="order-2">
           <Card title="Cliente">
             {linked ? (
               <div className="space-y-3 text-sm">
@@ -196,11 +203,15 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               </div>
             )}
           </Card>
+          </div>
+          <div className="order-3">
           {!closed && (
             <Card title="Etapa">
               <StageForm leadId={lead.id} stage={lead.stage} />
             </Card>
           )}
+          </div>
+          <div className="order-4">
           <Card title="Contato confirmado">
             <ConfirmedContactForm
               leadId={lead.id}
@@ -212,6 +223,8 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               }}
             />
           </Card>
+          </div>
+          <div className="order-5">
           <Card title="Linha do tempo">
             <ol className="space-y-3">
               {[
@@ -238,9 +251,14 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
                 ))}
             </ol>
           </Card>
+          </div>
+          <div className="order-8">
           {!suppressed && lead.cnpj && <SuppressForm leadId={lead.id} />}
+          </div>
         </div>
       </div>
+      {/* Celular: espaço para a barra de ações rápidas não cobrir o fim da página */}
+      <div aria-hidden className="h-16 lg:hidden" />
     </>
   );
 }
