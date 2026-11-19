@@ -94,3 +94,17 @@ test("celular: ficha do cliente e demanda com WhatsApp, ligação e e-mail à m�
   expect(await noOverflow(page)).toBe(true);
   await shot(page, "p6-cliente");
 });
+
+test("aplicativo na tela inicial: manifesto público, ícones e tela cheia", async ({ page, request }) => {
+  await page.goto("/empresa/login");
+  const href = await page.locator('link[rel="manifest"]').getAttribute("href");
+  expect(href).toBe("/empresa/manifest.webmanifest");
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/empresa/brand/apple-icon-180.png");
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#031b35");
+  // Sem login: o celular busca o manifesto antes de entrar
+  const r = await request.get("/empresa/manifest.webmanifest", { maxRedirects: 0 });
+  expect(r.status()).toBe(200);
+  const m = await r.json();
+  expect(m).toMatchObject({ short_name: "AUDITA", start_url: "/empresa/", scope: "/empresa/", display: "standalone" });
+  for (const i of m.icons as { src: string }[]) expect((await request.get(i.src)).status()).toBe(200);
+});
