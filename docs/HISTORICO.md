@@ -1971,3 +1971,10 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   pré-testada na 3299 e no ar (healthy). **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a3` + `docker compose up -d web`.
 - **Próximo (celular, 2ª entrega):** Início/“Meu dia” com ações de contato, demais telas internas (orçamento,
   serviços, caixa) revisadas uma a uma, e uso como aplicativo (atalho na tela inicial).
+- **Complemento (19/11/2026): aplicativo na tela inicial.** `src/app/manifest.ts` (nome "AUDITA — Sistema de
+  Operação", abre em tela cheia em `/empresa/`, cor da marca), ícones gerados do logotipo oficial sem alteração
+  (`scripts/gerar-icones-app.cjs` → `public/brand/app-icon-192/512.png`, `apple-icon-180.png`), metadados para iPhone
+  (tela cheia, ícone) e `viewport-fit=cover` (área segura). O manifesto é público (`/manifest.webmanifest` entrou nos
+  caminhos sem login; não tem dados). Teste `p6-celular` **3/3** (manifesto sem login, ícones 200, tela cheia) e
+  `i1-acesso` 5/5. Produção: imagem `audita-sistema:20261119-celular2` no ar (healthy; manifesto 200).
+  **Reversão:** `AUDITA_WEB_TAG=20261118-celular1`.
