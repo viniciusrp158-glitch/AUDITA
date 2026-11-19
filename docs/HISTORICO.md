@@ -2040,3 +2040,20 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   `supabase-audita` e `supabase-audita-dev`; nada do PRO), com `docker compose stop studio meta` pelo usuário deploy.
   Sistema e site seguem respondendo (login 200, site 200). Para religar: `docker compose start studio meta` na pasta do
   projeto.
+
+## AUDDOC020 Rev.01 (rascunho) e Avaliação de Legítimo Interesse (19/11/2026, 20h20)
+
+- **Pedido do Diretor:** respostas da lista de 19/11 (meta 20/dia útil; conta Brevo separada; até 100 e-mails/dia;
+  WhatsApp (15) 99689-1049; grande empresa conforme sugestão; guarda 6 meses; documento para o advogado sem dados
+  dele) e "B) Autorizado, execute tudo" / "Execute tudo conforme documentado".
+- **AUDDOC020 Rev.01** (`scripts/biblioteca/auddoc020-rev01.ts`, gerada a partir da Rev.00, só com o que mudou):
+  escopo (sem disparo de WhatsApp), decisões revisadas (custo, região, público-alvo, WhatsApp com fila assistida,
+  e-mail pelo Brevo com limite e validação jurídica, meta, base com capital social), fonte Brevo, RP-02, RP-06
+  (chance de resposta e grupos), RP-09, RP-10 (mensagem padrão do Diretor + linha de saída), novos RP-20 a RP-23,
+  RNF-P04 (6 meses, descadastro) e RNF-P06 (tempos), controle de revisões. Word abriu sem erro (5 páginas, conferidas
+  em imagem). Backup `db_2026-11-19_2016`; registrada como **rascunho** pelo `publicar-revisao.sh` — SHA-256
+  `f7634032…a759f9`. A Rev.00 segue vigente até a aprovação do Diretor na Biblioteca.
+- **Avaliação de Legítimo Interesse** (`scripts/juridico/avaliacao-legitimo-interesse.ts` →
+  `docs/juridico/AUDITA_Avaliacao_Legitimo_Interesse_Prospeccao.docx`, 3 páginas, Word sem erro): contexto, dados,
+  teste em 3 etapas, salvaguardas, riscos, 5 pontos para validar, aviso de privacidade da prospecção (anexo) e campo
+  de registro da validação, sem identificar o advogado.
