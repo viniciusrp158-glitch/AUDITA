@@ -2015,3 +2015,7 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   porta 3499. Só o container `audita-site` foi trocado. Conferido no ar: páginas 200, imagens novas, `og:image`,
   `noindex` mantido, redirecionamentos, `/empresa/login` e console sem erros.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261119-hub-r2 .env && docker compose up -d site`.
+- **Correção (19/11/2026, com o "Pode publicar" do Diretor):** o notebook aparecia cortado em Divergências, EPIs e Meio
+  ambiente (nas peças originais ele passa da borda direita). Os painéis foram remontados com a tela da peça dentro da
+  moldura completa do notebook; PGR e Indicadores também ficaram com o notebook inteiro. Arquivos `hub2-*-v2.webp`.
+  Imagem `audita-site:20261119-hub-r2b`. Para voltar: `cp .env.bak-20261119-hub-r2b .env && docker compose up -d site`.
