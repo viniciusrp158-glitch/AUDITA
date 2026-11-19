@@ -1941,3 +1941,33 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   feita via mobile. Quero adaptação completa do Sistema AUDITA de Operação para o celular, pode ser um layout próprio
   para mobile com navegação de telas pensada para usar no celular, mantendo as funcionalidades, integração com o
   whatsapp, e-mail etc."
+
+## Celular — 1ª entrega: prospecção pensada para o celular e contato à mão (18–19/11/2026)
+
+- **Pedido do Diretor (17/11):** "Na maior parte do tempo a prospecção de clientes vai ser feita via mobile. Quero
+  adaptação completa do Sistema AUDITA de Operação para o celular, pode ser um layout próprio para mobile com navegação
+  de telas pensada para usar no celular, mantendo as funcionalidades, integração com o whatsapp, e-mail etc."
+- **Diagnóstico (capturas 390 px):** funil em colunas inutilizável no celular (uma coluna e meia visíveis); na ficha do
+  lead os botões de contato ficavam no meio de uma página longa e cobertos pela barra de atalhos; na pesquisa a barra
+  "Enviar ao funil" ficava atrás da barra de atalhos e a caixinha de seleção era pequena; ficha do cliente e demanda
+  sem ação direta de WhatsApp, ligação ou e-mail.
+- **Funil no celular** (`prospeccao/funil/page.tsx`): faixa de etapas com contagem (começa na primeira etapa em
+  andamento) e lista em cartões grandes da etapa escolhida; o quadro em colunas continua no computador.
+- **Ficha do lead no celular:** barra fixa "Ações rápidas" acima da barra de atalhos — WhatsApp (ou "pelo fixo"),
+  Ligar, E-mail e Registrar (leva ao registro do contato) —, com a mensagem do modelo; ordem própria: Contatar, Cliente,
+  Etapa, Contato confirmado, Linha do tempo e, por último, nota e dados da Receita.
+- **Pesquisa no celular:** tocar na linha marca a empresa (caixinha maior) e a barra "Enviar ao funil" fica acima dos
+  atalhos.
+- **Ficha do cliente e demanda** (`src/components/contact-actions.tsx`): WhatsApp (wa.me com saudação), Ligar e E-mail
+  (assunto com o cliente/demanda) — no celular em barra fixa (cliente com "+ Demanda"), no computador como botões no
+  topo. Contato usado: o principal ativo (ou o do cadastro); na demanda, o contato dela.
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** e2e `p6-celular` **2/2** (funil por etapa, barra acima dos atalhos, links tel:/wa.me,
+  Registrar, toque na pesquisa, ações no cliente e na demanda, sem rolagem lateral); regressão `p1-prospect` 5/5,
+  `a-frente-a` 3/3, `a-frente-a-2` 4/4, `p4-conversao` 1/1, `i4-demandas` 2/2 (limite do FL-05 aumentado para 240 s:
+  o servidor compartilhado está com carga alta, 13–18).
+- **Produção:** sem mudança de dados; última cópia `db_2026-11-19_0420` (automática diária); a 1ª tentativa de publicar
+  travou no envio e foi interrompida antes de compilar (nada mudou no ar). Imagem `audita-sistema:20261118-celular1`
+  pré-testada na 3299 e no ar (healthy). **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a3` + `docker compose up -d web`.
+- **Próximo (celular, 2ª entrega):** Início/“Meu dia” com ações de contato, demais telas internas (orçamento,
+  serviços, caixa) revisadas uma a uma, e uso como aplicativo (atalho na tela inicial).
