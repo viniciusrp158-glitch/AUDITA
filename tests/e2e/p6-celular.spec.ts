@@ -108,3 +108,36 @@ test("aplicativo na tela inicial: manifesto público, ícones e tela cheia", asy
   expect(m).toMatchObject({ short_name: "AUDITA", start_url: "/empresa/", scope: "/empresa/", display: "standalone" });
   for (const i of m.icons as { src: string }[]) expect((await request.get(i.src)).status()).toBe(200);
 });
+
+test("celular: caixa, registro de atividades e regiões em formato próprio", async ({ page }) => {
+  test.setTimeout(150_000);
+  const ADMIN = { email: process.env.TEST_ADMIN_EMAIL!, password: process.env.TEST_ADMIN_PASSWORD! };
+  await page.goto("/empresa/login");
+  await page.getByLabel("E-mail").fill(ADMIN.email);
+  await page.getByLabel("Senha").fill(ADMIN.password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.waitForURL(/\/empresa(\/clientes|\/?)$/, { timeout: 60_000 });
+
+  await page.goto("/empresa/caixa");
+  await expect(page.getByTestId("cash-cards")).toBeVisible();
+  await expect(page.getByTestId("cash-table")).toBeHidden();
+  await expect(page.getByTestId("cash-cards").getByText(/^Saldo de \d{4}$/)).toBeVisible();
+  expect(await noOverflow(page)).toBe(true);
+  await shot(page, "p6-caixa");
+
+  await page.goto("/empresa/configuracoes/atividades");
+  const lista = page.getByRole("list", { name: "Atividades" });
+  await expect(lista.getByRole("listitem").first()).toBeVisible();
+  await expect(page.locator("table")).toBeHidden();
+  expect(await noOverflow(page)).toBe(true);
+
+  await page.goto("/empresa/prospeccao/regioes");
+  // A coluna de empresas cabe na largura do celular (antes ficava cortada à direita)
+  const th = page.getByRole("columnheader", { name: "Empresas" });
+  await th.scrollIntoViewIfNeeded();
+  const b = (await th.boundingBox())!;
+  expect(b.x + b.width).toBeLessThanOrEqual(391);
+  await expect(page.getByRole("columnheader", { name: "Distância" })).toBeHidden();
+  expect(await noOverflow(page)).toBe(true);
+  await shot(page, "p6-regioes");
+});

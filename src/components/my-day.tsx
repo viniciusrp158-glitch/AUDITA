@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CalendarClock, ClipboardList, FileClock, Sparkles } from "lucide-react";
+import { CalendarClock, ClipboardList, FileClock, Sparkles, MessageCircle, Phone } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { whatsappLink } from "@/lib/prospect/labels";
 import { formatDateTime, formatDay } from "@/lib/format";
 import type { DayItem, MyDay } from "@/lib/indicators/meu-dia";
 
@@ -59,8 +60,8 @@ function DayList({
       {items.length ? (
         <ul className="flex-1 divide-y divide-line">
           {items.map((i) => (
-            <li key={i.href}>
-              <Link href={i.href} className="flex items-start gap-3 px-4 py-2.5 hover:bg-surface/60">
+            <li key={i.href} className="flex items-stretch">
+              <Link href={i.href} className="flex min-w-0 flex-1 items-start gap-3 px-4 py-2.5 hover:bg-surface/60">
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-ink">{i.title}</span>
                   {i.detail && <span className="block truncate text-xs text-muted">{i.detail}</span>}
@@ -69,6 +70,27 @@ function DayList({
                   {dateTime ? formatDateTime(i.when) : i.when.length > 10 ? formatDateTime(i.when) : formatDay(i.when)}
                 </span>
               </Link>
+              {/* Retorno com contato confirmado: WhatsApp e ligação com um toque (útil no celular) */}
+              {(i.whatsapp || i.phone) && (
+                <span className="flex shrink-0 items-center gap-1 pr-2">
+                  {i.whatsapp && (
+                    <a
+                      href={whatsappLink(i.whatsapp, "") ?? undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`WhatsApp de ${i.title}`}
+                      className="grid size-9 place-items-center rounded-md bg-ok text-white"
+                    >
+                      <MessageCircle size={16} />
+                    </a>
+                  )}
+                  {i.phone && (
+                    <a href={`tel:+55${i.phone}`} aria-label={`Ligar para ${i.title}`} className="grid size-9 place-items-center rounded-md border border-line text-ink">
+                      <Phone size={16} />
+                    </a>
+                  )}
+                </span>
+              )}
             </li>
           ))}
         </ul>

@@ -5,10 +5,19 @@
  */
 import "server-only";
 import { waitingCutoffIso } from "@/lib/demands/labels";
-import { isStage, STAGE_LABEL } from "@/lib/prospect/labels";
+import { isMobile, isStage, STAGE_LABEL } from "@/lib/prospect/labels";
 import { createClient } from "@/lib/supabase/server";
 
-export type DayItem = { href: string; title: string; detail: string; when: string; late: boolean };
+export type DayItem = {
+  href: string;
+  title: string;
+  detail: string;
+  when: string;
+  late: boolean;
+  /** Contato confirmado do lead (retornos): ligação e WhatsApp com um toque, sem abrir a ficha. */
+  phone?: string | null;
+  whatsapp?: string | null;
+};
 export type MyDay = {
   followUps: DayItem[];
   followUpsTotal: number;
@@ -37,7 +46,7 @@ export async function getMyDay(today: string, includeTest: boolean): Promise<MyD
 
   let followQ = supabase
     .from("leads")
-    .select("id, legal_name, trade_name, stage, next_action_at, next_action_note", { count: "exact" })
+    .select("id, legal_name, trade_name, stage, next_action_at, next_action_note, phone_confirmed, whatsapp_confirmed", { count: "exact" })
     .eq("status", "ativo")
     .not("next_action_at", "is", null)
     .lt("next_action_at", endOfToday)
@@ -81,6 +90,8 @@ export async function getMyDay(today: string, includeTest: boolean): Promise<MyD
     detail: l.next_action_note || (isStage(l.stage) ? STAGE_LABEL[l.stage] : ""),
     when: l.next_action_at!,
     late: l.next_action_at! < startOfToday,
+    phone: l.phone_confirmed,
+    whatsapp: l.whatsapp_confirmed ?? (isMobile(l.phone_confirmed) ? l.phone_confirmed : null),
   }));
 
   const demands: DayItem[] = [
