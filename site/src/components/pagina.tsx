@@ -16,6 +16,7 @@ export function HeroInterno({
   resumo,
   foto,
   traco,
+  lado,
   children,
 }: {
   id: string;
@@ -25,6 +26,8 @@ export function HeroInterno({
   resumo?: string;
   foto: { codigo: string; descricao: string; src?: string };
   traco?: string;
+  /** Imagem ao lado do texto no computador (abaixo dele no celular). Usado no topo do Audita HUB. */
+  lado?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   const definitiva = foto.src ? undefined : imagemDefinitiva(foto.codigo);
@@ -54,10 +57,15 @@ export function HeroInterno({
             </span>
           ))}
         </nav>
-        <p className="kicker">{kicker}</p>
-        <h1 id={id} className="t1" style={{ maxWidth: "18ch" }}>{titulo}</h1>
-        {resumo ? <p className="texto-grande medida" style={{ margin: "20px 0 0" }}>{resumo}</p> : null}
-        {children}
+        <div className={lado ? "hero__grade" : undefined}>
+          <div>
+            <p className="kicker">{kicker}</p>
+            <h1 id={id} className="t1" style={{ maxWidth: "18ch" }}>{titulo}</h1>
+            {resumo ? <p className="texto-grande medida" style={{ margin: "20px 0 0" }}>{resumo}</p> : null}
+            {children}
+          </div>
+          {lado ? <div className="hero__lado">{lado}</div> : null}
+        </div>
       </div>
       <Curva traco={traco} />
     </section>

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     url: "/audita-hub/",
     title: "Audita HUB · A rotina de SSMA em dia, em um só lugar",
     description: "Indicadores, riscos do PGR e a gestão completa de SST e Meio Ambiente, no computador e no celular.",
-    images: [{ url: "/images/plataformas/hub-og.jpg", width: 1200, height: 630, alt: "Audita HUB" }],
+    images: [{ url: "/images/plataformas/hub2-og.jpg", width: 1200, height: 630, alt: "Audita HUB" }],
   },
 };
 
@@ -30,7 +30,7 @@ const JSON_LD = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: "https://audita.seg.br/audita-hub/",
-  image: "https://audita.seg.br/images/plataformas/hub-og.jpg",
+  image: "https://audita.seg.br/images/plataformas/hub2-og.jpg",
   description:
     "Plataforma de gestão de Segurança do Trabalho e Meio Ambiente: indicadores, riscos do PGR por GHE, EPIs, inspeções, ações, ocorrências, documentos, CIPA, brigada, capacitações, ordens de serviço, licenças e resíduos.",
   publisher: { "@type": "Organization", name: "AUDITA", url: "https://audita.seg.br" },

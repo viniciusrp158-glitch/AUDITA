@@ -328,6 +328,17 @@ main, footer { overflow-x: clip; }
 
 /* Páginas de produto: blocos opcionais do HUB (S8) — telas sobrepostas com barra de navegador e gestão completa */
 .produto-pilha { position: relative; padding-bottom: 40px; }
+/* HUB (19/11/2026): topo com o mockup ao lado, painéis dos mockups e peças de uso em campo */
+.hero__grade { display: grid; gap: 40px; align-items: center; }
+@media (min-width: 1024px) { .hero__grade { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px; } }
+.hero__frase { display: block; margin-top: 18px; font-size: clamp(26px, 3.2vw, 40px); line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; }
+.hero__lado { position: relative; }
+.hero__mockup { display: block; width: 100%; height: auto; filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.45)); animation: subir 0.9s cubic-bezier(.2, .7, .2, 1) both 0.15s; }
+@media (min-width: 1280px) { .hero__mockup { width: 112%; max-width: none; margin-right: -12%; } }
+@keyframes subir { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.produto-painel { display: block; width: 100%; height: auto; border-radius: 20px; box-shadow: var(--shadow-card); background: var(--navy); }
+.produto-campo img { display: block; width: 100%; height: auto; border-radius: 20px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); }
+@media (prefers-reduced-motion: reduce) { .hero__mockup { animation: none; } }
 .janela { border-radius: 12px; overflow: hidden; background: var(--white); border: 1px solid var(--line); box-shadow: var(--shadow-card); width: 88%; }
 .janela--frente { position: absolute; right: 0; bottom: 0; width: 60%; }
 .janela__barra { height: 26px; background: #e8edf2; display: flex; align-items: center; gap: 6px; padding: 0 12px; }

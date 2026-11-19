@@ -231,7 +231,7 @@ test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes sociai
   await page.goto("/audita-hub/");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://audita.seg.br/audita-hub/");
   // A página do HUB tem imagem de compartilhamento própria (S8)
-  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /hub-og\.jpg/);
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /hub2-og\.jpg/);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   for (const arquivo of ["/favicon.ico", "/icon.png", "/apple-icon.png", "/opengraph-image.png"]) {
     expect((await request.get(arquivo)).status(), arquivo).toBe(200);
@@ -286,18 +286,24 @@ test("S7: sem faixa de prévia, painel principal em rodízio e fotos definitivas
   }
 });
 
-test("S8: página do Audita HUB no padrão do site com o material da sessão do HUB", async ({ page, isMobile }) => {
+test("S8: página do Audita HUB no padrão do site com o material da sessão do HUB", async ({ page }) => {
   await page.goto("/audita-hub/");
   await expect(page).toHaveTitle("Audita HUB · Gestão de SST e Meio Ambiente em um só lugar | AUDITA");
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').last().textContent()) ?? "{}");
   expect(ld["@type"]).toBe("SoftwareApplication");
   await expect(page.locator('main [aria-label="Destaques do Audita HUB"] li')).toHaveCount(4);
-  for (const t of ["Abra o HUB e saiba exatamente onde agir", "Os riscos do PGR organizados e ligados à rotina", "Toda a rotina de SST e Meio Ambiente, conectada"]) {
+  // Mockups do HUB, segunda rodada (19/11/2026): cinco blocos com os painéis prontos e a seção de uso em campo
+  for (const t of ["Abra o HUB e saiba exatamente onde agir", "PGR elaborado pela AUDITA, integrado a todo o sistema", "O que diverge do PGR aparece sozinho", "EPIs e uniformes sob controle", "Meio ambiente e MTR no mesmo sistema", "Feito para quem está na área", "Toda a rotina de SST e Meio Ambiente, conectada"]) {
     await expect(page.getByRole("heading", { level: 2, name: t })).toBeVisible();
   }
   await expect(page.locator(".produto-mods li")).toHaveCount(14);
   await expect(page.locator('main ol[aria-label="Como começar"] li')).toHaveCount(3);
-  await expect(page.locator(".janela--frente").first()).toBeVisible({ visible: !isMobile });
+  await expect(page.locator("h1 .hero__frase")).toHaveText("Segurança do trabalho que funciona no dia a dia.");
+  await expect(page.locator(".hero__mockup")).toBeVisible();
+  await expect(page.locator("img.produto-painel")).toHaveCount(5);
+  await expect(page.locator(".produto-campo img")).toHaveCount(3);
+  // As telas antigas (design anterior do HUB) saíram da página
+  await expect(page.locator('main img[src*="/plataformas/hub-"]')).toHaveCount(0);
   expect(await page.locator("main").innerText()).not.toMatch(/laudo/i);
   await semRolagemLateral(page);
   // O PRO continua igual: sem os blocos novos

@@ -26,7 +26,12 @@ export type Plataforma = {
   diferenciais: { titulo: string; texto: string }[];
   /** Opcionais (S8, página do HUB com o material da sessão do HUB de 10/11/2026) */
   fatos?: { titulo: string; texto: string }[];
-  recursos?: { kicker: string; titulo: string; texto: string; itens: string[]; telas: [Imagem, Imagem] }[];
+  /** Recurso com duas telas em janelas sobrepostas (telas) ou com um mockup pronto (painel, mockups do HUB de 15/11/2026) */
+  recursos?: { kicker: string; titulo: string; texto: string; itens: string[]; telas?: [Imagem, Imagem]; painel?: Imagem }[];
+  /** Topo da página com o mockup do produto ao lado do texto e a frase de abertura (HUB, 19/11/2026) */
+  vitrine?: { frase: string; imagem: Imagem };
+  /** Seção escura de uso em campo com as peças verticais (substitui "Conheça a plataforma" quando existe) */
+  campo?: { kicker: string; titulo: string; texto: string; pecas: Imagem[] };
   suite?: { titulo: string; texto: string; grupos: { nome: string; modulos: [string, string][] }[]; todos: string[] };
   comecar?: { texto: string; passos: string[] };
 };
@@ -129,11 +134,31 @@ export const HUB: Plataforma = {
     "Trabalhadores, entrega de EPIs, inspeções, ações corretivas, documentos com vencimento, ordens de serviço, CIPA, brigada e emergências, capacitações, licenças ambientais e resíduos, com um painel e um calendário que enxergam todos os prazos de uma vez. A empresa escolhe os módulos de que precisa e quais aparecem para a equipe.",
   ],
   destaque: {
-    src: "/images/plataformas/hub-computador-e-celular.webp",
-    alt: "Painel do Audita HUB no computador e no celular",
-    legenda: "Painel no computador e no celular.",
-    largura: 2000,
-    altura: 1240,
+    src: "/images/plataformas/hub2-um-so-lugar.webp",
+    alt: "Audita HUB: sua gestão de SSMA em um só lugar. Computador e celular, sempre em dia. Dashboard no notebook e no celular.",
+    legenda: "Dashboard no computador e no celular.",
+    largura: 800,
+    altura: 800,
+  },
+  vitrine: {
+    frase: "Segurança do trabalho que funciona no dia a dia.",
+    imagem: {
+      src: "/images/plataformas/hub2-computador-e-celular.webp",
+      alt: "Dashboard do Audita HUB no notebook e no celular, com índice de gestão SSMA, ações vencidas, desvios abertos e documentos a vencer",
+      legenda: "",
+      largura: 1600,
+      altura: 925,
+    },
+  },
+  campo: {
+    kicker: "No celular, em campo",
+    titulo: "Feito para quem está na área",
+    texto: "Entrega de EPI com ciência, inspeção com fotos e o acesso do próprio trabalhador, direto no navegador do celular, sem instalar nada.",
+    pecas: [
+      { src: "/images/plataformas/hub2-campo-epi.webp", alt: "Entrega de EPI com ciência no celular: registro na hora, em campo, com a ficha sempre em dia. Tela de nova entrega de EPI.", legenda: "Entrega de EPI: quem recebe, o que sai do estoque, C.A e tamanho.", largura: 720, altura: 900 },
+      { src: "/images/plataformas/hub2-campo-inspecao.webp", alt: "Inspeção em campo, com fotos e ações na hora: checklists da empresa prontos para usar no celular. Tela de inspeção de área em execução.", legenda: "Inspeção: item por item, com observação e foto.", largura: 720, altura: 900 },
+      { src: "/images/plataformas/hub2-campo-trabalhador.webp", alt: "O trabalhador também usa: entregas de EPI, OS e capacitações na palma da mão. Tela Minhas entregas de EPI.", legenda: "Acesso do trabalhador: EPIs em uso, trocas e assinatura.", largura: 720, altura: 900 },
+    ],
   },
   perfis: [
     { nome: "Administrador da empresa", texto: "Gerencia usuários, unidades e configurações." },
@@ -200,27 +225,57 @@ export const HUB: Plataforma = {
         "Índice de gestão SSMA de 0 a 100, com a composição aberta",
         "Ações vencidas, desvios sem ação, documentos a vencer e alertas de EPI",
         "Inspeções e desvios por semana, ações por status e suas tarefas",
-        "Filtro por unidade e período, metas da empresa e relatório consolidado",
+        "Tema claro ou escuro, confortável no escritório e na sala de controle",
       ],
-      telas: [
-        { src: "/images/plataformas/hub-painel.webp", alt: "Dashboard com índice de gestão SSMA, alertas e gráficos", legenda: "", largura: 1920, altura: 1200 },
-        { src: "/images/plataformas/hub-relatorio.webp", alt: "Relatório consolidado da empresa", legenda: "", largura: 1920, altura: 1200 },
-      ],
+      painel: { src: "/images/plataformas/hub2-tema-escuro.webp", alt: "Dashboard do Audita HUB no tema escuro, no notebook e no celular", legenda: "Dashboard no tema escuro.", largura: 1060, altura: 800 },
     },
     {
       kicker: "PGR",
-      titulo: "Os riscos do PGR organizados e ligados à rotina",
-      texto: "Monte o inventário de riscos por Grupo Homogêneo de Exposição, com a matriz de risco da empresa, e deixe que o HUB leve isso para o dia a dia.",
+      titulo: "PGR elaborado pela AUDITA, integrado a todo o sistema",
+      texto: "Quando a AUDITA elabora o PGR da empresa, ele fica no HUB: a empresa baixa as versões emitidas em PDF, e as ordens de serviço, os EPIs e as capacitações seguem o mesmo GHE.",
       itens: [
-        "GHE com setores, cargos e trabalhadores vinculados",
-        "Probabilidade × severidade com o nível de risco calculado",
-        "Medidas existentes e propostas para cada risco",
+        "Introdução, PGR completo, inventário de riscos e planos de ação em PDF",
+        "Versões emitidas guardadas, com revisão e validade",
+        "Inventário de riscos por Grupo Homogêneo de Exposição (GHE)",
         "EPIs e capacitações exigidos por GHE, cobrados nas entregas e na matriz de treinamentos",
       ],
-      telas: [
-        { src: "/images/plataformas/hub-pgr-matriz.webp", alt: "Matriz de risco do PGR", legenda: "", largura: 1920, altura: 1200 },
-        { src: "/images/plataformas/hub-pgr.webp", alt: "Lista de GHE com riscos e maior nível", legenda: "", largura: 1920, altura: 1200 },
+      painel: { src: "/images/plataformas/hub2-pgr.webp", alt: "Páginas do PDF do PGR emitido pela AUDITA e tela do PGR no Audita HUB com as versões emitidas e a integração com o PGR", legenda: "PGR de demonstração da Metalúrgica Exemplo (empresa fictícia).", largura: 1060, altura: 1020 },
+    },
+    {
+      kicker: "Integração com o PGR",
+      titulo: "O que diverge do PGR aparece sozinho",
+      texto: "O HUB compara a rotina da empresa com o PGR e mostra cada diferença com o caminho para resolver. A empresa vê o mesmo painel.",
+      itens: [
+        "EPI entregue que o PGR não exige para o GHE do trabalhador",
+        "EPI exigido pelo GHE sem entrega em uso",
+        "Capacitação exigida pendente ou vencida",
+        "Trabalhador com cargo fora de qualquer GHE",
       ],
+      painel: { src: "/images/plataformas/hub2-divergencias.webp", alt: "Tela de divergências com o PGR no Audita HUB, com a lista de EPIs em uso que não estão no GHE", legenda: "", largura: 1060, altura: 850 },
+    },
+    {
+      kicker: "EPIs e uniformes",
+      titulo: "EPIs e uniformes sob controle",
+      texto: "Estoque, entregas, CA e trocas com alerta, seguindo os EPIs exigidos pelo PGR.",
+      itens: [
+        "Trocas vencidas, CA vencendo e estoque abaixo do mínimo em destaque",
+        "Entregas com registro de ciência do trabalhador",
+        "Entregas e custo por mês, por 12 semanas ou no ano",
+        "Catálogo com CA, compras e fornecedores",
+      ],
+      painel: { src: "/images/plataformas/hub2-epi.webp", alt: "Visão geral de EPIs e uniformes no Audita HUB: trocas vencidas, CA vencendo, estoque abaixo do mínimo e entregas sem ciência", legenda: "", largura: 1060, altura: 850 },
+    },
+    {
+      kicker: "Meio ambiente",
+      titulo: "Meio ambiente e MTR no mesmo sistema",
+      texto: "Licenças, condicionantes e resíduos ao lado da segurança do trabalho, com os prazos no mesmo calendário.",
+      itens: [
+        "Licenças e condicionantes com aviso de renovação",
+        "Saídas de resíduos, inventário e notas fiscais ambientais",
+        "Registro de MTR (SIGOR/CETESB)",
+        "LAIA, PGRS, CADRI, FDSR e indicadores ambientais",
+      ],
+      painel: { src: "/images/plataformas/hub2-meio-ambiente.webp", alt: "Licenças e condicionantes no módulo Meio ambiente do Audita HUB", legenda: "", largura: 1060, altura: 850 },
     },
   ],
   suite: {

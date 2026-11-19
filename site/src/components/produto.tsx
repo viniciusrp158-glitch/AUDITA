@@ -33,9 +33,24 @@ export function PaginaProduto({ p }: { p: Produto }) {
         id="produto-titulo"
         migalhas={[{ rotulo: "Plataformas", href: "/solucoes/" }, { rotulo: p.nome }]}
         kicker="Uma solução AUDITA"
-        titulo={<Logo nome={p.logo} largura={440} />}
+        titulo={
+          d.vitrine ? (
+            <>
+              <Logo nome={p.logo} largura={440} />
+              <span className="hero__frase">{d.vitrine.frase}</span>
+            </>
+          ) : (
+            <Logo nome={p.logo} largura={440} />
+          )
+        }
+        lado={
+          d.vitrine ? (
+            // eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP
+            <img className="hero__mockup" src={d.vitrine.imagem.src} alt={d.vitrine.imagem.alt} width={d.vitrine.imagem.largura} height={d.vitrine.imagem.altura} fetchPriority="high" />
+          ) : undefined
+        }
         resumo={p.textoBase}
-        foto={{ codigo: p.nome, descricao: "tela do sistema ao fundo", src: d.telas[0].src }}
+        foto={{ codigo: p.nome, descricao: "tela do sistema ao fundo", src: d.vitrine ? "/images/plataformas/hub2-fundo.webp" : d.telas[0].src }}
         traco={p.cor}
       >
         <div className="acoes">
@@ -96,10 +111,16 @@ export function PaginaProduto({ p }: { p: Produto }) {
                 ))}
               </ul>
             </div>
-            <div data-revelar={i % 2 ? "esquerda" : "direita"} className="produto-pilha">
-              <Janela img={r.telas[0]} />
-              <Janela img={r.telas[1]} frente />
-            </div>
+            {r.painel ? (
+              <div data-revelar={i % 2 ? "esquerda" : "direita"}>
+                <Painel img={r.painel} />
+              </div>
+            ) : r.telas ? (
+              <div data-revelar={i % 2 ? "esquerda" : "direita"} className="produto-pilha">
+                <Janela img={r.telas[0]} />
+                <Janela img={r.telas[1]} frente />
+              </div>
+            ) : null}
           </div>
         </section>
       ))}
@@ -218,7 +239,28 @@ export function PaginaProduto({ p }: { p: Produto }) {
       </section>
       )}
 
-      {/* Telas reais */}
+      {/* HUB: uso em campo com as peças verticais dos mockups */}
+      {d.campo ? (
+        <section className="secao secao--escura" aria-labelledby="campo-titulo">
+          <div className="container">
+            <p className="kicker">{d.campo.kicker}</p>
+            <h2 id="campo-titulo" className="t2">{d.campo.titulo}</h2>
+            <p className="medida" style={{ margin: "12px 0 0", color: "#d9e2e9" }}>{d.campo.texto}</p>
+            <ul className="grade grade--3 produto-campo" style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
+              {d.campo.pecas.map((c, i) => (
+                <li key={c.src} data-revelar="" style={{ transitionDelay: `${i * 120}ms` }}>
+                  <figure style={{ margin: 0 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
+                    <img src={c.src} alt={c.alt} width={c.largura} height={c.altura} loading="lazy" />
+                    <figcaption style={{ marginTop: 12, fontSize: 15, color: "#d9e2e9" }}>{c.legenda}</figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+            <p style={{ margin: "24px 0 0", fontSize: 13, color: "#d9e2e9" }}>Capturas reais do sistema, com dados fictícios de demonstração.</p>
+          </div>
+        </section>
+      ) : (
       <section className="secao secao--escura" aria-labelledby="telas-titulo">
         <div className="container">
           <p className="kicker">Telas</p>
@@ -244,6 +286,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
           </div>
         </div>
       </section>
+      )}
 
       {/* Diferenciais */}
       <section className="secao" aria-labelledby="diferenciais-titulo">
@@ -312,6 +355,17 @@ function Tela({ img, redonda = false }: { img: Imagem; redonda?: boolean }) {
         <img src={img.src} alt={img.alt} width={img.largura} height={img.altura} loading="lazy" style={{ display: "block", width: "100%", height: "auto" }} />
       </a>
       <figcaption className="mutado" style={{ marginTop: 8, fontSize: 13, color: redonda ? undefined : "#d9e2e9" }}>{img.legenda}</figcaption>
+    </figure>
+  );
+}
+
+/** Mockup pronto (aparelho sobre o fundo navy com a curva verde), recortado das peças do HUB */
+function Painel({ img }: { img: Imagem }) {
+  return (
+    <figure style={{ margin: 0 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
+      <img className="produto-painel" src={img.src} alt={img.alt} width={img.largura} height={img.altura} loading="lazy" />
+      {img.legenda ? <figcaption className="mutado" style={{ marginTop: 8, fontSize: 13 }}>{img.legenda}</figcaption> : null}
     </figure>
   );
 }
