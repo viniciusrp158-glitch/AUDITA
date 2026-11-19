@@ -2015,6 +2015,28 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   porta 3499. Só o container `audita-site` foi trocado. Conferido no ar: páginas 200, imagens novas, `og:image`,
   `noindex` mantido, redirecionamentos, `/empresa/login` e console sem erros.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261119-hub-r2 .env && docker compose up -d site`.
+
+## Prospecção 2.0 — planejamento e decisões da Direção (19/11/2026)
+
+- **Pedido da Direção:** prospecção refinada automaticamente (sem filtrar segmento), grupos por chance de resposta,
+  grandes empresas incluídas e muito pequenas fora, número de contato corrigível, mensagem de WhatsApp definida,
+  e-mail de apresentação com imagem, envio para vários leads, painel de indicadores, mais rápido e divertido, celular
+  primeiro.
+- **Planejamento:** `docs/PLANEJAMENTO_PROSPECCAO_V2.md`. Diagnóstico medido na base de produção (só leitura): 35% dos
+  telefones e 34% dos e-mails da região se repetem em 5 ou mais CNPJs (contato da contabilidade); porte "Demais" não
+  é "grande" (37 mil produtores rurais PF, 8 mil associações, 4 mil condomínios); ME = 45% da região. Lentidão medida
+  no ambiente de testes: Pesquisar 7,2–7,4 s; demais telas 2,2–3,5 s; servidor de 4 núcleos dividido com o PRO.
+- **Conflitos com o AUDDOC020 Rev.00 apresentados** (regra 1): disparo automático, e-mail pelo Outlook, linha de saída
+  (RP-10), público por porte, validação jurídica antes de ampliar contatos e teto de R$ 0.
+- **Decisões (respostas na conversa):** ME só com capital social ≥ R$ 100 mil ou filiais; produtor rural PF,
+  associações e condomínios fora da lista automática; grandes empresas com prioridade até 150 km; Fila de envio
+  assistida no WhatsApp; remetente @audita.seg.br com serviço gratuito para o e-mail; texto do WhatsApp da Direção com
+  linha de saída e segmento; autorizado desligar contêineres ociosos.
+- **Executado:** desligados `audita-studio`, `audita-meta`, `auditadev-studio` e `auditadev-meta` (projetos
+  `supabase-audita` e `supabase-audita-dev`; nada do PRO), com `docker compose stop studio meta` pelo usuário deploy.
+  Sistema e site seguem respondendo (login 200, site 200). Para religar: `docker compose start studio meta` na pasta do
+  projeto.
+
 - **Correção (19/11/2026, com o "Pode publicar" do Diretor):** o notebook aparecia cortado em Divergências, EPIs e Meio
   ambiente (nas peças originais ele passa da borda direita). Os painéis foram remontados com a tela da peça dentro da
   moldura completa do notebook; PGR e Indicadores também ficaram com o notebook inteiro. Arquivos `hub2-*-v2.webp`.
