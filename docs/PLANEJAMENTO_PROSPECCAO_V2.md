@@ -189,3 +189,26 @@ As quatro primeiras definem o desenho e foram enviadas na conversa. As demais po
 8. Quem é o advogado e quando pode validar o envio em lote (RNF-P04)?
 9. Autoriza desligar o painel de banco de produção (`audita-meta`/Studio) e o ambiente de testes quando não estiverem
    em uso? Ligo de novo quando precisar.
+
+---
+
+## 6. Decisões da Direção (19/11/2026)
+
+| Tema | Decisão |
+|---|---|
+| Microempresas (ME) | Só com sinal de estrutura: **capital social ≥ R$ 100 mil** ou filiais |
+| Produtor rural PF, associações e condomínios | **Fora** da prospecção automática (continuam acessíveis na Pesquisa avulsa) |
+| Grandes empresas | Prioridade até **150 km** de Sorocaba |
+| WhatsApp para vários leads | **Fila de envio assistida** aprovada (sem API, sem disparo automático) |
+| E-mail bonito e em lote | **Remetente @audita.seg.br + serviço gratuito de envio** |
+| Texto do WhatsApp | Texto da Direção **+ linha de saída** (RP-10) **+ segmento da empresa** no lugar de "indústrias" quando não for indústria |
+| Servidor | Autorizado desligar o painel de banco (Studio/meta) e o ambiente de testes quando ociosos — **feito em 19/11** |
+
+**Pendentes (não bloqueiam as Fases 1 e 2):**
+- Meta diária de contatos do painel (hoje: 25 por semana).
+- Advogado e data da validação jurídica, que libera o envio em lote (RNF-P04).
+- Ações da Direção para o e-mail: criar o endereço (ex.: contato@audita.seg.br), criar a conta gratuita no serviço
+  de envio (eu indico o serviço e o passo a passo; a senha fica com a Direção) e dar acesso ao DNS do domínio
+  audita.seg.br para os registros de autenticação (SPF/DKIM/DMARC), que evitam cair no spam.
+
+**Próximo passo:** AUDDOC020 Rev.01 (rascunho para aprovação na Biblioteca) com estas decisões. Em seguida, Fase 1.
