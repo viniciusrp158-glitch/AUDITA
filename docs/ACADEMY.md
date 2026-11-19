@@ -19,7 +19,7 @@ redirecionamento é o Nginx do site (`deploy/vps/site/nginx.conf`).
 | 4 | Meus cursos com "Continuar de onde parei" e progresso; logo na sala de aula | No ar desde 16/11/2026 (S9) |
 | 5 | Menu do aluno (iniciais, sino, barra inferior no celular), Meu Perfil, WhatsApp e Histórico de cursos | No ar desde 17/11/2026 (S10). Migração `20261116120000_a5_academy_aluno.sql` aplicada no desenvolvimento e na produção |
 | 6 | Financeiro, comprovante e relatório anual (imprimir ou salvar em PDF) | No ar desde 17/11/2026 (S10) |
-| 7 | Notificações (automáticas, aviso de prazo calculado na leitura) e comunicados em `/empresa/treinamentos/comunicados` | Notificações no ar desde 17/11/2026 (S10). A tela de comunicados está no código e entra na próxima publicação do sistema (`audita-web`). Envio por e-mail ainda não existe (decisão do Diretor) |
+| 7 | Notificações (automáticas, aviso de prazo calculado na leitura) e comunicados em `/empresa/treinamentos/comunicados` | Notificações no ar desde 17/11/2026 (S10). A tela de comunicados entrou no ar com a publicação do sistema de 19/11/2026 (`audita-sistema:20261119-celular3`, feita pela sessão do Sistema de Operação). Envio por e-mail ainda não existe (decisão do Diretor) |
 
 Os dados de apresentação que não ficam no banco (capa e área de cada curso, WhatsApp) estão em `aluno/src/lib/academy.ts`.
 Curso sem capa usa `aluno/public/capas/padrao.webp`. Curso sem área cadastrada não mostra o selo de área.
