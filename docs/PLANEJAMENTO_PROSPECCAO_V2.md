@@ -256,3 +256,17 @@ comercialmente no catálogo. O domínio **não tem caixa de entrada** (sem MX), 
 3. Fazer os envios reais (o sistema prepara; quem envia é o usuário) e o primeiro teste: um e-mail e um WhatsApp para
    um contato próprio da Direção.
 4. Obter a validação jurídica.
+
+### 7.1 Respostas da Direção (19/11/2026)
+
+| Item | Decisão |
+|---|---|
+| A1 Meta diária | **20 contatos por dia útil** |
+| A2/A3 E-mail | Conta Brevo **separada** para a prospecção (passo a passo na Fase 3); caixa @audita.seg.br a definir (sem custo: Cloudflare Email Routing → Outlook) |
+| A4 Limite | Até **100/dia**, com aquecimento gradual (30 → 100 em ~3 semanas) e pausa automática se devoluções > 3% ou denúncias |
+| A5 WhatsApp da AUDITA | **(15) 99689-1049** confirmado |
+| A6 Grande empresa | Sugestão aceita: grande = S.A., ≥ 3 filiais ou capital ≥ R$ 5 milhões; média = capital ≥ R$ 1 milhão |
+| A7 Guarda | Leads sem resposta: **6 meses**, depois anonimizar |
+| A8 Advogado | Avaliação de Legítimo Interesse preparada para validação; dados do advogado não são registrados, só a data da validação |
+| B Autorizações | **Todas autorizadas** ("Autorizado, execute tudo") |
+| C | C1 passo a passo do Brevo na Fase 3; C2 aprovações quando necessário; C3 ok; C4 validação jurídica pela Direção |
