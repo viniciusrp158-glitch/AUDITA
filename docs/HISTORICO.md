@@ -1978,3 +1978,24 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   caminhos sem login; não tem dados). Teste `p6-celular` **3/3** (manifesto sem login, ícones 200, tela cheia) e
   `i1-acesso` 5/5. Produção: imagem `audita-sistema:20261119-celular2` no ar (healthy; manifesto 200).
   **Reversão:** `AUDITA_WEB_TAG=20261118-celular1`.
+
+## Celular — 2ª entrega: demais telas (19/11/2026)
+
+- **Pedido do Diretor:** "Sim, siga" (adaptação completa ao celular).
+- **Diagnóstico (capturas 390 px de 21 telas internas):** nenhuma com rolagem lateral; três com conteúdo cortado ou
+  espremido — Caixa (tabela de 9 colunas), Registro de atividades (tabela de 4 colunas com linhas enormes) e Regiões
+  (coluna de empresas fora da tela). As demais (Início, Academy, Biblioteca, Configurações, Catálogo, Parâmetros,
+  Modelos, Institucional, Guarda, Vendas, Convites, Solicitações, Lista Mestra, Nichos, Nova demanda, Conta, quadros)
+  já funcionam bem no celular.
+- **Caixa no celular:** um cartão por mês com movimento (saldo do mês, recebido e acumulado; ao tocar, as saídas por
+  categoria) e o saldo do ano — mesmos valores do cálculo exato (`monthlyCash`), sem conta nova; a tabela continua no
+  computador.
+- **Registro de atividades no celular:** um cartão por atividade (ação, data, área e "Ver detalhes").
+- **Regiões no celular:** distância embaixo do nome do município e coluna "Empresas" sempre visível.
+- **Meu dia (Início):** retornos da prospecção com contato confirmado ganham botões de WhatsApp e ligação com um toque.
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** `p6-celular` **4/4** (novo: caixa em cartões, atividades em lista, regiões cabendo na
+  largura); regressão `a-frente-a` 3/3, `i1-acesso` 5/5, `p1-prospect` 5/5, `v1-1-execucao-caixa` 2/2 (o 1º, que
+  depende de serviço contratado no ambiente, ficou de fora como antes).
+- **Produção:** imagem `audita-sistema:20261119-celular3` pré-testada na 3299 e no ar (healthy). **Reversão:**
+  `AUDITA_WEB_TAG=20261119-celular2` + `docker compose up -d web`.
