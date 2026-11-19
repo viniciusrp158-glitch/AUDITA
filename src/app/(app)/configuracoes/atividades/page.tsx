@@ -36,7 +36,27 @@ export default async function AtividadesPage({ searchParams }: { searchParams: P
           Não foi possível carregar o registro de atividades.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-line bg-white">
+        <>
+        {/* Celular: um cartão por atividade (a tabela de 4 colunas não cabe) */}
+        <ul className="space-y-2 md:hidden" aria-label="Atividades">
+          {(data ?? []).map((row) => (
+            <li key={row.id} className="rounded-xl border border-line bg-white p-3">
+              <p className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="text-sm font-semibold text-ink">{ACOES[row.action] ?? row.action}</span>
+                <span className="text-xs tabular-nums text-muted">{formatDateTime(row.occurred_at)}</span>
+              </p>
+              <p className="text-xs text-muted">{ENTIDADES[row.entity] ?? row.entity}</p>
+              {Object.keys(row.summary ?? {}).length > 0 && (
+                <details className="mt-1 text-xs text-muted">
+                  <summary className="cursor-pointer">Ver detalhes</summary>
+                  <code className="mt-1 block max-h-60 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(row.summary, null, 1)}</code>
+                </details>
+              )}
+            </li>
+          ))}
+          {(data ?? []).length === 0 && <li className="rounded-xl border border-line bg-white px-4 py-8 text-center text-sm text-muted">Nenhuma atividade registrada.</li>}
+        </ul>
+        <div className="hidden overflow-x-auto rounded-xl border border-line bg-white md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-navy text-xs uppercase tracking-wide text-white">
               <tr>
@@ -81,6 +101,7 @@ export default async function AtividadesPage({ searchParams }: { searchParams: P
             </tbody>
           </table>
         </div>
+        </>
       )}
       <nav className="mt-4 flex items-center justify-between text-sm text-muted" aria-label="Paginação">
         <span>

@@ -1,6 +1,10 @@
+import { Suspense } from "react";
+import { SavedFilters } from "@/components/saved-filters";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { BOARD_CARD, Board, ExportLink, ViewToggle } from "@/components/board";
 import { PageHeader } from "@/components/page";
+import { QUOTE_STATUS, type QuoteStatus } from "@/lib/pricing/labels";
 import { QuoteStatusPill } from "@/components/pricing-status";
 import { TestBadge } from "@/components/ui";
 import { requireAppUser } from "@/lib/auth";
@@ -10,24 +14,37 @@ import { listQuotes, QUOTES_PAGE_SIZE } from "@/lib/pricing/queries";
 
 export const metadata = { title: "Orçamentos" };
 
-export default async function OrcamentosPage({ searchParams }: { searchParams: Promise<{ q?: string; p?: string }> }) {
+/** Quantos orçamentos o quadro carrega de uma vez. */
+const BOARD_LIMIT = 500;
+
+export default async function OrcamentosPage({ searchParams }: { searchParams: Promise<{ q?: string; p?: string; situacao?: string; visao?: string }> }) {
   await requireAppUser(OPERATE);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
+  const situacao = sp.situacao && sp.situacao in QUOTE_STATUS ? (sp.situacao as QuoteStatus) : "";
   const page = Math.max(1, Number(sp.p) || 1);
-  const { rows, total, error } = await listQuotes({ q, page });
+  const board = sp.visao === "quadro";
+  const { rows, total, error } = await listQuotes({ q, situacao, page: board ? 1 : page, size: board ? BOARD_LIMIT : QUOTES_PAGE_SIZE });
   const pages = Math.max(1, Math.ceil(total / QUOTES_PAGE_SIZE));
-  const qs = (p: number) => `?${new URLSearchParams({ ...(q && { q }), p: String(p) })}`;
+  const filters = { ...(q && { q }), ...(situacao && { situacao }) };
+  const qs = (p: number) => `?${new URLSearchParams({ ...filters, p: String(p) })}`;
+  const listHref = `?${new URLSearchParams(filters)}`;
+  const boardHref = `?${new URLSearchParams({ ...filters, visao: "quadro" })}`;
   const clientName = (r: (typeof rows)[number]) => r.clients?.trade_name || r.clients?.legal_name;
+  const statusKeys = Object.keys(QUOTE_STATUS) as QuoteStatus[];
 
   return (
     <>
-      <PageHeader
-        title="Orçamentos"
-        description="Cotações calculadas pela metodologia AUDDOC011 (uma por demanda). Para iniciar, abra a demanda e use “Criar cotação”."
-      />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <PageHeader
+          title="Orçamentos"
+          description="Cotações calculadas pela metodologia AUDDOC011 (uma por demanda). Para iniciar, abra a demanda e use “Criar cotação”."
+        />
+        <ExportLink href={`/orcamentos/exportar${listHref}`} />
+      </div>
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">
+        {board && <input type="hidden" name="visao" value="quadro" />}
         <label className="min-w-0 flex-1 basis-64">
           <span className="sr-only">Pesquisar</span>
           <span className="relative block">
@@ -40,15 +57,62 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
             />
           </span>
         </label>
+        <label className="min-w-0 flex-1 basis-44 sm:flex-none">
+          <span className="sr-only">Situação</span>
+          <select name="situacao" defaultValue={situacao} className="w-full rounded-md border border-line bg-white px-3 py-2 text-sm outline-none focus:border-navy">
+            <option value="">Qualquer situação</option>
+            {statusKeys.map((k) => (
+              <option key={k} value={k}>
+                {QUOTE_STATUS[k].label}
+              </option>
+            ))}
+          </select>
+        </label>
         <button type="submit" className="rounded-md border border-line bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-navy/40">
-          Pesquisar
+          Filtrar
         </button>
+        <span className="ml-auto">
+          <ViewToggle board={board} listHref={listHref} boardHref={boardHref} />
+        </span>
       </form>
+      <Suspense>
+        <SavedFilters listKey="orcamentos" />
+      </Suspense>
 
       {error ? (
         <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
           Não foi possível carregar os orçamentos.
         </p>
+      ) : board ? (
+        <>
+          <Board
+            columns={(situacao ? [situacao] : statusKeys).map((k) => ({
+              key: k,
+              label: QUOTE_STATUS[k].label,
+              items: rows
+                .filter((r) => r.status === k)
+                .map((r) => ({
+                  id: r.id,
+                  node: (
+                    <Link href={`/orcamentos/${r.id}`} className={BOARD_CARD}>
+                      <span className="font-mono text-xs font-semibold text-navy">{r.quote_code}</span>
+                      <span className="mt-0.5 block break-words text-sm font-semibold leading-snug text-ink">{r.demands?.summary}</span>
+                      <span className="mt-1 block text-xs text-muted">{clientName(r)}</span>
+                      <span className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted">
+                        Atualizado {formatDateTime(r.updated_at)}
+                        {r.is_test && <TestBadge />}
+                      </span>
+                    </Link>
+                  ),
+                })),
+            }))}
+          />
+          {total > rows.length && (
+            <p className="mt-2 text-xs text-muted">
+              Mostrando {rows.length} de {total} orçamentos. Use a pesquisa ou a lista para ver os demais.
+            </p>
+          )}
+        </>
       ) : (
         <>
           <div className="hidden overflow-hidden rounded-xl border border-line bg-white md:block">
@@ -78,7 +142,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
                     <td className="px-4 py-2.5 text-muted">
                       <span className="font-mono text-xs">{r.clients?.client_code}</span> {clientName(r)}
                     </td>
-                    <td className="px-4 py-2.5 tabular-nums text-muted">{r.quote_items?.[0]?.count ?? 0}</td>
+                    <td className="px-4 py-2.5 tabular-nums text-muted">{r.quote_items?.length ?? 0}</td>
                     <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-muted">{formatDateTime(r.updated_at)}</td>
                     <td className="px-4 py-2.5">
                       <span className="flex flex-wrap items-center gap-1">
@@ -105,7 +169,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
                     {r.clients?.client_code} {clientName(r)}
                   </p>
                   <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted">
-                    {r.quote_items?.[0]?.count ?? 0} ite{(r.quote_items?.[0]?.count ?? 0) === 1 ? "m" : "ns"} · {formatDateTime(r.updated_at)}
+                    {r.quote_items?.length ?? 0} ite{(r.quote_items?.length ?? 0) === 1 ? "m" : "ns"} · {formatDateTime(r.updated_at)}
                     {r.is_test && <TestBadge />}
                   </p>
                 </Link>
@@ -115,7 +179,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
 
           {rows.length === 0 && (
             <p className="rounded-xl border border-line bg-white px-4 py-10 text-center text-sm text-muted">
-              {q ? "Nenhum orçamento encontrado." : "Nenhum orçamento ainda. Crie a cotação a partir de uma demanda."}
+              {q || situacao ? "Nenhum orçamento encontrado." :"Nenhum orçamento ainda. Crie a cotação a partir de uma demanda."}
             </p>
           )}
 

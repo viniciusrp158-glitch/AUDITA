@@ -37,11 +37,12 @@ test("usuário autenticado sem autorização é bloqueado", async ({ page }) => 
 
 test("administrador entra, navega, vê a trilha e sai", async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
-  await expect(page).toHaveURL("/empresa");
-  await expect(page.getByRole("heading", { name: /Olá, Administrador/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/empresa\/?$/, { timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: /^Olá, / })).toBeVisible();
 
   const menu = page.getByRole("complementary", { name: "Menu principal" });
-  for (const item of ["Início", "Clientes", "Demandas", "Orçamentos", "Biblioteca", "Comunicação", "Configurações"]) {
+  // Menu por área (Frente A, 17/11/2026); a Comunicação saiu em 28/10/2026
+  for (const item of ["Início", "Prospecção", "Clientes", "Demandas", "Orçamentos", "Serviços em execução", "Audita Academy", "Caixa", "Biblioteca", "Configurações"]) {
     await expect(menu.getByRole("link", { name: item })).toBeVisible();
   }
   await page.screenshot({ path: `${SHOTS}/03-inicio.png`, fullPage: true });
@@ -64,10 +65,12 @@ test("layout responsivo no celular", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
   const page = await ctx.newPage();
   await login(page, ADMIN.email, ADMIN.password);
-  await expect(page).toHaveURL("/empresa");
+  await expect(page).toHaveURL(/\/empresa\/?$/, { timeout: 30_000 });
   await page.screenshot({ path: `${SHOTS}/05-celular-inicio.png` });
   await page.getByRole("button", { name: "Abrir menu" }).click();
-  await expect(page.getByRole("link", { name: "Orçamentos" })).toBeVisible();
+  // Com a barra inferior (Frente A), "Orçamentos" aparece também nos atalhos: confere o do menu aberto
+  await expect(page.getByRole("complementary", { name: "Menu principal" }).getByRole("link", { name: "Orçamentos" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Atalhos" })).toBeVisible();
   await page.waitForTimeout(400); // aguarda a animação do menu
   await page.screenshot({ path: `${SHOTS}/06-celular-menu.png` });
   await ctx.close();

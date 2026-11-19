@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { ClientPicker } from "@/components/client-picker";
+import { FormDraft, useFocusFirstError } from "@/components/form-draft";
 import { Alert, CheckboxField, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
 import { ORIGINS } from "@/lib/demands/labels";
 import type { FormOptions } from "@/lib/demands/queries";
@@ -29,6 +30,7 @@ export function DemandForm({
   submitLabel,
   cancelHref,
   isDev,
+  draftKey,
 }: {
   action: (s: DemandActionState, f: FormData) => Promise<DemandActionState>;
   options: FormOptions;
@@ -37,6 +39,8 @@ export function DemandForm({
   submitLabel: string;
   cancelHref: string;
   isDev: boolean;
+  /** Rascunho automático neste aparelho (só no cadastro novo). */
+  draftKey?: string;
 }) {
   const [state, formAction] = useActionState<DemandActionState, FormData>(action, {});
   const sv = state.values ?? {};
@@ -49,6 +53,7 @@ export function DemandForm({
   const [links, setLinks] = useState<ClientLinks>(initialLinks ?? { units: [], contacts: [] });
   const [loading, startLoading] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, state);
   // Último escopo colocado automaticamente: só é trocado sozinho se a pessoa não o editou
   const autoScope = useRef<string | null>(null);
   const [scopeOffer, setScopeOffer] = useState<string | null>(null);
@@ -89,6 +94,7 @@ export function DemandForm({
 
   return (
     <form ref={formRef} action={formAction} className="space-y-6" noValidate>
+      {draftKey && <FormDraft formRef={formRef} storageKey={draftKey} exclude={["unit_id", "contact_id", "client_search"]} />}
       {state.error && <Alert kind="error">{state.error}</Alert>}
       {isDev && (
         <Alert kind="warning">

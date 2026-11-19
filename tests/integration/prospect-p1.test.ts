@@ -119,6 +119,40 @@ describe("P1 — AUDITA PROSPECT (PGlite)", () => {
     });
   });
 
+  it("conversão (P4, RP-12): proposta emitida leva o lead a \"Proposta enviada\" e aceita a \"Cliente conquistado\"", async () => {
+    const CNPJ_D = "60701190000104";
+    const client = (await q<{ id: string }>(`insert into audita.clients (client_code, legal_name, tax_id, is_test) values ('CLI-TESTE-P4', '[TESTE] Distribuidora Delta Ltda', $1, true) returning id`, [CNPJ_D]))[0].id;
+    let lead = "";
+    let lost = "";
+    await asUser(db, OPER, async () => {
+      lead = (await q<{ id: string }>(`insert into audita.leads (cnpj, legal_name, stage, is_test) values ($1, '[TESTE] Distribuidora Delta Ltda', 'negociacao', true) returning id`, [CNPJ_D]))[0].id;
+      // Vínculo ao cliente (feito pela tela) não muda a etapa
+      await db.query(`update audita.leads set client_id = $2 where id = $1`, [lead, client]);
+      lost = (await q<{ id: string }>(`insert into audita.leads (legal_name, stage, lost_reason, client_id, is_test) values ('[TESTE] Delta filial perdida', 'perdido', '[TESTE] sem interesse', $1, true) returning id`, [client]))[0].id;
+    });
+    const stage = async (id: string) => (await q<{ stage: string }>(`select stage from audita.leads where id = $1`, [id]))[0].stage;
+    expect(await stage(lead)).toBe("negociacao");
+    await db.exec(`set session_replication_role = replica`);
+    await db.query(`insert into audita.demands (id, demand_code, client_id, summary, status, is_test) values ('00000000-0000-4000-8000-0000000004d1', 'DEM-2026-9401', $1, '[TESTE] PGR', 'em_analise', true)`, [client]);
+    await db.query(`insert into audita.quotes (id, quote_code, demand_id, client_id, status, is_test) values ('00000000-0000-4000-8000-0000000004e1', 'PROP-2026-9401', '00000000-0000-4000-8000-0000000004d1', $1, 'revisada', true)`, [client]);
+    await db.exec(`set session_replication_role = origin`);
+    // O gatilho é só o da etapa; as regras de emissão (funções SECURITY DEFINER) não entram neste teste
+    await db.exec(`alter table audita.quotes disable trigger user; alter table audita.quotes enable trigger leads_follow_quote;`);
+    await db.query(`update audita.quotes set status = 'emitida' where id = '00000000-0000-4000-8000-0000000004e1'`);
+    expect(await stage(lead)).toBe("proposta");
+    expect(await stage(lost)).toBe("perdido");
+    const hist = await q<{ to_stage: string }>(`select to_stage from audita.lead_stage_history where lead_id = $1 order by changed_at desc, id desc limit 1`, [lead]);
+    expect(hist[0].to_stage).toBe("proposta");
+    await db.query(`update audita.quotes set status = 'aceita' where id = '00000000-0000-4000-8000-0000000004e1'`);
+    expect(await stage(lead)).toBe("cliente");
+    expect(await stage(lost)).toBe("cliente");
+    await db.exec(`alter table audita.quotes enable trigger user;`);
+    // A função não fica exposta à API
+    await asUser(db, ADMIN, async () => {
+      expect(await err(db.query(`select audita.leads_follow_quote()`))).not.toBeNull();
+    });
+  });
+
   it("regiões: contagem por município e nicho (prefixos de 2 e 4 dígitos) e sem acesso para quem não prospecta", async () => {
     await db.exec(`
       insert into audita.ibge_municipalities (ibge_code, name, rfb_code, km_from_base) values ('3552403', 'Sumaré', '7149', 120), ('3509502', 'Campinas', '6291', 77);
@@ -149,6 +183,29 @@ describe("P1 — AUDITA PROSPECT (PGlite)", () => {
       expect(await q(`select 1 from audita.prospect_region_counts(0)`)).toHaveLength(0);
       expect(await q(`select 1 from audita.prospect_region_stats`)).toHaveLength(0);
       expect(await err(db.query(`select audita.refresh_prospect_region_stats()`))).not.toBeNull();
+    });
+  });
+
+  it("pesquisa (P3): filtros de CNAE, região, porte, telefone, abertura e nome, com total; RLS e entradas validadas", async () => {
+    type R = { cnpj: string; total: string };
+    const s = (args: string) => q<R>(`select cnpj, total::text from audita.prospect_search(${args})`);
+    await asUser(db, OPER, async () => {
+      expect(await s(`array['41'], 50`)).toEqual([{ cnpj: CNPJ_A, total: "1" }]);
+      expect(await s(`array['4120'], 0`)).toHaveLength(2); // Estado inteiro: inclui a obra de Sumaré (120 km)
+      expect((await s(`array['4120'], 150`))[0].total).toBe("2");
+      expect(await s(`array['4120'], 100`)).toHaveLength(1);
+      expect(await s(`array['41'], 50, '3552205', array['03'], true, '2022-01-01', 'alfa'`)).toHaveLength(1);
+      expect(await s(`array['62'], 50`)).toHaveLength(1); // outro nicho (software)
+      expect(await s(`array['47'], 50`)).toHaveLength(0);
+      expect(await s(`array['41', '4120', '41'], 0`)).toHaveLength(2); // prefixos sobrepostos não duplicam
+      expect(await s(`array['41'], 50, null, array['01']`)).toHaveLength(0); // outro porte
+      expect(await s(`array['41'], 50, null, null, false, '2023-01-01'`)).toHaveLength(0); // aberta antes
+      expect(await s(`array['41'], 50, null, null, false, null, 'beta'`)).toHaveLength(0); // outro nome
+      expect(await err(db.query(`select * from audita.prospect_search(array['41'' or true or ''x'])`))).not.toBeNull();
+      expect(await err(db.query(`select * from audita.prospect_search(array['41'], 50, '1; drop')`))).not.toBeNull();
+    });
+    await asUser(db, MKT, async () => {
+      expect((await err(db.query(`select * from audita.prospect_search(array['41'], 0)`)))?.code).toBe("42501"); // quem não prospecta não pesquisa
     });
   });
 

@@ -58,7 +58,36 @@ export default async function CaixaPage({ searchParams }: { searchParams: Promis
         </nav>
 
         <Card title={`Controle simplificado de caixa — ${year}`}>
-          <div className="overflow-x-auto" data-testid="cash-table">
+          {/* Celular: um cartão por mês com movimento (a tabela de 9 colunas não cabe); valores do mesmo cálculo exato */}
+          <div className="space-y-2 md:hidden" data-testid="cash-cards">
+            {months.filter((m) => m.hasEntries).length === 0 && <p className="text-sm text-muted">Nenhum lançamento neste exercício.</p>}
+            {months
+              .filter((m) => m.hasEntries)
+              .map((m) => (
+                <details key={m.month} className="rounded-lg border border-line p-3">
+                  <summary className="flex cursor-pointer list-none flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <span className="font-semibold text-ink">{MONTHS[m.month - 1]}</span>
+                    <span className={`font-semibold tabular-nums ${neg(m.balance)}`}>{money(m.balance)}</span>
+                    <span className="w-full text-xs text-muted">
+                      Recebido {money(m.totals.recebimento) || "R$ 0,00"} · acumulado <span className={neg(m.cumulative)}>{money(m.cumulative)}</span>
+                    </span>
+                  </summary>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-line pt-2 text-xs">
+                    {PAYMENT_CATEGORIES.map((c) => (
+                      <div key={c} className="contents">
+                        <dt className="text-muted">{CASH_CATEGORIES[c].column}</dt>
+                        <dd className="text-right tabular-nums text-ink">{money(m.totals[c]) || "—"}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
+              ))}
+            <div className="flex items-baseline justify-between rounded-lg bg-surface px-3 py-2 text-sm font-semibold">
+              <span>Saldo de {year}</span>
+              <span className={`tabular-nums ${neg(tot.balance)}`}>{formatBRL(tot.balance)}</span>
+            </div>
+          </div>
+          <div className="hidden overflow-x-auto md:block" data-testid="cash-table">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">

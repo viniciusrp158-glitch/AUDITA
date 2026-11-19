@@ -5,7 +5,7 @@ import { SCOPE_COLUMNS, serviceScopeText } from "@/lib/services/scope";
 import { createClient } from "@/lib/supabase/server";
 import type { QuoteSnapshot } from "@/lib/documents/snapshot";
 import { ITEM_BASE_COLS, withItemPricing, type ItemPricingFields, type ItemPricingRow } from "./item-columns";
-import type { ParamStatus, Periodicity, QuoteStatus, RevisionStatus } from "./labels";
+import { QUOTE_STATUS, type ParamStatus, type Periodicity, type QuoteStatus, type RevisionStatus } from "./labels";
 import type { ParameterValues, ServiceInfo } from "./quote";
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -159,21 +159,33 @@ export type QuoteListRow = {
   updated_at: string;
   demands: { demand_code: string; summary: string } | null;
   clients: { client_code: string; legal_name: string; trade_name: string | null } | null;
-  quote_items: { count: number }[];
+  quote_items: { id: string }[];
 };
 
 export const QUOTES_PAGE_SIZE = 25;
 
-export async function listQuotes({ q, page }: { q?: string; page: number }): Promise<{ rows: QuoteListRow[]; total: number; error: boolean }> {
+export async function listQuotes({
+  q,
+  page,
+  situacao,
+  size = QUOTES_PAGE_SIZE,
+}: {
+  q?: string;
+  page: number;
+  situacao?: string;
+  size?: number;
+}): Promise<{ rows: QuoteListRow[]; total: number; error: boolean }> {
   const supabase = await createClient();
   let query = supabase
     .from("quotes")
     .select(
-      "id, quote_code, status, is_test, updated_at, demands(demand_code, summary), clients(client_code, legal_name, trade_name), quote_items(count)",
+      "id, quote_code, status, is_test, updated_at, demands(demand_code, summary), clients(client_code, legal_name, trade_name), quote_items(id)",
+      // Conta pelos ids: desde 25/10 (seg1) o usuário não tem SELECT na tabela inteira, e "quote_items(count)" era negado
       { count: "exact" },
     )
     .order("updated_at", { ascending: false })
-    .range((page - 1) * QUOTES_PAGE_SIZE, page * QUOTES_PAGE_SIZE - 1);
+    .range((page - 1) * size, page * size - 1);
+  if (situacao && situacao in QUOTE_STATUS) query = query.eq("status", situacao);
   const term = normalizeSearch(q ?? "");
   if (term) {
     // Código da cotação, código/resumo da demanda ou cadastro do cliente
@@ -190,6 +202,7 @@ export async function listQuotes({ q, page }: { q?: string; page: number }): Pro
   }
 
   const { data, count, error } = await query;
+  if (error) console.error("listQuotes", error.code, error.message);
   return { rows: (data ?? []) as unknown as QuoteListRow[], total: count ?? 0, error: Boolean(error) };
 }
 

@@ -62,6 +62,16 @@ test("pesquisa → funil → contato assistido → retorno → não contatar", a
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const wa = page.getByRole("link", { name: "Abrir no WhatsApp" });
   if (await wa.count()) await expect(wa).toHaveAttribute("href", /^https:\/\/wa\.me\/55\d{10,11}\?text=Ol%C3%A1/);
+  // Sem celular (quase toda a base da Receita só tem fixo): tentativa pelo fixo do cadastro (pedido do Diretor, 17/11)
+  else {
+    const fixo = page.getByRole("link", { name: "Tentar no WhatsApp pelo fixo do cadastro" });
+    const semNumero = page.getByText("Sem celular para WhatsApp — confirme o número abaixo");
+    await expect(fixo.or(semNumero)).toBeVisible();
+    if (await fixo.count()) {
+      await expect(fixo).toHaveAttribute("href", /^https:\/\/wa\.me\/55\d{10,11}\?text=Ol%C3%A1/);
+      await expect(page.getByText(/Muitas usam o WhatsApp Business no telefone fixo/)).toBeVisible();
+    }
+  }
   await page.getByLabel("Canal").selectOption("whatsapp");
   await page.getByLabel("Como foi").selectOption("enviado");
   await page.getByLabel("Observação").fill("[TESTE] mensagem enviada pelo modelo");
@@ -85,6 +95,18 @@ test("pesquisa → funil → contato assistido → retorno → não contatar", a
   await page.goto("/empresa/prospeccao");
   await expect(page.getByText("Funil — leads por etapa")).toBeVisible();
   await shot(page, "p1-painel");
+});
+
+test("pesquisa em raio grande: indústria até 150 km e no Estado inteiro (falhava por tempo limite em 17/11/2026)", async ({ page }) => {
+  test.setTimeout(180_000);
+  await login(page);
+  for (const raio of ["150", "0"]) {
+    const t0 = Date.now();
+    await page.goto(`/empresa/prospeccao/pesquisar?nicho=industria&raio=${raio}&run=1`);
+    await expect(page.getByText(/empresas-alvo encontradas/)).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText("Não foi possível pesquisar na base")).toHaveCount(0);
+    console.log(`pesquisa indústria raio ${raio}: ${Date.now() - t0} ms`);
+  }
 });
 
 test("regiões: IOC por município e atalho para a pesquisa do município", async ({ page }) => {

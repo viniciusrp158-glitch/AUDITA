@@ -2,14 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { Alert } from "@/components/form";
-import { Card, TestBadge } from "@/components/ui";
+import { ButtonLink, Card, TestBadge } from "@/components/ui";
+import { findClientByCnpj } from "@/lib/prospect/conversion";
+import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { formatCep, formatCnae, formatPhone, formatTaxId } from "@/lib/br";
 import { formatDateTime, formatDay } from "@/lib/format";
 import { isMobile, KIND_LABEL, OUTCOME_LABEL, STAGE_LABEL, templateForNiche, type ActivityKind, type Outcome, type Stage } from "@/lib/prospect/labels";
 import { getLead, getReleasedServices } from "@/lib/prospect/queries";
 import { BAND_LABEL, SIZE_LABEL, type ScoreBand } from "@/lib/prospect/score";
-import { ConfirmedContactForm, ContactPanel, StageForm, SuppressForm } from "./lead-forms";
+import { ConfirmedContactForm, ContactPanel, LinkClientForm, StageForm, SuppressForm } from "./lead-forms";
 
 export const metadata = { title: "Lead" };
 
@@ -38,6 +40,12 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
   const mapsQuery = encodeURIComponent([lead.legal_name, company?.street, company?.number, lead.municipality, "SP"].filter(Boolean).join(", "));
   const items = lead.score_detail?.items ?? [];
   const closed = lead.stage === "cliente" || lead.stage === "perdido";
+  // RP-12: cliente vinculado ou, se ainda não, cliente que já existe com o mesmo CNPJ
+  const supabase = await createClient();
+  const linked = lead.client_id
+    ? ((await supabase.from("clients").select("id, client_code, legal_name").eq("id", lead.client_id).maybeSingle()).data as { id: string; client_code: string; legal_name: string } | null)
+    : null;
+  const sameCnpj = lead.client_id ? null : await findClientByCnpj(lead.cnpj);
 
   const field = (label: string, value: string | null | undefined, tag?: string) => (
     <div>
@@ -74,8 +82,9 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
       {sp.ok === "nao-contatar" && <div className="mb-4"><Alert kind="info">Registrado em &quot;não contatar&quot;. A empresa saiu do funil.</Alert></div>}
       {lead.stage === "perdido" && lead.lost_reason && <div className="mb-4"><Alert kind="warning">Perdido ou desqualificado: {lead.lost_reason}</Alert></div>}
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-3">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-5">
+        <div className="contents lg:col-span-3 lg:block lg:space-y-6">
+          <div className="order-1">
           <Card title="Contatar">
             <ContactPanel
               leadId={lead.id}
@@ -89,7 +98,9 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               blocked={suppressed || closed}
             />
           </Card>
+          </div>
 
+          <div className="order-6">
           <Card title={`Por que esta nota${lead.score !== null ? ` (${lead.score} de 100)` : ""}`}>
             {items.length ? (
               <ul className="space-y-2.5">
@@ -125,7 +136,9 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               </div>
             )}
           </Card>
+          </div>
 
+          <div className="order-7">
           <Card title="Dados cadastrais">
             <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               {field("Razão social", lead.legal_name, rfb)}
@@ -139,14 +152,66 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
             </dl>
             <p className="mt-3 text-xs text-muted">Telefone e e-mail do cadastro da Receita costumam ser do contador que abriu a empresa. Confirme antes da abordagem.</p>
           </Card>
+          </div>
         </div>
 
-        <div className="space-y-6 lg:col-span-2">
+        <div className="contents lg:col-span-2 lg:block lg:space-y-6">
+          <div className="order-2">
+          <Card title="Cliente">
+            {linked ? (
+              <div className="space-y-3 text-sm">
+                <p>
+                  Vinculado ao cliente{" "}
+                  <Link href={`/clientes/${linked.id}`} className="font-semibold text-navy hover:underline">
+                    {linked.client_code} — {linked.legal_name}
+                  </Link>
+                  .
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <ButtonLink href={`/demandas/nova?cliente=${linked.id}`}>Abrir demanda</ButtonLink>
+                  <ButtonLink href={`/clientes/${linked.id}?aba=relacionamento`} variant="secondary">
+                    Demandas e propostas
+                  </ButtonLink>
+                </div>
+                <p className="text-xs text-muted">
+                  O orçamento sai da demanda, pelo fluxo de sempre. A etapa muda sozinha: proposta emitida → &quot;Proposta enviada&quot;;
+                  proposta aceita → &quot;Cliente conquistado&quot;.
+                </p>
+              </div>
+            ) : sameCnpj ? (
+              <div className="space-y-3 text-sm">
+                <p>
+                  Esta empresa já é cliente:{" "}
+                  <Link href={`/clientes/${sameCnpj.id}`} className="font-semibold text-navy hover:underline">
+                    {sameCnpj.client_code} — {sameCnpj.legal_name}
+                  </Link>{" "}
+                  (mesmo CNPJ).
+                </p>
+                <LinkClientForm leadId={lead.id} clientId={sameCnpj.id} label="Vincular a este cliente" />
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <p className="text-muted">
+                  Quando a empresa quiser uma proposta, cadastre-a como cliente: o formulário vem preenchido com os dados do lead e
+                  da Receita, e o sistema confere pelo CNPJ se ela já está cadastrada.
+                </p>
+                {suppressed ? (
+                  <p className="text-xs text-muted">Empresa na lista &quot;não contatar&quot;.</p>
+                ) : (
+                  <ButtonLink href={`/clientes/novo?lead=${lead.id}`}>Converter em cliente</ButtonLink>
+                )}
+              </div>
+            )}
+          </Card>
+          </div>
+          <div className="order-3">
           {!closed && (
             <Card title="Etapa">
               <StageForm leadId={lead.id} stage={lead.stage} />
             </Card>
           )}
+          </div>
+          <div className="order-4">
           <Card title="Contato confirmado">
             <ConfirmedContactForm
               leadId={lead.id}
@@ -158,6 +223,8 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
               }}
             />
           </Card>
+          </div>
+          <div className="order-5">
           <Card title="Linha do tempo">
             <ol className="space-y-3">
               {[
@@ -184,9 +251,14 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
                 ))}
             </ol>
           </Card>
+          </div>
+          <div className="order-8">
           {!suppressed && lead.cnpj && <SuppressForm leadId={lead.id} />}
+          </div>
         </div>
       </div>
+      {/* Celular: espaço para a barra de ações rápidas não cobrir o fim da página */}
+      <div aria-hidden className="h-16 lg:hidden" />
     </>
   );
 }

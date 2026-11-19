@@ -59,10 +59,17 @@ export function ResultsForm({ rows }: { rows: ResultRow[] }) {
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((r) => (
-              <tr key={r.cnpj} className={r.known ? "bg-surface/50" : "hover:bg-surface/60"}>
+              <tr
+                key={r.cnpj}
+                // Celular: tocar em qualquer parte da linha marca a empresa (a caixinha é pequena para o polegar)
+                onClick={(e) => {
+                  if (!r.known && !(e.target instanceof HTMLInputElement)) toggle(r.cnpj);
+                }}
+                className={r.known ? "bg-surface/50" : picked.has(r.cnpj) ? "cursor-pointer bg-blue/5" : "cursor-pointer hover:bg-surface/60"}
+              >
                 <td className="px-3 py-2.5">
                   {r.known ? null : (
-                    <input type="checkbox" name="cnpj" value={r.cnpj} checked={picked.has(r.cnpj)} onChange={() => toggle(r.cnpj)} aria-label={`Selecionar ${r.name}`} className="size-4" />
+                    <input type="checkbox" name="cnpj" value={r.cnpj} checked={picked.has(r.cnpj)} onChange={() => toggle(r.cnpj)} aria-label={`Selecionar ${r.name}`} className="size-5 md:size-4" />
                   )}
                 </td>
                 <td className="px-3 py-2.5">
@@ -92,7 +99,8 @@ export function ResultsForm({ rows }: { rows: ResultRow[] }) {
           </tbody>
         </table>
       </div>
-      <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-navy px-4 py-3 text-white shadow-lg">
+      {/* No celular fica acima da barra de atalhos (3,5 rem + área segura) */}
+      <div className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-navy px-4 py-3 text-white shadow-lg lg:bottom-3">
         <span className="text-sm">
           <strong>{picked.size}</strong> {picked.size === 1 ? "selecionada" : "selecionadas"} · entram como &quot;Lead importado&quot;, já com a nota
         </span>

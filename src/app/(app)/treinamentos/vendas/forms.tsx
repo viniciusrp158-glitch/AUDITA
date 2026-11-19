@@ -24,9 +24,9 @@ export function SalesSettingsForm({ action, initial }: { action: Action; initial
       <Feedback state={state} />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Razão social do vendedor" name="seller_name" required={false} defaultValue={v.seller_name} error={e.seller_name} maxLength={200} />
-        <Field label="CNPJ" name="seller_document" required={false} defaultValue={v.seller_document} error={e.seller_document} inputMode="numeric" />
+        <Field label="CNPJ" name="seller_document" mask="cnpj" required={false} defaultValue={v.seller_document} error={e.seller_document} inputMode="numeric" />
         <Field label="E-mail de suporte" name="support_email" type="email" required={false} defaultValue={v.support_email} error={e.support_email} />
-        <Field label="Telefone/WhatsApp de suporte" name="support_phone" required={false} defaultValue={v.support_phone} error={e.support_phone} inputMode="tel" hint="Com DDD." />
+        <Field label="Telefone/WhatsApp de suporte" name="support_phone" mask="phone" required={false} defaultValue={v.support_phone} error={e.support_phone} inputMode="tel" hint="Com DDD." />
       </div>
       <CheckboxField name="require_cpf" label="Pedir CPF na compra" defaultChecked={v.require_cpf === "on"} hint="O Mercado Pago costuma pedir o CPF no Pix e no boleto." />
       <TextAreaField

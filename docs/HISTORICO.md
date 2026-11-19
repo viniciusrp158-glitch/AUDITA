@@ -1714,7 +1714,7 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 
 ## AUDITA PROSPECT — Fase 1, etapa 3: Regiões (IOC) e edição de nichos (16/11/2026)
 
-- **Migração `20261116120000_p2_prospect_regioes.sql`** (não aplicada em produção): `prospect_region_counts(p_max_km)`
+- **Migração `20261117120000_p2_prospect_regioes.sql`** (não aplicada em produção): `prospect_region_counts(p_max_km)`
   (SECURITY INVOKER, contagem por município e nicho com junções por igualdade em cada tamanho de prefixo) e
   `prospect_region_stats` + `refresh_prospect_region_stats()` (resumo pronto: na base real a contagem leva 6,9 s; ler o
   resumo leva 0,005 s). O recálculo roda na carga mensal (`carregar-base.sh`) e ao salvar um nicho.
@@ -1730,8 +1730,12 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   serviços liberados, nicho de entrada, situação, observações; inativação lógica).
 - **IOC** (`src/lib/prospect/ioc.ts`, v1): quantidade 30 (log), concentração 20, distância 10, normalizado para 0–100.
   Com os três nichos de entrada até 60 km: Sorocaba 87, Salto 80, Indaiatuba 78, Cotia 78…
-- **Anomalia a investigar:** no ambiente de testes, `deploy/servidor/dev/apply.sh` registrou a migração P2 sem criar a
-  função (aplicada depois manualmente). Antes de publicar, conferir o script de migrações da produção e a função criada.
+- **Anomalia esclarecida (17/11/2026):** no ambiente de testes a P2 foi "registrada" sem criar a função porque a
+  migração `20261116120000_a5_academy_aluno` (sessão da Academy, ramo `feat/academy-etapa1-marca`) usa **a mesma
+  versão** e já estava registrada; o aplicador pula versões existentes. O script estava certo (teste com migração
+  fictícia `29990101000000_teste_apply`, depois removida). Correção: a P2 passou a `20261117120000_p2_prospect_regioes`
+  (commit `bbdaf7a`), registrada também no ambiente de testes. Regra prática: antes de criar uma migração, conferir as
+  versões dos outros ramos e do registro da produção.
 
 ### Evidência (16/11/2026)
 
@@ -1740,6 +1744,47 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - Ambiente de testes com a base real, `tests/e2e/p1-prospect.spec.ts`: **4/4** (fluxo completo; Regiões com Sorocaba na
   lista e atalho para a pesquisa; edição de nicho com recálculo; celular sem rolagem horizontal, incluindo Regiões).
 - `tsc`, `eslint` e `next build` sem erros. Nada publicado em produção.
+
+### Publicação em produção (17/11/2026, 03h54–04h20, com o "Sim, publique" do Diretor)
+
+- **Backup antes:** `audita-sistema-backup` → `~/backups/audita-sistema/*_2026-11-17_0354` (banco, Storage e configurações).
+- **Migrações:** `20261114120000_p1_prospect` e `20261117120000_p2_prospect_regioes` pelo `apply-migrations.sh`
+  (**39 registradas**); conferidas as funções `is_suppressed`, `prospect_region_counts` e `refresh_prospect_region_stats`,
+  RLS ligada nas tabelas novas e os 6 nichos.
+- **Base de CNPJ:** `carregar-base.sh 2026-10 audita-db` → **3.853.320** empresas-alvo, publicação `2026-10` vigente,
+  tabela de 1,7 GB ordenada por município e CNAE; resumo de regiões com 3.440 linhas. Construção até 50 km: 9.449
+  empresas em 0,3 s (igual à Fase 0). O PRO continuou respondendo durante a carga.
+- **Sistema:** imagem `audita-sistema:20261117-prospect` (commit `bbdaf7a`, 401 MB), testada antes na porta 3299, e
+  trocada só no `audita-web` (área do aluno e site sem mudança). Endereços públicos: `/empresa/login`, `/treinamentos/entrar`
+  e `/` com 200, `/empresa/prospeccao` pedindo login, PRO e HUB abrindo; nenhum erro no registro.
+- **Para voltar o sistema:** em `~/audita/audita-sistema`, trocar `AUDITA_WEB_TAG` no `.env` para `20261028-sem-comunicacao`
+  e `docker compose up -d web` (não copiar o `.env.bak-20261117-prospect` inteiro: a sessão da Academy trocou o
+  `audita-aluno` no mesmo dia). As tabelas novas podem ficar: nada antigo depende delas.
+- **Atenção:** o backup diário passa a levar a base de CNPJ (~300 MB a mais por dia comprimido, ~4 GB nos 14 dias; 49 GB
+  livres no disco).
+- **Fora desta imagem:** a tela `/empresa/treinamentos/comunicados` da S10 (a imagem saiu do `develop` antes da junção
+  da Academy); entra na próxima publicação do `audita-web`.
+- **Não conferido:** login e uso das telas do PROSPECT em produção (só com a senha do Diretor); fica para o primeiro uso.
+
+### Correção da pesquisa em raio grande (17/11/2026, 15h)
+
+- **Falha relatada pelo Diretor** no primeiro uso: Indústria, "Até 150 km" → "Não foi possível pesquisar na base".
+  Registro da API: `57014 canceling statement due to statement timeout` (limite de 8 s do papel `authenticated`).
+- **Causa:** a região ia como lista literal de 181 municípios e, sob RLS, o banco não usa índice no `LIKE` (operador não
+  "leakproof"): lia a tabela inteira (1,7 GB), 9,8 s para buscar + 5,6 s para contar. Nos testes (50 km, cache quente)
+  não aparecia. No Estado inteiro o mesmo acontecia.
+- **Correção:** migração `20261117130000_p3_prospect_pesquisa` — função `audita.prospect_search` (SECURITY DEFINER,
+  `search_path` vazio, confere `audita.can_operate()` no início; sem acesso para `anon`), um ramo por prefixo de CNAE
+  (UNION) lido só no índice novo `cnpj_establishments_busca` (282 MB), região como subconsulta e total junto. O sistema
+  passa a chamar a função (`src/lib/prospect/queries.ts`). Commit `8a6d118`.
+- **Testes:** PGlite `prospect-p1` 8/8 (novo: filtros, raio, prefixos sobrepostos, entradas inválidas, permissão 42501),
+  unitários 17/17, `tsc` e `eslint` sem erros; ambiente de testes, `p1-prospect.spec.ts` **5/5** (novo: indústria em
+  150 km e no Estado inteiro, sem erro).
+- **Produção:** backup `*_2026-11-17_1512`; P3 aplicada (40 migrações registradas, 35 s com o índice); imagem
+  `audita-sistema:20261117-prospect2` (commit `8a6d118`, já com a tela de comunicados da S10) testada na porta 3299 e
+  trocada só no `audita-web`. Com o perfil do Diretor, só leitura: Estado inteiro (indústria) 1,9 s, indústria até
+  150 km 0,9 s (86.458 empresas), construção até 50 km 1,4 s (9.449). Endereços públicos normais.
+- **Para voltar:** `AUDITA_WEB_TAG=20261117-prospect` no `.env` e `docker compose up -d web` (a função e o índice podem ficar).
 
 ## S10 — Audita Academy: menu do aluno, Perfil, Histórico, Financeiro e Notificações (17/11/2026)
 
@@ -1760,6 +1805,200 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   imagem do `audita-web` levaria junto a prospecção, ainda não liberada). Envio dos avisos por e-mail: decisão do Diretor.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261117-academy2 .env && docker compose up -d aluno`. A
   migração só acrescenta colunas opcionais, tabelas e funções; a área do aluno anterior funciona com ela no banco.
+
+## Frente A — melhoria geral do sistema, 1ª entrega (17/11/2026)
+
+- **Pedido do Diretor:** "Sim, comece" (Frente A) e "Siga executando conforme documentado, faça o máximo que puder sem
+  mim, depois publique no sistema real para minha validação". Planejamento: `docs/PLANEJAMENTO_MELHORIAS_E_PROSPECT.md` §2.
+- **A3 — menu por área** (`src/components/sidebar.tsx`): Início; Comercial (Prospecção, Clientes, Demandas, Orçamentos);
+  Operação (Serviços em execução, Treinamentos); Gestão (Caixa, Biblioteca, Configurações). Serviços em execução e Caixa,
+  antes só acessíveis por dentro de Demandas e do Início, ganharam item (só administrador, como as telas já exigiam).
+  Item ativo = endereço mais específico. Menu compactado: cabe inteiro em 1366×768.
+- **A5 — "Meu dia" no Início** (`src/lib/indicators/meu-dia.ts`, `src/components/my-day.tsx`): retornos da prospecção
+  atrasados e de hoje, demandas com prazo vencido ou aguardando o cliente há mais de 48 h, propostas emitidas vencidas
+  ou a vencer em 7 dias, leads novos da semana; cada linha abre o registro. O Início continua só do administrador
+  (o operador segue entrando em Clientes, como no AUDDOC017).
+- **A4 — busca global** (`src/components/global-search.tsx`, `src/lib/search/actions.ts`): Ctrl+K, campo no menu e lupa
+  no celular; clientes, leads, demandas, orçamentos (código ou cliente) e, para o administrador, Biblioteca e
+  Treinamentos. Cada palavra precisa aparecer, em qualquer ordem; consultas pela RLS do usuário.
+- **A8 — cadastro pelo CNPJ** (`src/lib/prospect/cnpj-lookup.ts`): botão "Preencher pelo CNPJ" no formulário de
+  cliente (pessoa jurídica), pela base pública já carregada (ativas de SP, sem MEI). Preenche razão social, fantasia,
+  CNAE, telefone, e-mail e endereço; nada é salvo sem o usuário conferir; fora da base, avisa.
+- **A10 — celular:** barra inferior com 4 atalhos do nível do usuário e "Mais" (menu completo), barra superior fixa com
+  busca, toques maiores no menu.
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** `tests/e2e/a-frente-a.spec.ts` **3/3** (menu do administrador e do operador, Meu dia,
+  busca com Enter e Esc, cadastro pelo CNPJ real e não encontrado, barra inferior, sem rolagem lateral em 6 telas no
+  celular, menu inteiro em 1366×768); `i1-acesso` **5/5** (atualizado: lista do menu sem a Comunicação e o link
+  duplicado pela barra inferior); `p1-prospect` 5/5; `tsc` e `eslint` sem erros; Vitest 164 passaram, 1 falha antiga
+  (`ca12-escopo`, V11). `responsivo.spec.ts` não roda no ambiente de testes (não há cliente cadastrado para abrir a ficha).
+- **Defeito achado nos testes e corrigido:** a busca por "AC. GESSO" não achava o lead (pontuação); passou a buscar
+  palavra por palavra.
+- **Produção (17/11/2026):** backup `*_2026-11-17_1621`; imagem `audita-sistema:20261117-frente-a` (commit `82d42db`),
+  testada na porta 3299 e trocada só no `audita-web`; endereços públicos normais, sem erro no registro.
+- **Para voltar:** `AUDITA_WEB_TAG=20261117-prospect2` no `.env` de `~/audita/audita-sistema` e `docker compose up -d web`.
+- **Falta da Frente A:** A2 (padrão de tabelas com ordenar/filtrar/exportar), A6 (ficha 360° do cliente), A7 (quadro em
+  colunas para Demandas e Orçamentos), A9 (formulários), A11 (filtros salvos e exportações) e listas em cartões no celular.
+
+### Frente A — ajuste após validação: "Audita Academy" (17/11/2026, 18h30)
+
+- **Pedido do Diretor:** "Validado, apenas troque o nome "Treinamentos" por "Audita Academy"".
+- Menu (Operação), título da tela `/treinamentos` e grupo da busca global passam a se chamar **Audita Academy**
+  (o endereço continua `/empresa/treinamentos`). Commit `243a5de`. Sem mudança no banco.
+- **Testes (ambiente de testes):** `a-frente-a` + `i1-acesso` **8/8**; `tsc` sem erros.
+- **Produção:** cópia de segurança `*_2026-11-17_1830`; imagem `audita-sistema:20261117-academy-menu` pré-testada na
+  porta 3299 (login 200, sem erros no log); no ar com `/empresa/login` 200, `/empresa` 307, site 200.
+- **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a` no `.env` (cópia `.env.bak-20261117-academy-menu`) e
+  `docker compose up -d web`.
+
+## Frente A — 2ª entrega (17/11/2026, 19h15)
+
+- **Pedido do Diretor:** "Sim, siga" (continuar a Frente A).
+- **A6 — ficha 360° do cliente** (`src/lib/clients/timeline.ts`, `src/components/client-timeline.tsx`): resumo no topo
+  (demandas em aberto, orçamentos/aceitos, serviços ativos só para o administrador, último contato) e aba "Linha do
+  tempo" com prospecção, demandas, propostas emitidas/decididas, serviços, OS e caixa, filtro por tipo, pela RLS.
+  A aba "Demandas e propostas" passou a listar os orçamentos.
+- **A7 — quadro em colunas** (`src/components/board.tsx`) em Demandas (por situação, respeitando o grupo) e Orçamentos
+  (por situação; a tela ganhou filtro de situação). Alternância Lista | Quadro.
+- **A2/A11 — exportação CSV** (`src/lib/csv.ts`; rotas `/clientes/exportar`, `/demandas/exportar`,
+  `/orcamentos/exportar`) com os filtros da tela, ";" + BOM para o Excel, proteção contra fórmula, até 1000 linhas,
+  sem valores de preço.
+- **A10 — Clientes em cartões no celular.**
+- **Correção (anomalia encontrada):** a lista de Orçamentos falhava desde 25/10 (`quote_items(count)` negado pela
+  restrição de colunas da seg1, erro 42501). Passou a contar pelos ids. Sem mudança no banco.
+- **Testes (ambiente de testes):** `a-frente-a-2` **4/4**, `a-frente-a` **3/3**, `i1-acesso` 5/5, unidade `csv` 5/5;
+  unidade geral 99/100 (ca12 já falhava). `i5-precificacao` falha no login por espera de 5 s (mesmo problema já
+  corrigido no i1) — pendente ajustar o teste.
+- **Produção:** cópia `*_2026-11-17_1915`; imagem `audita-sistema:20261117-frente-a2` pré-testada na porta 3299; no ar
+  (healthy, login 200). **Reversão:** `AUDITA_WEB_TAG=20261117-academy-menu` e `docker compose up -d web`.
+
+## PROSPECT — conversão do lead (RP-12), WhatsApp pelo fixo e AUDDOC020 aprovado (17/11/2026, 20h)
+
+- **Pedidos do Diretor:** "Sobre o botão “Tentar no WhatsApp pelo fixo do cadastro” > execute"; "AUDDOC020 aprovado na
+  biblioteca"; "Continue executando conforme documentado, faça o máximo que puder sem mim".
+- **AUDDOC020 (evidência):** no banco de produção, `AUDDOC020 | Rev.00 | vigente | aprovado 2026-11-17 | emitido
+  2026-11-17` (consulta só leitura em `audita.library_revisions`).
+- **WhatsApp pelo fixo** (`src/app/(app)/prospeccao/leads/[id]/lead-forms.tsx`): sem celular, aparece "Tentar no
+  WhatsApp pelo fixo do cadastro" (link oficial wa.me com a mensagem do modelo), com o aviso de que o próprio WhatsApp
+  informa se o número não tiver conta. Continua assistido: quem envia é a pessoa.
+- **RP-12 — converter lead em cliente** (`src/lib/prospect/conversion.ts`, `clientes/novo?lead=…`, quadro "Cliente" na
+  ficha do lead): formulário de cliente já preenchido pelo lead e pela Receita (contato confirmado tem preferência);
+  verificação por CNPJ — se a empresa já é cliente, "Vincular a este cliente" (confere CNPJ igual) em vez de cadastrar
+  de novo; ao cadastrar, o lead fica vinculado (`leads.client_id`) e a tela indica "abrir a demanda". O orçamento segue
+  o fluxo atual. "Cliente conquistado" manual passa a ser aceito quando o lead já tem cliente.
+- **Migração aditiva `20261118120000_p4_prospect_conversao`:** função `audita.leads_follow_quote` (SECURITY DEFINER,
+  `search_path = ''`, sem acesso pela API) e gatilho em `audita.quotes`: orçamento emitido → leads ativos do cliente em
+  "Proposta enviada" (exceto proposta/cliente/perdido); aceito → "Cliente conquistado". Histórico de etapas registra.
+- **Testes (ambiente de testes):** PGlite `prospect-p1` **9/9** (novo: emissão → proposta, perdido continua perdido,
+  aceite → cliente, histórico, função fechada à API); e2e `p4-conversao` **1/1**, `p1-prospect` **5/5** (com o botão
+  do fixo), `i5-precificacao` **3/3**, `i4-demandas` **2/2**, `a-frente-a` 3/3, `a-frente-a-2` 4/4, `i1-acesso` 5/5;
+  unidade 17/18 arquivos (ca12 já falhava).
+- **Testes antigos ajustados:** espera do login (30 s, `new RegExp("/empresa/?$")`) em 14 arquivos e espera padrão das
+  verificações de 20 s em `playwright.dev-servidor.config.ts` (banco de testes remoto); `i4` usa o campo oculto do
+  seletor de cliente atual.
+- **Produção:** cópia `*_2026-11-17_2005`; migração aplicada pelo `apply-migrations.sh` (41 registradas, gatilho
+  conferido); imagem `audita-sistema:20261117-prospect4` pré-testada na 3299 e no ar (healthy, login 200).
+  **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a2` + `docker compose up -d web` (o gatilho só muda etapas; para
+  desligá-lo, `drop trigger leads_follow_quote on audita.quotes` com aprovação).
+
+## PROSPECT — resultados da prospecção (RP-13) (17/11/2026, 20h45)
+
+- **Pedido do Diretor:** "Sim, siga" (painel de resultados da prospecção, AUDDOC020 RP-13).
+- **Tela "Resultados"** (`/prospeccao/resultados`, nova aba da Prospecção; `src/lib/prospect/results.ts` e cálculo puro em
+  `results-calc.ts`): período 7/30/90 dias ou desde o início; indicadores — pesquisas feitas e empresas encontradas
+  (soma das pesquisas), leads no funil, qualificados, prioritários, contatos (WhatsApp/ligação/e-mail), respostas,
+  reuniões marcadas, propostas e clientes; conversão por etapa (dos leads que entraram no período, quantos chegaram a
+  cada etapa); tabelas por nicho e por canal. Mesmas definições das metas da semana do Painel.
+- **Exportação CSV** (`/prospeccao/resultados/exportar`): um lead por linha (empresa, CNPJ, município, nicho, etapa,
+  nota, faixa, entrada, contatos e respostas no período, último contato, se virou cliente).
+- Na produção os dados marcados como teste ficam de fora; consultas pela RLS e em páginas de 1000 linhas (limite da
+  API). **Sem mudança no banco.**
+- **Testes (ambiente de testes):** unidade `prospect-resultados` **4/4** (indicadores, conversão, nicho, canal, período);
+  e2e `p5-resultados` **2/2** (períodos, tabelas, CSV, celular sem rolagem lateral — corrigida a grade que esticava).
+- **Produção:** cópia `*_2026-11-17_2044`; imagem `audita-sistema:20261117-prospect5` pré-testada na 3299 e no ar
+  (healthy, login 200). **Reversão:** `AUDITA_WEB_TAG=20261117-prospect4` + `docker compose up -d web`.
+
+## Frente A — formulários (A9) e filtros salvos (A11) (17/11/2026, 21h15)
+
+- **Pedido do Diretor:** "Sim, siga executando conforme documentado, faça o máximo que puder sem mim".
+- **Máscaras de digitação** (`src/lib/mask.ts`, propriedade `mask` do `Field`): CNPJ (inclusive alfanumérico), CPF,
+  telefone fixo/celular (tira o 55), CEP e CNAE — cliente, unidade, contato, autocadastro público, vendas do Academy
+  e contato confirmado do lead. Só formata com o cursor no fim; o servidor continua tirando a pontuação.
+- **Rascunho automático** (`src/components/form-draft.tsx`) em Novo cliente (inclusive a conversão do lead) e Nova
+  demanda: guarda no navegador do aparelho a cada digitação, oferece "Recuperar rascunho"/"Descartar" ao voltar, apaga
+  ao enviar, vale 7 dias; não guarda campos ocultos, senhas nem arquivos; não vai ao servidor.
+- **Validação mais clara:** com erro do servidor, a tela rola até o primeiro campo com problema e põe o cursor nele
+  (cliente, demanda e autocadastro público).
+- **Filtros salvos** (`src/components/saved-filters.tsx`) em Clientes, Demandas, Orçamentos e Funil: "+ Salvar este
+  filtro" com nome, até 8 por lista, neste aparelho; remover pelo ×. (Exportações já entregues na 2ª entrega.)
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** unidade `mask` **4/4**; e2e `a-frente-a-3` **2/2** (máscaras, rascunho recuperar e
+  descartar, foco no CNPJ inválido, filtro salvo e reaberto); regressão `a-frente-a` 3/3, `a-frente-a-2` 4/4,
+  `i2-clientes` 1/1 e `i2-1-autocadastro` 1/1 (ajustados para a máscara e para a lista em cartões), `i4` 2/2, `p4` 1/1.
+- **Produção:** cópia `*_2026-11-17_2112`; imagem `audita-sistema:20261117-frente-a3` pré-testada na 3299 e no ar
+  (healthy). **Reversão:** `AUDITA_WEB_TAG=20261117-prospect5` + `docker compose up -d web`.
+- **Novo pedido do Diretor (registrado para a próxima etapa):** "Na maior parte do tempo a prospecção de clientes vai ser
+  feita via mobile. Quero adaptação completa do Sistema AUDITA de Operação para o celular, pode ser um layout próprio
+  para mobile com navegação de telas pensada para usar no celular, mantendo as funcionalidades, integração com o
+  whatsapp, e-mail etc."
+
+## Celular — 1ª entrega: prospecção pensada para o celular e contato à mão (18–19/11/2026)
+
+- **Pedido do Diretor (17/11):** "Na maior parte do tempo a prospecção de clientes vai ser feita via mobile. Quero
+  adaptação completa do Sistema AUDITA de Operação para o celular, pode ser um layout próprio para mobile com navegação
+  de telas pensada para usar no celular, mantendo as funcionalidades, integração com o whatsapp, e-mail etc."
+- **Diagnóstico (capturas 390 px):** funil em colunas inutilizável no celular (uma coluna e meia visíveis); na ficha do
+  lead os botões de contato ficavam no meio de uma página longa e cobertos pela barra de atalhos; na pesquisa a barra
+  "Enviar ao funil" ficava atrás da barra de atalhos e a caixinha de seleção era pequena; ficha do cliente e demanda
+  sem ação direta de WhatsApp, ligação ou e-mail.
+- **Funil no celular** (`prospeccao/funil/page.tsx`): faixa de etapas com contagem (começa na primeira etapa em
+  andamento) e lista em cartões grandes da etapa escolhida; o quadro em colunas continua no computador.
+- **Ficha do lead no celular:** barra fixa "Ações rápidas" acima da barra de atalhos — WhatsApp (ou "pelo fixo"),
+  Ligar, E-mail e Registrar (leva ao registro do contato) —, com a mensagem do modelo; ordem própria: Contatar, Cliente,
+  Etapa, Contato confirmado, Linha do tempo e, por último, nota e dados da Receita.
+- **Pesquisa no celular:** tocar na linha marca a empresa (caixinha maior) e a barra "Enviar ao funil" fica acima dos
+  atalhos.
+- **Ficha do cliente e demanda** (`src/components/contact-actions.tsx`): WhatsApp (wa.me com saudação), Ligar e E-mail
+  (assunto com o cliente/demanda) — no celular em barra fixa (cliente com "+ Demanda"), no computador como botões no
+  topo. Contato usado: o principal ativo (ou o do cadastro); na demanda, o contato dela.
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** e2e `p6-celular` **2/2** (funil por etapa, barra acima dos atalhos, links tel:/wa.me,
+  Registrar, toque na pesquisa, ações no cliente e na demanda, sem rolagem lateral); regressão `p1-prospect` 5/5,
+  `a-frente-a` 3/3, `a-frente-a-2` 4/4, `p4-conversao` 1/1, `i4-demandas` 2/2 (limite do FL-05 aumentado para 240 s:
+  o servidor compartilhado está com carga alta, 13–18).
+- **Produção:** sem mudança de dados; última cópia `db_2026-11-19_0420` (automática diária); a 1ª tentativa de publicar
+  travou no envio e foi interrompida antes de compilar (nada mudou no ar). Imagem `audita-sistema:20261118-celular1`
+  pré-testada na 3299 e no ar (healthy). **Reversão:** `AUDITA_WEB_TAG=20261117-frente-a3` + `docker compose up -d web`.
+- **Próximo (celular, 2ª entrega):** Início/“Meu dia” com ações de contato, demais telas internas (orçamento,
+  serviços, caixa) revisadas uma a uma, e uso como aplicativo (atalho na tela inicial).
+- **Complemento (19/11/2026): aplicativo na tela inicial.** `src/app/manifest.ts` (nome "AUDITA — Sistema de
+  Operação", abre em tela cheia em `/empresa/`, cor da marca), ícones gerados do logotipo oficial sem alteração
+  (`scripts/gerar-icones-app.cjs` → `public/brand/app-icon-192/512.png`, `apple-icon-180.png`), metadados para iPhone
+  (tela cheia, ícone) e `viewport-fit=cover` (área segura). O manifesto é público (`/manifest.webmanifest` entrou nos
+  caminhos sem login; não tem dados). Teste `p6-celular` **3/3** (manifesto sem login, ícones 200, tela cheia) e
+  `i1-acesso` 5/5. Produção: imagem `audita-sistema:20261119-celular2` no ar (healthy; manifesto 200).
+  **Reversão:** `AUDITA_WEB_TAG=20261118-celular1`.
+
+## Celular — 2ª entrega: demais telas (19/11/2026)
+
+- **Pedido do Diretor:** "Sim, siga" (adaptação completa ao celular).
+- **Diagnóstico (capturas 390 px de 21 telas internas):** nenhuma com rolagem lateral; três com conteúdo cortado ou
+  espremido — Caixa (tabela de 9 colunas), Registro de atividades (tabela de 4 colunas com linhas enormes) e Regiões
+  (coluna de empresas fora da tela). As demais (Início, Academy, Biblioteca, Configurações, Catálogo, Parâmetros,
+  Modelos, Institucional, Guarda, Vendas, Convites, Solicitações, Lista Mestra, Nichos, Nova demanda, Conta, quadros)
+  já funcionam bem no celular.
+- **Caixa no celular:** um cartão por mês com movimento (saldo do mês, recebido e acumulado; ao tocar, as saídas por
+  categoria) e o saldo do ano — mesmos valores do cálculo exato (`monthlyCash`), sem conta nova; a tabela continua no
+  computador.
+- **Registro de atividades no celular:** um cartão por atividade (ação, data, área e "Ver detalhes").
+- **Regiões no celular:** distância embaixo do nome do município e coluna "Empresas" sempre visível.
+- **Meu dia (Início):** retornos da prospecção com contato confirmado ganham botões de WhatsApp e ligação com um toque.
+- **Sem mudança no banco.**
+- **Testes (ambiente de testes):** `p6-celular` **4/4** (novo: caixa em cartões, atividades em lista, regiões cabendo na
+  largura); regressão `a-frente-a` 3/3, `i1-acesso` 5/5, `p1-prospect` 5/5, `v1-1-execucao-caixa` 2/2 (o 1º, que
+  depende de serviço contratado no ambiente, ficou de fora como antes).
+- **Produção:** imagem `audita-sistema:20261119-celular3` pré-testada na 3299 e no ar (healthy). **Reversão:**
+  `AUDITA_WEB_TAG=20261119-celular2` + `docker compose up -d web`.
 
 ## S11 — Site institucional: página do Audita HUB com os mockups da segunda rodada (19/11/2026)
 

@@ -10,6 +10,11 @@ import { getClientChildren, getClientHistory, getClientOr404 } from "@/lib/clien
 import { formatDate, formatDateTime, formatDay, todaySaoPaulo } from "@/lib/format";
 import { listDemands } from "@/lib/demands/queries";
 import { DemandStatusPill, isOverdue, OverdueBadge } from "@/components/demand-status";
+import { QuoteStatusPill } from "@/components/pricing-status";
+import { ClientTimeline } from "@/components/client-timeline";
+import { ContactActions, ContactActionsSpacer } from "@/components/contact-actions";
+import { getClientQuotes, getClientTimeline, TIMELINE_KINDS, type TimelineKind } from "@/lib/clients/timeline";
+import type { QuoteStatus } from "@/lib/pricing/labels";
 import {
   saveContactAction,
   saveUnitAction,
@@ -21,6 +26,7 @@ import { ClientStatusForm, ContactForm, UnitForm } from "./child-forms";
 
 const TABS = [
   { id: "dados", label: "Dados" },
+  { id: "linha", label: "Linha do tempo" },
   { id: "unidades", label: "Unidades" },
   { id: "contatos", label: "Contatos" },
   { id: "relacionamento", label: "Demandas e propostas" },
@@ -56,19 +62,27 @@ export default async function ClientePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ aba?: string; criado?: string; salvo?: string; editar?: string; novo?: string }>;
+  searchParams: Promise<{ aba?: string; criado?: string; salvo?: string; editar?: string; novo?: string; tipo?: string; lead?: string }>;
 }) {
-  await requireAppUser(OPERATE);
+  const user = await requireAppUser(OPERATE);
   const { id } = await params;
   const sp = await searchParams;
   const tab = TABS.some((t) => t.id === sp.aba) ? sp.aba! : "dados";
   const client = await getClientOr404(id);
   const { units, contacts } = await getClientChildren(id);
   const history = tab === "historico" ? await getClientHistory(id) : [];
-  const demands = tab === "relacionamento" ? (await listDemands({ clientId: id, grupo: "todas", page: 1 })).rows : [];
+  const [demands, quotes, timeline] = await Promise.all([
+    tab === "relacionamento" ? listDemands({ clientId: id, grupo: "todas", page: 1 }).then((r) => r.rows) : [],
+    tab === "relacionamento" ? getClientQuotes(id) : [],
+    getClientTimeline(id),
+  ]);
+  const tipo = (Object.keys(TIMELINE_KINDS) as TimelineKind[]).find((k) => k === sp.tipo) ?? null;
+  const s = timeline.summary;
   const today = todaySaoPaulo();
   const base = `/clientes/${id}`;
   const unitNames = Object.fromEntries(units.map((u) => [u.id, u.name]));
+  // Contato para WhatsApp/ligação/e-mail: o principal ativo (com telefone ou e-mail) ou o do cadastro do cliente
+  const who = contacts.find((c) => c.is_primary && c.status === "ativo" && (c.phone || c.email)) ?? contacts.find((c) => c.status === "ativo" && (c.phone || c.email)) ?? null;
 
   return (
     <>
@@ -86,15 +100,49 @@ export default async function ClientePage({
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{client.legal_name}</h1>
           {client.trade_name && <p className="text-sm text-muted">{client.trade_name}</p>}
         </div>
-        <ButtonLink href={`${base}/editar`} variant="secondary">
-          <Pencil size={15} /> Editar
-        </ButtonLink>
+        <div className="flex flex-wrap items-center gap-2">
+          <ContactActions
+            name={who?.full_name ?? client.trade_name ?? client.legal_name}
+            phone={who?.phone ?? client.phone}
+            email={who?.email ?? client.email}
+            greeting={`Olá${who ? `, ${who.full_name.split(" ")[0]}` : ""}! Aqui é ${user.fullName.split(" ")[0]}, da AUDITA | SSMA & SGI.`}
+            subject={`AUDITA | SSMA & SGI — ${client.trade_name || client.legal_name}`}
+            primary={client.status === "ativo" ? { href: `/demandas/nova?cliente=${client.id}`, label: "Demanda" } : undefined}
+          />
+          <ButtonLink href={`${base}/editar`} variant="secondary">
+            <Pencil size={15} /> Editar
+          </ButtonLink>
+        </div>
       </header>
+
+      <dl className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Resumo do cliente">
+        {[
+          { label: "Demandas em aberto", value: String(s.openDemands), href: `${base}?aba=relacionamento` },
+          { label: "Orçamentos", value: s.acceptedRevisions ? `${s.quotes} · ${s.acceptedRevisions} aceito(s)` : String(s.quotes), href: `${base}?aba=relacionamento` },
+          ...(user.role === "admin" ? [{ label: "Serviços ativos", value: String(s.activeContracts), href: `${base}?aba=linha&tipo=servico` }] : []),
+          { label: "Último contato", value: s.lastContact ? formatDate(s.lastContact) : "—", href: `${base}?aba=linha` },
+        ].map((k) => (
+          <Link key={k.label} href={k.href} className="rounded-xl border border-line bg-white px-3 py-2.5 hover:border-navy/40">
+            <dt className="text-xs text-muted">{k.label}</dt>
+            <dd className="mt-0.5 text-lg font-semibold tabular-nums text-ink">{k.value}</dd>
+          </Link>
+        ))}
+      </dl>
 
       {sp.criado && (
         <div className="mb-4">
           <Alert kind="info">
             Cliente cadastrado com o código <strong>{client.client_code}</strong>. Este código é permanente.
+            {sp.lead && (
+              <>
+                {" "}
+                O lead da prospecção ficou vinculado a este cliente. Próximo passo:{" "}
+                <Link href={`/demandas/nova?cliente=${client.id}`} className="font-semibold underline">
+                  abrir a demanda
+                </Link>
+                ; a etapa do lead muda sozinha quando a proposta for emitida e aceita.
+              </>
+            )}
           </Alert>
         </div>
       )}
@@ -159,6 +207,10 @@ export default async function ClientePage({
             <ClientStatusForm action={setClientStatusAction.bind(null, client.id)} status={client.status} />
           </Card>
         </div>
+      )}
+
+      {tab === "linha" && (
+        <ClientTimeline events={timeline.events} truncated={timeline.truncated} active={tipo} base={`${base}?aba=linha`} showAdminKinds={user.role === "admin"} />
       )}
 
       {tab === "unidades" && (
@@ -285,6 +337,7 @@ export default async function ClientePage({
       )}
 
       {tab === "relacionamento" && (
+        <div className="space-y-5">
         <Card
           title="Demandas"
           actions={
@@ -317,8 +370,30 @@ export default async function ClientePage({
               ))}
             </ul>
           )}
-          <p className="mt-4 border-t border-line pt-3 text-xs text-muted">Propostas e serviços contratados aparecerão aqui a partir do I6.</p>
         </Card>
+        <Card title="Orçamentos e propostas">
+          {quotes.length === 0 ? (
+            <p className="text-sm text-muted">Nenhum orçamento para este cliente. A cotação é criada a partir da demanda.</p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {quotes.map((q) => (
+                <li key={q.id} className="py-2.5">
+                  <Link href={`/orcamentos/${q.id}`} className="block hover:text-navy">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs font-semibold text-navy">{q.quote_code}</span>
+                      <QuoteStatusPill status={q.status as QuoteStatus} />
+                    </span>
+                    <span className="mt-0.5 block text-sm text-ink">{q.demands?.summary}</span>
+                    <span className="block text-xs text-muted">
+                      {q.demands?.demand_code} · atualizado {formatDateTime(q.updated_at)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+        </div>
       )}
 
       {tab === "historico" && (
@@ -351,6 +426,7 @@ export default async function ClientePage({
           )}
         </Card>
       )}
+      <ContactActionsSpacer />
     </>
   );
 }

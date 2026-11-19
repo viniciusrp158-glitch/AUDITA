@@ -92,8 +92,11 @@ export async function moveStageAction(_prev: ProspectState, formData: FormData):
   const p = stageSchema.safeParse({ id: formData.get("id"), stage: formData.get("stage"), lost_reason: formData.get("lost_reason") || undefined });
   if (!p.success) return { error: "Dados inválidos." };
   if (p.data.stage === "perdido" && (p.data.lost_reason ?? "").length < 3) return { fieldErrors: { lost_reason: "Informe o motivo." }, error: "Informe o motivo para marcar como perdido." };
-  if (p.data.stage === "cliente") return { error: "Use \"Converter em cliente\" para concluir." };
   const supabase = await createClient();
+  if (p.data.stage === "cliente") {
+    const { data: l } = await supabase.from("leads").select("client_id").eq("id", p.data.id).maybeSingle();
+    if (!l?.client_id) return { error: "Use \"Converter em cliente\" para concluir." };
+  }
   const { error } = await supabase
     .from("leads")
     .update({ stage: p.data.stage, lost_reason: p.data.stage === "perdido" ? p.data.lost_reason : null })
@@ -211,4 +214,27 @@ export async function suppressAction(_prev: ProspectState, formData: FormData): 
   if (error) return { error: dbMessage(error) };
   revalidatePath("/prospeccao", "layout");
   redirect(`/prospeccao/leads/${id}?ok=nao-contatar`);
+}
+
+/**
+ * Conversão (AUDDOC020 RP-12) quando a empresa já é cliente: vincula o lead ao cadastro existente, conferindo que o
+ * CNPJ do cliente é o mesmo do lead. A etapa não muda aqui (segue a proposta, pelo gatilho do banco).
+ */
+export async function linkLeadToClientAction(_prev: ProspectState, formData: FormData): Promise<ProspectState> {
+  await requireAppUser(OPERATE);
+  const id = String(formData.get("id") ?? "");
+  const clientId = String(formData.get("client_id") ?? "");
+  if (!uuid.safeParse(id).success || !uuid.safeParse(clientId).success) return { error: "Dados inválidos." };
+  const supabase = await createClient();
+  const [{ data: lead }, { data: client }] = await Promise.all([
+    supabase.from("leads").select("cnpj, client_id").eq("id", id).maybeSingle(),
+    supabase.from("clients").select("tax_id").eq("id", clientId).maybeSingle(),
+  ]);
+  if (!lead || !client) return { error: "Lead ou cliente não encontrado." };
+  if (lead.client_id) return { error: "Este lead já está vinculado a um cliente." };
+  if (!lead.cnpj || lead.cnpj !== client.tax_id) return { error: "O CNPJ do cliente não é o mesmo do lead." };
+  const { error } = await supabase.from("leads").update({ client_id: clientId }).eq("id", id).is("client_id", null);
+  if (error) return { error: dbMessage(error) };
+  revalidatePath("/prospeccao", "layout");
+  return { ok: "Lead vinculado ao cliente. Próximo passo: abrir a demanda." };
 }

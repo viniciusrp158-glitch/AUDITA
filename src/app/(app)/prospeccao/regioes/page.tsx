@@ -76,8 +76,8 @@ export default async function RegioesPage({ searchParams }: { searchParams: Prom
                 <tr>
                   <th className="px-3 py-2.5 font-semibold">IOC</th>
                   <th className="px-3 py-2.5 font-semibold">Município</th>
-                  <th className="px-3 py-2.5 text-right font-semibold">Distância</th>
-                  <th className="px-3 py-2.5 text-right font-semibold">Empresas-alvo</th>
+                  <th className="hidden px-3 py-2.5 text-right font-semibold sm:table-cell">Distância</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">Empresas</th>
                   <th className="hidden px-3 py-2.5 text-right font-semibold sm:table-cell">% no município</th>
                 </tr>
               </thead>
@@ -86,7 +86,7 @@ export default async function RegioesPage({ searchParams }: { searchParams: Prom
                   <tr key={r.ibge}>
                     <td className="px-3 py-2">
                       <span className="flex items-center gap-2">
-                        <span className="h-2 w-14 rounded-full bg-surface">
+                        <span className="hidden h-2 w-14 rounded-full bg-surface sm:block">
                           <span className="block h-2 rounded-full bg-navy" style={{ width: `${r.ioc}%` }} />
                         </span>
                         <strong className="tabular-nums">{r.ioc}</strong>
@@ -96,8 +96,10 @@ export default async function RegioesPage({ searchParams }: { searchParams: Prom
                       <Link href={`/prospeccao/pesquisar?nicho=${firstNiche}&raio=0&mun=${r.ibge}&run=1`} className="font-medium text-ink hover:text-navy hover:underline">
                         {r.name}
                       </Link>
+                      {/* Celular: a distância vai para baixo do nome (a coluna não cabe) */}
+                      <span className="block text-xs tabular-nums text-muted sm:hidden">{r.km === null ? "—" : `${Math.round(r.km)} km`}</span>
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-muted">{r.km === null ? "—" : `${Math.round(r.km)} km`}</td>
+                    <td className="hidden px-3 py-2 text-right tabular-nums text-muted sm:table-cell">{r.km === null ? "—" : `${Math.round(r.km)} km`}</td>
                     <td className="px-3 py-2 text-right font-semibold tabular-nums">{fmt(r.selected)}</td>
                     <td className="hidden px-3 py-2 text-right tabular-nums text-muted sm:table-cell">{(r.share * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</td>
                   </tr>

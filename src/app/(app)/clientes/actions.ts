@@ -72,8 +72,24 @@ export async function createClientAction(_prev: ActionState, formData: FormData)
     .single();
   if (error || !data) return { values, error: dbErrorMessage(error) };
 
+  // Conversão do lead da prospecção (AUDDOC020 RP-12): vincula o lead ao cliente recém-cadastrado (mesmo CNPJ).
+  // A etapa não muda aqui: vai para "Proposta enviada" e "Cliente conquistado" sozinha com a proposta.
+  const leadId = String(formData.get("lead_id") ?? "");
+  let linked = false;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId) && parsed.data.tax_id) {
+    const { data: l } = await supabase
+      .from("leads")
+      .update({ client_id: data.id })
+      .eq("id", leadId)
+      .eq("cnpj", parsed.data.tax_id)
+      .is("client_id", null)
+      .select("id");
+    linked = (l ?? []).length > 0;
+    revalidatePath("/prospeccao", "layout");
+  }
+
   revalidatePath("/clientes");
-  redirect(`/clientes/${data.id}?criado=1`);
+  redirect(`/clientes/${data.id}?criado=1${linked ? `&lead=${leadId}` : ""}`);
 }
 
 export async function updateClientAction(id: string, _prev: ActionState, formData: FormData): Promise<ActionState> {

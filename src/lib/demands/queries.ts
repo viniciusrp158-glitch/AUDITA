@@ -71,12 +71,15 @@ export async function listDemands({
   page,
   clientId,
   waiting,
+  size = PAGE_SIZE,
 }: {
   q?: string;
   grupo?: "abertas" | "encerradas" | "todas";
   situacao?: string;
   page: number;
   clientId?: string;
+  /** Itens por página (exportação e quadro usam mais). */
+  size?: number;
   /** Só as que estão em "Aguardando cliente" há mais de 48 h. */
   waiting?: boolean;
 }): Promise<{ rows: DemandListRow[]; total: number; error: boolean }> {
@@ -89,7 +92,7 @@ export async function listDemands({
     )
     .order("received_on", { ascending: false })
     .order("demand_code", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * size, page * size - 1);
 
   if (clientId) query = query.eq("client_id", clientId);
   if (waiting) query = query.eq("status", "aguardando_cliente").lt("status_changed_at", waitingCutoffIso());

@@ -1,7 +1,8 @@
 "use client";
 
 import { CheckCircle2, ChevronDown, Plus, Trash2 } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
+import { useFocusFirstError } from "@/components/form-draft";
 import { Alert, Field, SelectField, SubmitButton, TextAreaField } from "@/components/form";
 import { UFS } from "@/lib/br";
 import { MAX_CONTACTS, MAX_UNITS } from "@/lib/clients/limits";
@@ -33,6 +34,8 @@ export function RegistrationForm({
   termsBody: string;
 }) {
   const [state, formAction] = useActionState<PublicFormState, FormData>(submitRegistrationAction.bind(null, token), {});
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstError(formRef, state);
   const v = state.values ?? {};
   const e = state.fieldErrors ?? {};
   const countFrom = (prefix: string, min: number) => {
@@ -61,7 +64,7 @@ export function RegistrationForm({
   }
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form ref={formRef} action={formAction} className="space-y-5" noValidate>
       {state.error && <Alert kind="error">{state.error}</Alert>}
       <input type="hidden" name="terms_version" value={termsVersion} />
       {/* Campo-armadilha para robôs */}
@@ -89,8 +92,8 @@ export function RegistrationForm({
         <Field label={personType === "PJ" ? "Razão social" : "Nome completo"} name="legal_name" defaultValue={v.legal_name} error={e.legal_name} autoComplete="organization" />
         <Field label="Nome fantasia" name="trade_name" required={false} defaultValue={v.trade_name} error={e.trade_name} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={personType === "PJ" ? "CNPJ" : "CPF"} name="tax_id" inputMode="numeric" defaultValue={v.tax_id} error={e.tax_id} placeholder={personType === "PJ" ? "00.000.000/0000-00" : "000.000.000-00"} />
-          <Field label="CNAE principal" name="cnae" required={false} inputMode="numeric" defaultValue={v.cnae} error={e.cnae} hint="Se souber. Ex.: 0000-0/00" />
+          <Field label={personType === "PJ" ? "CNPJ" : "CPF"} name="tax_id" mask={personType === "PJ" ? "cnpj" : "cpf"} inputMode="numeric" defaultValue={v.tax_id} error={e.tax_id} placeholder={personType === "PJ" ? "00.000.000/0000-00" : "000.000.000-00"} />
+          <Field label="CNAE principal" name="cnae" mask="cnae" required={false} inputMode="numeric" defaultValue={v.cnae} error={e.cnae} hint="Se souber. Ex.: 0000-0/00" />
         </div>
         <Field label="Ramo de atividade / segmento" name="segment" required={false} defaultValue={v.segment} error={e.segment} placeholder="Ex.: metalurgia, logística, comércio" />
       </Section>
@@ -98,13 +101,13 @@ export function RegistrationForm({
       <Section n={2} title="Contato geral da empresa">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="E-mail" name="email" type="email" required={false} defaultValue={v.email} error={e.email} autoComplete="email" />
-          <Field label="Telefone" name="phone" required={false} inputMode="tel" defaultValue={v.phone} error={e.phone} placeholder="(15) 3333-4444" autoComplete="tel" />
+          <Field label="Telefone" name="phone" mask="phone" required={false} inputMode="tel" defaultValue={v.phone} error={e.phone} placeholder="(15) 3333-4444" autoComplete="tel" />
         </div>
       </Section>
 
       <Section n={3} title="Endereço da sede">
         <div className="grid gap-4 sm:grid-cols-6">
-          <Field label="CEP" name="address_zip" required={false} inputMode="numeric" defaultValue={v.address_zip} error={e.address_zip} className="sm:col-span-2" autoComplete="postal-code" />
+          <Field label="CEP" name="address_zip" mask="cep" required={false} inputMode="numeric" defaultValue={v.address_zip} error={e.address_zip} className="sm:col-span-2" autoComplete="postal-code" />
           <Field label="Logradouro" name="address_street" required={false} defaultValue={v.address_street} error={e.address_street} className="sm:col-span-4" autoComplete="address-line1" />
           <Field label="Número" name="address_number" required={false} defaultValue={v.address_number} error={e.address_number} className="sm:col-span-2" />
           <Field label="Complemento" name="address_complement" required={false} defaultValue={v.address_complement} error={e.address_complement} className="sm:col-span-4" />

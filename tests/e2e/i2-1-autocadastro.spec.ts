@@ -13,7 +13,7 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(ADMIN.email);
   await page.getByLabel("Senha").fill(ADMIN.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL("/empresa");
+  await expect(page).toHaveURL(new RegExp("/empresa/?$"), { timeout: 30_000 });
 }
 
 test("autocadastro por link individual com aprovação", async ({ page, browser }) => {
@@ -56,7 +56,7 @@ test("autocadastro por link individual com aprovação", async ({ page, browser 
   // Os dados digitados permanecem após o erro (inclusive listas de seleção)
   await expect(c.locator('select[name="address_state"]')).toHaveValue("SP");
   await expect(c.locator('input[name="units.0.name"]')).toHaveValue("Filial Votorantim");
-  await expect(c.locator('input[name="tax_id"]')).toHaveValue(cnpj);
+  await expect(c.locator('input[name="tax_id"]')).toHaveValue(cnpj.replace(new RegExp("^(..)(...)(...)(....)(..)$"), "$1.$2.$3/$4-$5")); // com a máscara (A9)
 
   // Termo recolhido, expansível
   await expect(c.getByText("O envio deste formulário não constitui contratação")).toBeHidden();

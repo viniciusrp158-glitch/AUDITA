@@ -8,6 +8,7 @@ const TABS = [
   { href: "/prospeccao/pesquisar", label: "Pesquisar" },
   { href: "/prospeccao/regioes", label: "Regiões" },
   { href: "/prospeccao/funil", label: "Funil" },
+  { href: "/prospeccao/resultados", label: "Resultados" },
   { href: "/prospeccao/nichos", label: "Nichos e palavras-chave" },
 ];
 
