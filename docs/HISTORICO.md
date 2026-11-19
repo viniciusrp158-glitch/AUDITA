@@ -1760,3 +1760,19 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   imagem do `audita-web` levaria junto a prospecção, ainda não liberada). Envio dos avisos por e-mail: decisão do Diretor.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261117-academy2 .env && docker compose up -d aluno`. A
   migração só acrescenta colunas opcionais, tabelas e funções; a área do aluno anterior funciona com ela no banco.
+
+## S11 — Site institucional: página do Audita HUB com os mockups da segunda rodada (19/11/2026)
+
+- **Pedido do Diretor:** atualizar os mockups do HUB no site com o pacote `AuditaHUB/marketing/mockups-2026-11-r2.zip`
+  (telas reais do sistema, empresa fictícia Metalúrgica Exemplo, foto institucional da AUDITA).
+- **Página `/audita-hub/`:** topo com notebook e celular (fundo transparente) e a frase "Segurança do trabalho que
+  funciona no dia a dia."; blocos de Indicadores (tema escuro), PGR elaborado pela AUDITA, divergências com o PGR, EPIs
+  e meio ambiente com os painéis recortados das peças 16:9; seção "Feito para quem está na área" com as três peças
+  verticais. As capturas do design anterior saíram da página. Imagens `site/public/images/plataformas/hub2-*`
+  (nomes novos por causa do cache de 7 dias da Cloudflare).
+- **Também:** imagem do HUB na página inicial e imagem de compartilhamento (`hub2-og.jpg`). Página do PRO sem mudança.
+- **Testes:** site 48/48 (computador, Pixel 7 e iPhone 13), sem rolagem lateral e sem erros no console.
+- **Produção (19/11/2026, com o "Pode publicar" do Diretor):** imagem `audita-site:20261119-hub-r2`, testada antes na
+  porta 3499. Só o container `audita-site` foi trocado. Conferido no ar: páginas 200, imagens novas, `og:image`,
+  `noindex` mantido, redirecionamentos, `/empresa/login` e console sem erros.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261119-hub-r2 .env && docker compose up -d site`.
