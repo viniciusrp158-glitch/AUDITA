@@ -227,7 +227,7 @@ export const HUB: Plataforma = {
         "Inspeções e desvios por semana, ações por status e suas tarefas",
         "Tema claro ou escuro, confortável no escritório e na sala de controle",
       ],
-      painel: { src: "/images/plataformas/hub2-tema-escuro.webp", alt: "Dashboard do Audita HUB no tema escuro, no notebook e no celular", legenda: "Dashboard no tema escuro.", largura: 1060, altura: 800 },
+      painel: { src: "/images/plataformas/hub2-tema-escuro-v2.webp", alt: "Dashboard do Audita HUB no tema escuro, no notebook e no celular", legenda: "Dashboard no tema escuro.", largura: 1060, altura: 757 },
     },
     {
       kicker: "PGR",
@@ -239,7 +239,7 @@ export const HUB: Plataforma = {
         "Inventário de riscos por Grupo Homogêneo de Exposição (GHE)",
         "EPIs e capacitações exigidos por GHE, cobrados nas entregas e na matriz de treinamentos",
       ],
-      painel: { src: "/images/plataformas/hub2-pgr.webp", alt: "Páginas do PDF do PGR emitido pela AUDITA e tela do PGR no Audita HUB com as versões emitidas e a integração com o PGR", legenda: "PGR de demonstração da Metalúrgica Exemplo (empresa fictícia).", largura: 1060, altura: 1020 },
+      painel: { src: "/images/plataformas/hub2-pgr-v2.webp", alt: "Páginas do PDF do PGR emitido pela AUDITA e tela do PGR no Audita HUB com as versões emitidas e a integração com o PGR", legenda: "PGR de demonstração da Metalúrgica Exemplo (empresa fictícia).", largura: 1060, altura: 860 },
     },
     {
       kicker: "Integração com o PGR",
@@ -251,7 +251,7 @@ export const HUB: Plataforma = {
         "Capacitação exigida pendente ou vencida",
         "Trabalhador com cargo fora de qualquer GHE",
       ],
-      painel: { src: "/images/plataformas/hub2-divergencias.webp", alt: "Tela de divergências com o PGR no Audita HUB, com a lista de EPIs em uso que não estão no GHE", legenda: "", largura: 1060, altura: 850 },
+      painel: { src: "/images/plataformas/hub2-divergencias-v2.webp", alt: "Tela de divergências com o PGR no Audita HUB, com a lista de EPIs em uso que não estão no GHE", legenda: "", largura: 1060, altura: 724 },
     },
     {
       kicker: "EPIs e uniformes",
@@ -263,7 +263,7 @@ export const HUB: Plataforma = {
         "Entregas e custo por mês, por 12 semanas ou no ano",
         "Catálogo com CA, compras e fornecedores",
       ],
-      painel: { src: "/images/plataformas/hub2-epi.webp", alt: "Visão geral de EPIs e uniformes no Audita HUB: trocas vencidas, CA vencendo, estoque abaixo do mínimo e entregas sem ciência", legenda: "", largura: 1060, altura: 850 },
+      painel: { src: "/images/plataformas/hub2-epi-v2.webp", alt: "Visão geral de EPIs e uniformes no Audita HUB: trocas vencidas, CA vencendo, estoque abaixo do mínimo e entregas sem ciência", legenda: "", largura: 1060, altura: 724 },
     },
     {
       kicker: "Meio ambiente",
@@ -275,7 +275,7 @@ export const HUB: Plataforma = {
         "Registro de MTR (SIGOR/CETESB)",
         "LAIA, PGRS, CADRI, FDSR e indicadores ambientais",
       ],
-      painel: { src: "/images/plataformas/hub2-meio-ambiente.webp", alt: "Licenças e condicionantes no módulo Meio ambiente do Audita HUB", legenda: "", largura: 1060, altura: 850 },
+      painel: { src: "/images/plataformas/hub2-meio-ambiente-v2.webp", alt: "Licenças e condicionantes no módulo Meio ambiente do Audita HUB", legenda: "", largura: 1060, altura: 724 },
     },
   ],
   suite: {
