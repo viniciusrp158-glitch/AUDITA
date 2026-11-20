@@ -74,3 +74,9 @@ html[data-theme="escuro"] .logo-plate {
   border-radius: 8px;
   padding: 6px 10px;
 }
+
+/* Barra de progresso da navegação (components/nav-progress.tsx) */
+@keyframes navprog {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
