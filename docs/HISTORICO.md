@@ -2091,3 +2091,27 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - **Produção:** cópia `db_2026-11-19_2102`; migração pelo `apply-migrations.sh` (42 registradas); imagem
   `audita-sistema:20261119-prospeccao2` pré-testada na 3299 e no ar (healthy). **Reversão:**
   `AUDITA_WEB_TAG=20261119-celular3` + `docker compose up -d web` (as tabelas novas ficam sem uso).
+
+## Prospecção 2.0 — Fase 4 (painel, meta e comemorações) e e-mail de apresentação (19/11/2026, 22h)
+
+- **Fase 4 (RP-23):** Painel da Prospecção com **"Meta de hoje"** (contatos do usuário no dia / 20 por dia útil,
+  barra de progresso, sequência de dias úteis com a meta, dias da semana cumpridos, atalho "Contatar os Quentes" e
+  retornos do dia) — cálculo puro em `src/lib/prospect/goal-calc.ts` (fim de semana não quebra a sequência). No modo
+  prospecção, cada registro informa "N de 20 hoje" e comemora reunião marcada, interesse e meta batida. O lead criado
+  pelo modo prospecção guarda o grupo e a nota da carteira (`score_detail.portfolio`); a tela Resultados ganhou
+  **"Chance estimada × resposta real"** por grupo (base da recalibração dos pesos com ~30 leads por grupo).
+- **E-mail de apresentação (rascunho para aprovação):** `src/lib/prospect/email-template.ts` — HTML em tabelas
+  (Outlook, Gmail, celular), logotipo, foto aprovada do site (técnico da AUDITA em inspeção, convertida para JPG),
+  slogan e resumos das famílias de serviço já aprovados no site, mensagem do Diretor com segmento e empresa, botões
+  "Conversar pelo WhatsApp" e "Conhecer a AUDITA", rodapé com saída, descadastro e privacidade; versão em texto.
+  Prévia: `docs/prospeccao/email-apresentacao-previa.html` (gerada por `scripts/prospect/email-previa.ts`).
+  Imagens públicas em `audita.seg.br/empresa/brand/email/`. Passo a passo da conta Brevo separada:
+  `docs/prospeccao/PASSO_A_PASSO_BREVO.md`.
+- **Testes:** unidade `prospect-meta` 2/2, `prospect-resultados` 5/5, `prospect-email` 3/3; e2e `p7-oportunidades`
+  2/2 (agora com Meta de hoje e chance × real), `p5-resultados` 2/2, `p1-prospect` 5/5.
+- **Produção:** imagens `audita-sistema:20261119-prospeccao3` (Fase 4) e `20261119-prospeccao4` (e-mail) pré-testadas
+  e no ar (healthy; imagens do e-mail 200). **Reversão:** `AUDITA_WEB_TAG=20261119-prospeccao2`.
+- **Pendências da Direção:** aprovar o AUDDOC020 Rev.01 na Biblioteca; aprovar o e-mail de apresentação; criar a conta
+  Brevo da prospecção (passo a passo); informar a data da validação jurídica. **Próximo (técnico):** envio do e-mail pelo
+  sistema (tela de integração para a chave, descadastro por link → "não contatar", limite diário com aquecimento e
+  pausa por devolução, lote bloqueado até a validação jurídica).
