@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { LEGACY_SESSION_COOKIE, STAFF_COOKIE } from "./cookies";
 
 // manifest.webmanifest: o celular busca antes do login para oferecer "Adicionar à tela inicial" (sem dados)
-const PUBLIC_PATHS = ["/login", "/recuperar-senha", "/auth/confirm", "/sem-acesso", "/cadastro", "/manifest.webmanifest"];
+const PUBLIC_PATHS = ["/login", "/recuperar-senha", "/auth/confirm", "/sem-acesso", "/cadastro", "/manifest.webmanifest", "/descadastro"];
 
 export function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

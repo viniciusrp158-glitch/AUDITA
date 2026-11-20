@@ -10,7 +10,9 @@ import { requireAppUser } from "@/lib/auth";
 import { OPERATE } from "@/lib/permissions";
 import { todaySaoPaulo } from "@/lib/format";
 import { isProduction } from "@/lib/env";
-import { insertLeadsFromBase } from "@/lib/prospect/add-leads";
+import { ensureLeadFromBase } from "@/lib/prospect/add-leads";
+import { blockReason, getEmailQuota, getSender, sendPresentation, syncBounces } from "@/lib/prospect/email-send";
+import { companyDisplayName } from "@/lib/prospect/messages";
 import { DAILY_GOAL, OUTCOMES } from "@/lib/prospect/labels";
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,15 +42,7 @@ function addBusinessDays(day: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function ensureLead(cnpj: string, portfolio?: { group: string; score: number }): Promise<{ id: string } | { error: string }> {
-  const supabase = await createClient();
-  const found = await supabase.from("leads").select("id").eq("cnpj", cnpj).maybeSingle();
-  if (found.data) return { id: found.data.id };
-  const r = await insertLeadsFromBase([cnpj], portfolio);
-  if (r.error) return { error: r.error };
-  const again = await supabase.from("leads").select("id").eq("cnpj", cnpj).maybeSingle();
-  return again.data ? { id: again.data.id } : { error: "Não foi possível incluir a empresa no funil (está em \"não contatar\"?)." };
-}
+const ensureLead = ensureLeadFromBase;
 
 const quickSchema = z.object({
   cnpj: z.string().regex(cnpjRe),
@@ -132,4 +126,131 @@ export async function markAccountingAction(input: { cnpj: string; kind: "phone" 
   if (error && !error.message.includes("duplicate")) return { error: "Não foi possível marcar." };
   revalidatePath("/prospeccao", "layout");
   return { ok: input.kind === "phone" ? "Telefone marcado como da contabilidade em todas as empresas." : "E-mail marcado como da contabilidade em todas as empresas." };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// E-mail de apresentação pelo sistema (Brevo) — individual (cartão) e em lote (grupo), AUDDOC020 Rev.01 RP-09
+// ---------------------------------------------------------------------------------------------------------------------
+
+async function registerEmailContact(leadId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("lead_activities").insert({ lead_id: leadId, kind: "email", outcome: "enviado", template_code: "email_apresentacao" });
+  if (error) return false;
+  const day = addBusinessDays(todaySaoPaulo(), 2);
+  await supabase.from("leads").update({ next_action_at: new Date(`${day}T09:00:00-03:00`).toISOString(), next_action_note: "Cobrar resposta do e-mail de apresentação" }).eq("id", leadId);
+  await supabase.from("leads").update({ stage: "aguardando_retorno" }).eq("id", leadId).eq("stage", "primeiro_contato");
+  return true;
+}
+
+async function suppressed(cnpj: string, email: string) {
+  const supabase = await createClient();
+  // Duas consultas simples (o e-mail pode ter caracteres que quebrariam um filtro "or")
+  const [a, b] = await Promise.all([
+    supabase.from("contact_suppressions").select("id").eq("cnpj", cnpj).limit(1),
+    supabase.from("contact_suppressions").select("id").eq("email", email.toLowerCase()).limit(1),
+  ]);
+  return (a.data ?? []).length > 0 || (b.data ?? []).length > 0;
+}
+
+async function emailTarget(cnpj: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("prospect_portfolio")
+    .select("cnpj, legal_name, trade_name, email, own_email, group_code, score, prospect_niches(code)")
+    .eq("cnpj", cnpj)
+    .maybeSingle();
+  return data as unknown as {
+    cnpj: string;
+    legal_name: string;
+    trade_name: string | null;
+    email: string | null;
+    own_email: boolean;
+    group_code: string;
+    score: number;
+    prospect_niches: { code: string } | null;
+  } | null;
+}
+
+/** Cartão: envia o e-mail de apresentação para esta empresa. */
+export async function sendEmailAction(input: { cnpj: string; group?: string; score?: number }): Promise<QuickState> {
+  const user = await requireAppUser(OPERATE);
+  if (!cnpjRe.test(input.cnpj)) return { error: "Dados inválidos." };
+  const q = await getEmailQuota();
+  const block = blockReason(q);
+  if (block) return { error: block };
+  const sender = await getSender();
+  if (!sender) return { error: "A chave do e-mail não pôde ser aberta no servidor. Revise a configuração." };
+  const t = await emailTarget(input.cnpj);
+  if (!t?.email) return { error: "Esta empresa não tem e-mail cadastrado." };
+  if (await suppressed(t.cnpj, t.email)) return { error: "Empresa ou e-mail na lista \"não contatar\"." };
+  const lead = await ensureLeadFromBase(t.cnpj, { group: t.group_code, score: t.score });
+  if ("error" in lead) return lead;
+  const r = await sendPresentation({
+    sender,
+    leadId: lead.id,
+    cnpj: t.cnpj,
+    email: t.email,
+    company: companyDisplayName(t.trade_name, t.legal_name),
+    nicheCode: t.prospect_niches?.code ?? null,
+    userName: user.fullName.split(" ")[0],
+    batch: false,
+  });
+  if (!r.ok) return { error: r.error };
+  await registerEmailContact(lead.id);
+  revalidatePath("/prospeccao", "layout");
+  return { ok: r.status === "simulado" ? "E-mail simulado (ambiente de testes: nada foi enviado). Próxima empresa!" : "📧 E-mail de apresentação enviado. Próxima empresa!" };
+}
+
+/** Lote: envia aos próximos do grupo que têm e-mail próprio, até o limite do dia. Exige a validação jurídica. */
+export async function sendBatchAction(input: { group: string; max: number }): Promise<QuickState> {
+  const user = await requireAppUser(OPERATE);
+  if (!["quente", "morno", "frio"].includes(input.group)) return { error: "Grupo inválido." };
+  const sender = await getSender();
+  if (sender) await syncBounces(sender.apiKey);
+  const q = await getEmailQuota();
+  const block = blockReason(q, { batch: true });
+  if (block) return { error: block };
+  if (!sender) return { error: "A chave do e-mail não pôde ser aberta no servidor. Revise a configuração." };
+  const left = Math.min(Math.max(1, Math.floor(input.max) || 1), q!.daily_limit - q!.sent_today, 100);
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("prospect_opportunities", { p_group: input.group, p_limit: 200, p_offset: 0 });
+  const niches = new Map(((await supabase.from("prospect_niches").select("id, code")).data ?? []).map((n) => [n.id as string, n.code as string]));
+  const candidates = ((data ?? []) as { cnpj: string; legal_name: string; trade_name: string | null; email: string | null; own_email: boolean; niche_id: string; score: number }[]).filter(
+    (c) => c.own_email && c.email,
+  );
+  let sent = 0;
+  let simulated = 0;
+  let failed = 0;
+  for (const c of candidates) {
+    if (sent + simulated >= left) break;
+    if (await suppressed(c.cnpj, c.email!)) continue;
+    const lead = await ensureLeadFromBase(c.cnpj, { group: input.group, score: c.score });
+    if ("error" in lead) continue;
+    const r = await sendPresentation({
+      sender,
+      leadId: lead.id,
+      cnpj: c.cnpj,
+      email: c.email!,
+      company: companyDisplayName(c.trade_name, c.legal_name),
+      nicheCode: niches.get(c.niche_id) ?? null,
+      userName: user.fullName.split(" ")[0],
+      batch: true,
+    });
+    if (!r.ok) {
+      failed += 1;
+      if (failed >= 3) break; // algo errado na configuração: para o lote
+      continue;
+    }
+    await registerEmailContact(lead.id);
+    if (r.status === "simulado") simulated += 1;
+    else sent += 1;
+  }
+  revalidatePath("/prospeccao", "layout");
+  if (!sent && !simulated) return { error: failed ? "O Brevo recusou os envios. Confira a configuração do e-mail." : "Nenhuma empresa deste grupo com e-mail próprio para enviar agora." };
+  return {
+    ok: simulated
+      ? `${simulated} e-mail(s) simulado(s) (ambiente de testes: nada foi enviado).`
+      : `📧 ${sent} e-mail(s) de apresentação enviado(s)${failed ? `; ${failed} falharam` : ""}.`,
+    celebrate: sent > 0,
+  };
 }

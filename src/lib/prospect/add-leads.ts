@@ -59,3 +59,14 @@ export async function insertLeadsFromBase(
   }
   return { added, skipped };
 }
+
+/** Lead da empresa (CNPJ): o existente ou um novo incluído da base no momento do primeiro contato. */
+export async function ensureLeadFromBase(cnpj: string, portfolio?: { group: string; score: number }): Promise<{ id: string } | { error: string }> {
+  const supabase = await createClient();
+  const found = await supabase.from("leads").select("id").eq("cnpj", cnpj).maybeSingle();
+  if (found.data) return { id: found.data.id };
+  const r = await insertLeadsFromBase([cnpj], portfolio);
+  if (r.error) return { error: r.error };
+  const again = await supabase.from("leads").select("id").eq("cnpj", cnpj).maybeSingle();
+  return again.data ? { id: again.data.id } : { error: 'Não foi possível incluir a empresa no funil (está em "não contatar"?).' };
+}

@@ -5,6 +5,8 @@ import { requireAppUser } from "@/lib/auth";
 import { getNiches } from "@/lib/prospect/queries";
 import { companyDisplayName } from "@/lib/prospect/messages";
 import { getOpportunities, getOpportunityCounts, GROUPS, isGroup, SIZE_CLASS_LABEL, type GroupCode } from "@/lib/prospect/opportunities";
+import { blockReason, getEmailQuota } from "@/lib/prospect/email-send";
+import { BatchEmailPanel } from "./batch";
 import { OpportunityCard } from "./card";
 
 export const metadata = { title: "Oportunidades" };
@@ -21,7 +23,10 @@ export default async function OportunidadesPage({ searchParams }: { searchParams
   const group: GroupCode = isGroup(sp.grupo) ? sp.grupo : first;
   const total = counts[group];
   const i = Math.min(Math.max(0, Number(sp.i) || 0), Math.max(0, total - 1));
-  const [{ rows, error }, niches] = await Promise.all([getOpportunities(group, 30, Math.floor(i / 30) * 30), getNiches()]);
+  const [{ rows, error }, niches, quota] = await Promise.all([getOpportunities(group, 30, Math.floor(i / 30) * 30), getNiches(), getEmailQuota()]);
+  const emailBlock = blockReason(quota);
+  const batchBlock = blockReason(quota, { batch: true });
+  const left = quota ? Math.max(0, quota.daily_limit - quota.sent_today) : 0;
   const nicheCode = new Map(niches.map((n) => [n.id, n.code]));
   const current = rows[i % 30] ?? rows[0];
   const href = (g: GroupCode, n = 0) => `?${new URLSearchParams({ grupo: g, ...(n && { i: String(n) }) })}`;
@@ -52,6 +57,8 @@ export default async function OportunidadesPage({ searchParams }: { searchParams
         })}
       </nav>
 
+      <BatchEmailPanel group={group} groupLabel={GROUPS.find((g) => g.value === group)!.label} left={left} block={batchBlock} />
+
       {(error || countError) && (
         <div className="mb-4">
           <Alert kind="error">Não foi possível carregar as oportunidades agora. Tente de novo em instantes.</Alert>
@@ -72,6 +79,7 @@ export default async function OportunidadesPage({ searchParams }: { searchParams
             position={i + 1}
             total={total}
             nextHref={i + 1 < total ? href(group, i + 1) : null}
+            emailReady={!emailBlock}
             item={{
               cnpj: current.cnpj,
               legal_name: current.legal_name,

@@ -9,7 +9,7 @@ import { formatCnae, formatPhone, formatTaxId } from "@/lib/br";
 import { applyMask } from "@/lib/mask";
 import { companyDisplayName, emailText, whatsappMessage } from "@/lib/prospect/messages";
 import { whatsappLink } from "@/lib/prospect/labels";
-import { discardAction, markAccountingAction, quickContactAction } from "./actions";
+import { discardAction, markAccountingAction, quickContactAction, sendEmailAction } from "./actions";
 
 export type CardItem = {
   cnpj: string;
@@ -53,7 +53,22 @@ const RESULTS: Record<Kind, { value: string; label: string; tone?: "ok" | "warn"
   ],
 };
 
-export function OpportunityCard({ item, userName, position, total, nextHref }: { item: CardItem; userName: string; position: number; total: number; nextHref: string | null }) {
+export function OpportunityCard({
+  item,
+  userName,
+  position,
+  total,
+  nextHref,
+  emailReady = false,
+}: {
+  item: CardItem;
+  userName: string;
+  position: number;
+  total: number;
+  nextHref: string | null;
+  /** Envio pelo sistema (Brevo) configurado e com cota: o botão envia o e-mail de apresentação aprovado. */
+  emailReady?: boolean;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ kind: "info" | "error" | "celebrate"; text: string } | null>(null);
@@ -231,7 +246,16 @@ export function OpportunityCard({ item, userName, position, total, nextHref }: {
           ) : (
             <span className={`${btn} border border-dashed border-line text-xs text-muted`}>Sem telefone</span>
           )}
-          {mail ? (
+          {item.email && emailReady ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => run(() => sendEmailAction({ cnpj: item.cnpj, group: item.group, score: item.score }))}
+              className={`${btn} border border-navy bg-white text-navy disabled:opacity-60`}
+            >
+              <Mail size={20} /> Enviar e-mail
+            </button>
+          ) : mail ? (
             <a href={mail} onClick={() => setChannel("email")} className={`${btn} border border-line bg-white text-ink`}>
               <Mail size={20} /> E-mail
             </a>
