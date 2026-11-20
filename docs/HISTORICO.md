@@ -2190,3 +2190,12 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - **Observação para o Diretor:** o AUDDOC004 Rev.01 tem data de aprovação **05/11/2000** registrada (provável 2026).
   Revisão publicada é imutável (regra 5): corrigir só com decisão do Diretor.
 - **E-mail de teste** enviado também a viniciusrp158@hotmail.com (pedido do Diretor), remetente prospeccao@ (Brevo 201).
+
+## 20/11/2026 — Correção da data de aprovação do AUDDOC004 Rev.01 (autorizada pelo Diretor)
+
+- **Decisão do Diretor (20/11):** "Sim, é 05/11/2026". A data registrada no cadastro da revisão era 05/11/2000 (erro
+  de digitação); o arquivo da revisão já trazia 05/11/2026 (`scripts/biblioteca/auddoc004-rev01.cjs`). Arquivo,
+  SHA-256, situação e demais dados da revisão **não foram alterados**.
+- **Como:** cópia `db_2026-11-20_1314`; numa única transação, suspensa só a trava `library_revisions_before_write`,
+  atualizado apenas `approved_on` (condicionado ao valor antigo) e reativada a trava. Trilha de auditoria ativa:
+  registro 10335 `approved_on: 2000-11-05 → 2026-11-05`. As três travas da tabela conferidas como ativas depois.
