@@ -2171,3 +2171,22 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - **Entrega:** os testes chegaram no **lixo eletrônico** do Outlook, sem "via brevosend" (assinatura DKIM do domínio
   alinhada). Causa provável: conta nova no IP compartilhado do plano gratuito, domínio sem histórico de envio e e-mail
   enviado para o próprio endereço. Acompanhar com os primeiros envios reais (aquecimento 30→100).
+
+## 20/11/2026 — Biblioteca: rascunhos visíveis e aviso da lista mestra só com pendência (pedido do Diretor)
+
+- **Problema relatado:** o painel alertava "1 documento da biblioteca em rascunho", mas a Biblioteca não mostrava nada
+  (a lista exibe a revisão vigente; o rascunho era o AUDDOC020 Rev.01, visível só dentro do documento). E o aviso
+  "Lista Mestra… Rev.02 vigente, igual ao catálogo" ficava sempre no topo, sem nada a fazer.
+- **Correção:** Biblioteca com o bloco **"Aguardando sua aprovação"** (link direto a cada documento com revisão em
+  rascunho), selo "Rev.NN em rascunho" na lista e filtro `?rascunho=1`; o alerta do painel leva ao documento quando há
+  um só rascunho, ou à lista filtrada quando há vários. O aviso da lista mestra só aparece quando o catálogo mudou ou
+  ela ainda não foi publicada (a lista continua em Biblioteca → AUDDOC019 e em /biblioteca/lista-mestra).
+- **Testes:** e2e novo `p9-biblioteca-rascunho` **1/1** (cria documento fictício [TESTE] com Rev.00 em rascunho; bloco,
+  link, filtro, alerta do painel e celular 375 px sem rolagem). Tipos e lint ok. Os testes antigos `i7-biblioteca`
+  dependem do acervo oficial, que **não existe no banco de testes da VPS** (0 documentos), e `i8-indicadores` fixa
+  "mês anterior = setembro" — falhas antigas de ambiente/data, não desta mudança.
+- **Produção:** cópia `db_2026-11-20_1245`; imagem `audita-sistema:20261120-biblioteca1` pré-testada (3299: login 200,
+  biblioteca 307 sem sessão, descadastro 200) e no ar (healthy). Reversão: `AUDITA_WEB_TAG=20261120-prospeccao5`.
+- **Observação para o Diretor:** o AUDDOC004 Rev.01 tem data de aprovação **05/11/2000** registrada (provável 2026).
+  Revisão publicada é imutável (regra 5): corrigir só com decisão do Diretor.
+- **E-mail de teste** enviado também a viniciusrp158@hotmail.com (pedido do Diretor), remetente prospeccao@ (Brevo 201).
