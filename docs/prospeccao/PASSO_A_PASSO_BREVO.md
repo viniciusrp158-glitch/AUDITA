@@ -32,12 +32,14 @@ provar que o domínio é da AUDITA. A senha e as chaves ficam com você; nada di
      ter **os dois**: `v=spf1 include:_spf.mx.cloudflare.net include:spf.brevo.com -all`.
 
 ## 4. Gerar a chave de envio (2 min)
-1. Menu do seu nome → **SMTP e API** → aba **Chaves SMTP** (ou **Chaves de API**) → **Gerar nova chave** → nome
-   "Sistema AUDITA — prospecção".
-2. **Não envie a chave pela conversa.** Quando a tela de integração estiver pronta, você cola a chave em
-   **Configurações → Integrações → E-mail da prospecção** no sistema (só o administrador). Ela fica guardada no
-   servidor e nunca volta para o navegador.
+1. Menu do seu nome → **SMTP e API** → aba **Chaves de API** → **Gerar nova chave de API** → nome
+   "Sistema AUDITA — prospecção". A chave começa com `xkeysib-`. **Não** use a aba "Chaves SMTP".
+2. **Não envie a chave pela conversa.** No sistema (como administrador): **Configurações → E-mail da prospecção**.
+   Preencha o nome do remetente, cole a chave no campo "Chave do Brevo" e salve. Ela é guardada **cifrada** no servidor
+   e nunca volta para a tela.
+3. Para liberar o **envio em lote**, preencha na mesma tela a **data da validação jurídica**. Sem ela, só o envio
+   individual pelo cartão funciona.
 
 ## 5. Me avise
-Basta dizer "Brevo pronto". Eu configuro o envio e faço um teste para um e-mail seu. O envio em lote fica liberado
+Basta dizer "Brevo pronto". Eu confiro a configuração e combinamos um teste para um e-mail seu. O envio em lote fica liberado
 quando você me informar a **data da validação do advogado** (Avaliação de Legítimo Interesse, já enviada).

@@ -2115,3 +2115,30 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   Brevo da prospecção (passo a passo); informar a data da validação jurídica. **Próximo (técnico):** envio do e-mail pelo
   sistema (tela de integração para a chave, descadastro por link → "não contatar", limite diário com aquecimento e
   pausa por devolução, lote bloqueado até a validação jurídica).
+
+## Prospecção 2.0 — envio do e-mail de apresentação pelo sistema (20/11/2026, 0h30)
+
+- **Decisões do Diretor (19/11):** "Aprovo o e-mail" (modelo `src/lib/prospect/email-template.ts`, prévia
+  `docs/prospeccao/email-apresentacao-previa.html`); autorizada a **3ª função pública** `prospect_unsubscribe`
+  (descadastro), registrada como exceção na regra 4 do CLAUDE.md.
+- **Migração aditiva `20261121120000_p6_prospect_email`:** `prospect_email_config` (linha única; só administrador;
+  remetente @audita.seg.br, "responder para", chave **cifrada**, limites 30→100, data da validação jurídica),
+  `prospect_email_sends` (registro imutável; só "enviado → devolvido" pela função própria, por sinal da transação),
+  `prospect_email_quota` (aquecimento +5 por dia útil desde o 1º envio real, pausa com devolução > 3% em ≥ 20
+  envios), `prospect_email_sender` (entrega a chave só cifrada), `prospect_unsubscribe` (anon: põe CNPJ e e-mail em
+  "não contatar", não devolve dados) e `prospect_email_mark_bounced`.
+- **Servidor:** `src/lib/secret-box.ts` (AES-256-GCM com `AUDITA_SECRETS_KEY`, gerada direto no `web.env` do servidor e
+  no `.env.dev-servidor`, sem exibição); `src/lib/prospect/email-send.ts` (API v3 do Brevo, `List-Unsubscribe`,
+  sincronização de devoluções antes do lote; **fora da produção só simula**).
+- **Telas:** Configurações → **E-mail da prospecção** (situação, enviados/limite/devoluções de hoje); no cartão
+  **"Enviar e-mail"** quando configurado (registra o contato e agenda o retorno); **E-mail em lote** nas Oportunidades
+  (bloqueado com o motivo até a validação jurídica); página pública **/descadastro** com confirmação em um toque (à
+  prova de leitores automáticos de link).
+- **Testes:** PGlite `prospect-p6` **4/4**; unidade `secret-box` **3/3**; e2e `p8-email` **4/4** (chave nunca volta à
+  tela, limite > 100 recusado, envio individual simulado, lote bloqueado e depois liberado, descadastro); regressão
+  `p7` 2/2, `p6` 4/4, `a-frente-a` 3/3, `i1` 5/5; unidade 22/23 (só a falha antiga do teste do site).
+- **Produção:** cópia `db_2026-11-20_0016`; migração (43 registradas); imagem `audita-sistema:20261120-prospeccao5`
+  pré-testada (chave presente no contêiner) e no ar (healthy; /descadastro 200). **Reversão:**
+  `AUDITA_WEB_TAG=20261119-prospeccao4` (as tabelas novas ficam sem uso).
+- **Pendente da Direção:** conta Brevo da prospecção e chave na tela (passo a passo atualizado); data da validação
+  jurídica; aprovação do AUDDOC020 Rev.01.
