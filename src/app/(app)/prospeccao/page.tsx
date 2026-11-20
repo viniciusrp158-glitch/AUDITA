@@ -5,14 +5,20 @@ import { ButtonLink, Card, TestBadge } from "@/components/ui";
 import { formatDateTime } from "@/lib/format";
 import { STAGES } from "@/lib/prospect/labels";
 import { getCurrentPublication, getDashboard } from "@/lib/prospect/queries";
+import { requireAppUser } from "@/lib/auth";
+import { getGoalProgress } from "@/lib/prospect/goal";
+import { getOpportunityCounts } from "@/lib/prospect/opportunities";
 
 export const metadata = { title: "Prospecção" };
 
-/** Metas semanais iniciais propostas no planejamento (seção 12), a calibrar após 4 semanas de uso. */
-const GOALS = { contatos: 25, respostas: 8, reunioes: 2 };
+/** Metas semanais de respostas e reuniões (planejamento, seção 12); contatos: meta diária de 20 por dia útil (Diretor, 19/11/2026). */
+const GOALS = { respostas: 8, reunioes: 2 };
 
 export default async function ProspeccaoPage() {
-  const [d, pub] = await Promise.all([getDashboard(), getCurrentPublication()]);
+  const user = await requireAppUser();
+  const [d, pub, g, opp] = await Promise.all([getDashboard(), getCurrentPublication(), getGoalProgress(user.id), getOpportunityCounts()]);
+  const pctToday = Math.min(100, Math.round((g.today / g.goal) * 100));
+  const done = g.today >= g.goal;
   const max = Math.max(1, ...STAGES.map((s) => d.byStage[s.value]));
   const goal = (label: string, value: number, target: number) => {
     const pct = Math.min(100, Math.round((value / target) * 100));
@@ -42,14 +48,43 @@ export default async function ProspeccaoPage() {
         </ButtonLink>
       </div>
 
-      <section aria-label="Metas da semana" className="mb-6 grid gap-3 sm:grid-cols-3">
-        {goal("Contatos feitos", d.week.contatos, GOALS.contatos)}
+      {/* Meta do dia (RP-23): o que fazer agora, em uma olhada */}
+      <section aria-label="Meta de hoje" className={`mb-4 rounded-2xl p-4 text-white sm:p-5 ${done ? "bg-ok" : "bg-navy"}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium opacity-80">{done ? "Meta de hoje batida! 🔥" : "Meta de hoje"}</p>
+            <p className="text-3xl font-bold tabular-nums">
+              {g.today}
+              <span className="text-lg font-medium opacity-80"> / {g.goal} contatos</span>
+            </p>
+          </div>
+          <div className="text-right text-sm">
+            <p className="font-semibold">{g.streak > 0 ? `🔥 ${g.streak} ${g.streak === 1 ? "dia" : "dias"} seguidos` : "Comece sua sequência hoje"}</p>
+            <p className="opacity-80">{g.weekDays} de 5 dias da semana com a meta</p>
+          </div>
+        </div>
+        <div className="mt-3 h-2 rounded-full bg-white/25">
+          <div className="h-2 rounded-full bg-white transition-all" style={{ width: `${pctToday}%` }} />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/prospeccao/oportunidades?grupo=quente" className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-navy">
+            🔥 Contatar os Quentes ({opp.counts.quente.toLocaleString("pt-BR")})
+          </Link>
+          {d.due.length > 0 && (
+            <a href="#retornos" className="rounded-xl border border-white/50 px-4 py-2.5 text-sm font-semibold">
+              {d.due.length} retorno(s) para hoje
+            </a>
+          )}
+        </div>
+      </section>
+
+      <section aria-label="Metas da semana" className="mb-6 grid grid-cols-2 gap-3">
         {goal("Respostas", d.week.respostas, GOALS.respostas)}
         {goal("Reuniões marcadas", d.week.reunioes, GOALS.reunioes)}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+        <div id="retornos" className="scroll-mt-20 lg:col-span-3">
           <Card title="Retornos de hoje e atrasados" actions={<Link href="/prospeccao/funil" className="text-sm font-semibold text-navy hover:underline">Ver funil</Link>}>
             {d.due.length === 0 ? (
               <p className="text-sm text-muted">Nenhum retorno para hoje. Pesquise empresas ou registre contatos para agendar os próximos.</p>

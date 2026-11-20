@@ -20,6 +20,9 @@ export type Stage = (typeof STAGES)[number]["value"];
 export const STAGE_LABEL = Object.fromEntries(STAGES.map((s) => [s.value, s.label])) as Record<Stage, string>;
 export const isStage = (v: string): v is Stage => STAGES.some((s) => s.value === v);
 
+/** Meta de contatos por dia útil (decisão do Diretor de 19/11/2026; AUDDOC020 Rev.01). */
+export const DAILY_GOAL = 20;
+
 export const ACTIVITY_KINDS = [
   { value: "whatsapp", label: "WhatsApp" },
   { value: "ligacao", label: "Ligação" },

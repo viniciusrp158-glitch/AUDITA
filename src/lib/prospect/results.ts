@@ -40,7 +40,7 @@ async function load(includeTest: boolean) {
   const leadsQ = (a: number, b: number) => {
     const q = supabase
       .from("leads")
-      .select("id, cnpj, legal_name, trade_name, stage, score, score_band, niche_id, created_at, last_activity_at, client_id, ibge_municipalities(name)")
+      .select("id, cnpj, legal_name, trade_name, stage, score, score_band, niche_id, created_at, last_activity_at, client_id, chance_group:score_detail->portfolio->>group, ibge_municipalities(name)")
       .eq("status", "ativo");
     return (includeTest ? q : q.eq("is_test", false)).order("id").range(a, b);
   };
@@ -68,6 +68,7 @@ async function load(includeTest: boolean) {
       created_at: string;
       last_activity_at: string | null;
       client_id: string | null;
+      chance_group: string | null;
       ibge_municipalities: { name: string } | null;
     }[],
     activities: (acts.data ?? []) as { lead_id: string; kind: string; outcome: string | null; occurred_at: string }[],

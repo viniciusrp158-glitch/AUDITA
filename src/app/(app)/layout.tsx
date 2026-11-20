@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { EnvBadge } from "@/components/brand";
+import { NavProgress } from "@/components/nav-progress";
 import { ClearFlashParams } from "@/components/clear-flash";
 import { NoPermissionNotice } from "@/components/no-permission";
 import { Sidebar } from "@/components/sidebar";
@@ -21,6 +22,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
   return (
     <div className="min-h-screen">
+      <Suspense>
+        <NavProgress />
+      </Suspense>
       <EnvBadge />
       <div className="lg:flex">
         <Sidebar

@@ -2046,3 +2046,128 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   `supabase-audita` e `supabase-audita-dev`; nada do PRO), com `docker compose stop studio meta` pelo usuário deploy.
   Sistema e site seguem respondendo (login 200, site 200). Para religar: `docker compose start studio meta` na pasta do
   projeto.
+
+## AUDDOC020 Rev.01 (rascunho) e Avaliação de Legítimo Interesse (19/11/2026, 20h20)
+
+- **Pedido do Diretor:** respostas da lista de 19/11 (meta 20/dia útil; conta Brevo separada; até 100 e-mails/dia;
+  WhatsApp (15) 99689-1049; grande empresa conforme sugestão; guarda 6 meses; documento para o advogado sem dados
+  dele) e "B) Autorizado, execute tudo" / "Execute tudo conforme documentado".
+- **AUDDOC020 Rev.01** (`scripts/biblioteca/auddoc020-rev01.ts`, gerada a partir da Rev.00, só com o que mudou):
+  escopo (sem disparo de WhatsApp), decisões revisadas (custo, região, público-alvo, WhatsApp com fila assistida,
+  e-mail pelo Brevo com limite e validação jurídica, meta, base com capital social), fonte Brevo, RP-02, RP-06
+  (chance de resposta e grupos), RP-09, RP-10 (mensagem padrão do Diretor + linha de saída), novos RP-20 a RP-23,
+  RNF-P04 (6 meses, descadastro) e RNF-P06 (tempos), controle de revisões. Word abriu sem erro (5 páginas, conferidas
+  em imagem). Backup `db_2026-11-19_2016`; registrada como **rascunho** pelo `publicar-revisao.sh` — SHA-256
+  `f7634032…a759f9`. A Rev.00 segue vigente até a aprovação do Diretor na Biblioteca.
+- **Avaliação de Legítimo Interesse** (`scripts/juridico/avaliacao-legitimo-interesse.ts` →
+  `docs/juridico/AUDITA_Avaliacao_Legitimo_Interesse_Prospeccao.docx`, 3 páginas, Word sem erro): contexto, dados,
+  teste em 3 etapas, salvaguardas, riscos, 5 pontos para validar, aviso de privacidade da prospecção (anexo) e campo
+  de registro da validação, sem identificar o advogado.
+
+## Prospecção 2.0 — Fases 1 e 2: carteira refinada e modo prospecção (19/11/2026, 21h)
+
+- **Pedido do Diretor:** "Execute tudo conforme documentado" (AUDDOC020 Rev.01 em rascunho; decisões de 19/11).
+- **Migração aditiva `20261120120000_p5_prospect_carteira`:** `audita.cnpj_companies` (capital social e nº de
+  estabelecimentos por CNPJ básico), `audita.prospect_contact_marks` ("é da contabilidade"), `audita.prospect_portfolio`
+  (carteira com dados de exibição) e as funções `refresh_prospect_portfolio` (público-alvo da Rev.01, contato
+  compartilhado em 5+ CNPJs = contabilidade, nota de chance de resposta, grupos Quentes ≥ 90 / Mornos 80–89 / Frios /
+  Precisa de contato, rebaixa em recuperação judicial/falência/liquidação), `prospect_opportunities` e
+  `prospect_opportunity_counts` (aplicam na hora: lead/cliente/"não contatar" novos somem; marcação rebaixa). RLS por
+  `can_operate`, SECURITY DEFINER com `search_path = ''`, sem tabelas temporárias nem DROP (CA-12).
+- **Carga:** `scripts/prospect/cnpj_empresas.py` + `carregar-empresas.sh` (publicação 2026-10 já no servidor):
+  3.433.835 empresas com capital social; carteira de **263.095** empresas até 150 km — produção: 29.839 Quentes,
+  41.123 Mornos, 93.912 Frios, 98.221 Precisa de contato. Recálculo noturno às 2h30 (crontab do deploy; demais
+  tarefas preservadas), 1 min 33 s.
+- **Velocidade (produção, como Diretor):** Quentes 11 ms, contagens 0,4 s, grupos grandes 0,3 s (antes: Pesquisa
+  7,2 s no ambiente de testes). Primeira versão da leitura levava 3–9 s; corrigido gravando os dados de exibição na
+  carteira e trocando verificações linha a linha por junções.
+- **Tela Oportunidades** (`/prospeccao/oportunidades`, nova aba): grupos com contagem; uma empresa por vez com nota,
+  porte, segmento, município/km, CNPJ, "por que está aqui", contatos com selo "da empresa"/"provável
+  contabilidade"; WhatsApp com a **mensagem do Diretor** (segmento + linha de saída), Ligar e E-mail (texto); "Corrigir
+  número" (salvo no lead), "É da contabilidade" (vale para todas as empresas), resultado em um toque (inclui no
+  funil, registra o contato, agenda o retorno em dias úteis e passa para a próxima), "Pular", "Não é para nós"
+  (perdido com motivo). Botões fixos acima da barra de atalhos no celular; fila do grupo ao lado no computador.
+- **Barra de progresso** na navegação (`components/nav-progress.tsx`). **Achado:** o `loading.tsx` do Next.js quebrava
+  os links de filtro (`?grupo=…`, `?visao=quadro`) quando se chegava à tela por navegação interna — reproduzido e
+  descartado; a barra dá o retorno imediato sem esse efeito.
+- **Testes:** PGlite `prospect-p5` **4/4**; unidade `prospect-mensagens` **3/3**; e2e `p7-oportunidades` **2/2**
+  (celular: grupos chegando pela aba, mensagem no link wa.me, corrigir número, registrar e seguir, pular, descartar;
+  computador: fila); regressão `p1` 5/5, `p4` 1/1, `p6` 4/4, `a-frente-a` 3/3, `a-frente-a-2` 4/4; `ca12` só com a
+  falha antiga do teste do site (outra frente).
+- **Produção:** cópia `db_2026-11-19_2102`; migração pelo `apply-migrations.sh` (42 registradas); imagem
+  `audita-sistema:20261119-prospeccao2` pré-testada na 3299 e no ar (healthy). **Reversão:**
+  `AUDITA_WEB_TAG=20261119-celular3` + `docker compose up -d web` (as tabelas novas ficam sem uso).
+
+## Prospecção 2.0 — Fase 4 (painel, meta e comemorações) e e-mail de apresentação (19/11/2026, 22h)
+
+- **Fase 4 (RP-23):** Painel da Prospecção com **"Meta de hoje"** (contatos do usuário no dia / 20 por dia útil,
+  barra de progresso, sequência de dias úteis com a meta, dias da semana cumpridos, atalho "Contatar os Quentes" e
+  retornos do dia) — cálculo puro em `src/lib/prospect/goal-calc.ts` (fim de semana não quebra a sequência). No modo
+  prospecção, cada registro informa "N de 20 hoje" e comemora reunião marcada, interesse e meta batida. O lead criado
+  pelo modo prospecção guarda o grupo e a nota da carteira (`score_detail.portfolio`); a tela Resultados ganhou
+  **"Chance estimada × resposta real"** por grupo (base da recalibração dos pesos com ~30 leads por grupo).
+- **E-mail de apresentação (rascunho para aprovação):** `src/lib/prospect/email-template.ts` — HTML em tabelas
+  (Outlook, Gmail, celular), logotipo, foto aprovada do site (técnico da AUDITA em inspeção, convertida para JPG),
+  slogan e resumos das famílias de serviço já aprovados no site, mensagem do Diretor com segmento e empresa, botões
+  "Conversar pelo WhatsApp" e "Conhecer a AUDITA", rodapé com saída, descadastro e privacidade; versão em texto.
+  Prévia: `docs/prospeccao/email-apresentacao-previa.html` (gerada por `scripts/prospect/email-previa.ts`).
+  Imagens públicas em `audita.seg.br/empresa/brand/email/`. Passo a passo da conta Brevo separada:
+  `docs/prospeccao/PASSO_A_PASSO_BREVO.md`.
+- **Testes:** unidade `prospect-meta` 2/2, `prospect-resultados` 5/5, `prospect-email` 3/3; e2e `p7-oportunidades`
+  2/2 (agora com Meta de hoje e chance × real), `p5-resultados` 2/2, `p1-prospect` 5/5.
+- **Produção:** imagens `audita-sistema:20261119-prospeccao3` (Fase 4) e `20261119-prospeccao4` (e-mail) pré-testadas
+  e no ar (healthy; imagens do e-mail 200). **Reversão:** `AUDITA_WEB_TAG=20261119-prospeccao2`.
+- **Pendências da Direção:** aprovar o AUDDOC020 Rev.01 na Biblioteca; aprovar o e-mail de apresentação; criar a conta
+  Brevo da prospecção (passo a passo); informar a data da validação jurídica. **Próximo (técnico):** envio do e-mail pelo
+  sistema (tela de integração para a chave, descadastro por link → "não contatar", limite diário com aquecimento e
+  pausa por devolução, lote bloqueado até a validação jurídica).
+
+## Prospecção 2.0 — envio do e-mail de apresentação pelo sistema (20/11/2026, 0h30)
+
+- **Decisões do Diretor (19/11):** "Aprovo o e-mail" (modelo `src/lib/prospect/email-template.ts`, prévia
+  `docs/prospeccao/email-apresentacao-previa.html`); autorizada a **3ª função pública** `prospect_unsubscribe`
+  (descadastro), registrada como exceção na regra 4 do CLAUDE.md.
+- **Migração aditiva `20261121120000_p6_prospect_email`:** `prospect_email_config` (linha única; só administrador;
+  remetente @audita.seg.br, "responder para", chave **cifrada**, limites 30→100, data da validação jurídica),
+  `prospect_email_sends` (registro imutável; só "enviado → devolvido" pela função própria, por sinal da transação),
+  `prospect_email_quota` (aquecimento +5 por dia útil desde o 1º envio real, pausa com devolução > 3% em ≥ 20
+  envios), `prospect_email_sender` (entrega a chave só cifrada), `prospect_unsubscribe` (anon: põe CNPJ e e-mail em
+  "não contatar", não devolve dados) e `prospect_email_mark_bounced`.
+- **Servidor:** `src/lib/secret-box.ts` (AES-256-GCM com `AUDITA_SECRETS_KEY`, gerada direto no `web.env` do servidor e
+  no `.env.dev-servidor`, sem exibição); `src/lib/prospect/email-send.ts` (API v3 do Brevo, `List-Unsubscribe`,
+  sincronização de devoluções antes do lote; **fora da produção só simula**).
+- **Telas:** Configurações → **E-mail da prospecção** (situação, enviados/limite/devoluções de hoje); no cartão
+  **"Enviar e-mail"** quando configurado (registra o contato e agenda o retorno); **E-mail em lote** nas Oportunidades
+  (bloqueado com o motivo até a validação jurídica); página pública **/descadastro** com confirmação em um toque (à
+  prova de leitores automáticos de link).
+- **Testes:** PGlite `prospect-p6` **4/4**; unidade `secret-box` **3/3**; e2e `p8-email` **4/4** (chave nunca volta à
+  tela, limite > 100 recusado, envio individual simulado, lote bloqueado e depois liberado, descadastro); regressão
+  `p7` 2/2, `p6` 4/4, `a-frente-a` 3/3, `i1` 5/5; unidade 22/23 (só a falha antiga do teste do site).
+- **Produção:** cópia `db_2026-11-20_0016`; migração (43 registradas); imagem `audita-sistema:20261120-prospeccao5`
+  pré-testada (chave presente no contêiner) e no ar (healthy; /descadastro 200). **Reversão:**
+  `AUDITA_WEB_TAG=20261119-prospeccao4` (as tabelas novas ficam sem uso).
+- **Pendente da Direção:** conta Brevo da prospecção e chave na tela (passo a passo atualizado); data da validação
+  jurídica; aprovação do AUDDOC020 Rev.01.
+
+## 20/11/2026 — Conta Brevo da prospecção configurada e validação jurídica registrada
+
+- **Diretor:** criou a conta Brevo separada, autenticou `audita.seg.br` (só o `brevo-code` novo no Cloudflare; SPF,
+  DKIM e DMARC já existentes mantidos), gerou chave de API **restrita** (só "E-mails transacionais"; vence em
+  20/11/2027 ou após 90 dias sem uso) e salvou em Configurações → E-mail da prospecção.
+- **Validação jurídica:** o Diretor confirmou em 20/11/2026 que o advogado validou a Avaliação de Legítimo Interesse
+  (dados do advogado não registrados, por decisão do Diretor). Data registrada na tela: 20/11/2026 ⇒ envio em lote
+  liberado.
+- **Conferência no servidor (sem exibir a chave e sem enviar e-mail):** configuração presente (remetente
+  `prospeccao@audita.seg.br`, responder para `engenharia.audita@outlook.com`, limites 30→100); a chave foi decifrada
+  com `AUDITA_SECRETS_KEY` dentro do contêiner `audita-web`, tem o formato `xkeysib-` e a leitura de eventos
+  transacionais do Brevo respondeu **200 OK**. Script temporário removido do servidor. Nenhum envio registrado ainda.
+- **Teste real (20/11, com autorização do Diretor):** script `scripts/prospect/email-teste-payload.ts` monta o e-mail
+  aprovado marcado **[TESTE]** (empresa fictícia "Empresa de Teste", descadastro com código inexistente); envio feito
+  dentro do contêiner `audita-web`, chave decifrada só ali, para engenharia.audita@outlook.com, sem registro em
+  `prospect_email_sends` (não é prospecção). Resultado: Brevo **201** com o remetente `prospeccao@audita.seg.br`
+  (também com `contato@` e com o remetente outlook). As recusas "valid sender email required" vistas antes eram
+  **erro do script de teste** (o "|" do nome do remetente era usado como separador), não do Brevo nem do sistema;
+  corrigido. O remetente foi trocado para `contato@` e devolvido a `prospeccao@` no mesmo dia.
+- **Entrega:** os testes chegaram no **lixo eletrônico** do Outlook, sem "via brevosend" (assinatura DKIM do domínio
+  alinhada). Causa provável: conta nova no IP compartilhado do plano gratuito, domínio sem histórico de envio e e-mail
+  enviado para o próprio endereço. Acompanhar com os primeiros envios reais (aquecimento 30→100).

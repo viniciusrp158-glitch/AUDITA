@@ -13,7 +13,7 @@ export const REPLY_OUTCOMES = ["interesse", "reuniao_marcada", "retornar_depois"
 /** Ordem do funil (sem "perdido", que é saída). */
 export const FUNNEL = ["importado", "qualificado", "primeiro_contato", "aguardando_retorno", "negociacao", "reuniao", "proposta", "cliente"] as const;
 
-export type ResultLead = { id: string; stage: string; score_band: string | null; niche_id: string | null; created_at: string };
+export type ResultLead = { id: string; stage: string; score_band: string | null; niche_id: string | null; created_at: string; chance_group?: string | null };
 export type ResultActivity = { lead_id: string; kind: string; outcome: string | null; occurred_at: string };
 export type ResultStage = { lead_id: string; to_stage: string; changed_at: string };
 
@@ -32,6 +32,8 @@ export type Results = {
   };
   funnel: { stage: string; reached: number; pct: number }[];
   byNiche: { niche_id: string | null; leads: number; contacted: number; replied: number; proposals: number; clients: number }[];
+  /** Chance estimada (grupo da carteira no contato) × resposta real dos leads que entraram no período (RP-23). */
+  byChance: { group: string; leads: number; contacted: number; replied: number; meetings: number; clients: number }[];
   /** Registros por canal no período (WhatsApp, ligação, e-mail, reunião), respostas e reuniões marcadas. */
   byChannel: { kind: string; records: number; replies: number; meetings: number }[];
 };
@@ -94,6 +96,21 @@ export function computeResults(
     }))
     .sort((a, b) => b.records - a.records);
 
+  const meetingIds = new Set(input.activities.filter((a) => a.outcome === "reuniao_marcada").map((a) => a.lead_id));
+  const byChance = ["quente", "morno", "frio", "precisa_contato"]
+    .map((g) => {
+      const ls = cohort.filter((l) => l.chance_group === g);
+      return {
+        group: g,
+        leads: ls.length,
+        contacted: ls.filter((l) => contactedIds.has(l.id)).length,
+        replied: ls.filter((l) => repliedIds.has(l.id)).length,
+        meetings: ls.filter((l) => meetingIds.has(l.id)).length,
+        clients: ls.filter((l) => (furthest.get(l.id) ?? 0) >= idx("cliente")).length,
+      };
+    })
+    .filter((x) => x.leads > 0);
+
   const runs = input.runs.filter((r) => inPeriod(r.ran_at));
   return {
     totals: {
@@ -109,6 +126,7 @@ export function computeResults(
       clients: clients.size,
     },
     funnel,
+    byChance,
     byNiche,
     byChannel,
   };

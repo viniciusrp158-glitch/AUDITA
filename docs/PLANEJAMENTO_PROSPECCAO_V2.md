@@ -212,3 +212,61 @@ As quatro primeiras definem o desenho e foram enviadas na conversa. As demais po
   audita.seg.br para os registros de autenticação (SPF/DKIM/DMARC), que evitam cair no spam.
 
 **Próximo passo:** AUDDOC020 Rev.01 (rascunho para aprovação na Biblioteca) com estas decisões. Em seguida, Fase 1.
+
+---
+
+## 7. Lista para começar (19/11/2026)
+
+**Já resolvido (verificado):** o domínio audita.seg.br já está autenticado no **Brevo** (SPF, DKIM e DMARC ativos
+desde 15/10) e o DNS fica no Cloudflare. Não é preciso criar um serviço novo nem mexer no DNS. Os dados institucionais
+vigentes têm telefone (15) 99689-1049, e-mail engenharia.audita@outlook.com e site audita.seg.br. Há 37 serviços aptos
+comercialmente no catálogo. O domínio **não tem caixa de entrada** (sem MX), então respostas a um remetente
+@audita.seg.br não chegariam.
+
+**A. Definições da Direção**
+1. Meta diária de contatos (sugestão: 15 por dia útil).
+2. E-mail comercial: nome do remetente, endereço (sugestão: prospeccao@audita.seg.br) e para onde vão as respostas
+   (sugestão: engenharia.audita@outlook.com).
+3. Conta Brevo: usar a mesma conta que envia os e-mails do sistema (recuperação de senha) ou uma conta separada para
+   a prospecção (recomendado: se a prospecção gerar denúncias de spam, a conta suspensa não derruba os e-mails de
+   acesso ao sistema).
+4. Limite de e-mails de prospecção por dia (sugestão: 50) e confirmação do plano Brevo atual (limite diário da conta).
+5. Confirmar que (15) 99689-1049 é o WhatsApp Business da AUDITA (vai no botão do e-mail).
+6. Rótulo "grande empresa" (sugestão: S.A., 3 ou mais filiais ou capital social ≥ R$ 5 milhões; "média" a partir de
+   R$ 1 milhão).
+7. Prazo de guarda de leads sem resposta (RNF-P04; sugestão: 12 meses, depois anonimizar).
+8. Advogado: nome e data da validação (legítimo interesse, linha de saída, e-mail em lote). Até lá, o envio em lote
+   fica pronto e bloqueado.
+
+**B. Autorizações permanentes para este projeto (Fases 1 a 4)**
+1. Migrações aditivas em produção (capital social, filiais, carteira de oportunidades, marcação de contato de
+   contabilidade, registro de envios), com backup antes.
+2. Nova carga da base de CNPJ da Receita (publicação mais recente, com capital social), em horário de pouco uso.
+3. Tarefa noturna no servidor (usuário deploy) para recalcular a carteira.
+4. Publicar cada fase no sistema real, com backup antes, para validação.
+5. Ligar e desligar o ambiente de testes conforme a necessidade.
+6. Registrar o AUDDOC020 Rev.01 como rascunho na Biblioteca (regra 12).
+7. Usar no servidor a credencial do Brevo, sem exibi-la: copiar a chave de um arquivo do servidor para outro, ou a
+   Direção cola a chave numa tela de configuração do sistema.
+
+**C. Só a Direção pode fazer**
+1. Na conta Brevo: criar a chave de API (ou a conta separada) e liberar o remetente escolhido. Eu passo o passo a
+   passo; a chave nunca passa pela conversa.
+2. Aprovar o AUDDOC020 Rev.01 e o modelo do e-mail na Biblioteca.
+3. Fazer os envios reais (o sistema prepara; quem envia é o usuário) e o primeiro teste: um e-mail e um WhatsApp para
+   um contato próprio da Direção.
+4. Obter a validação jurídica.
+
+### 7.1 Respostas da Direção (19/11/2026)
+
+| Item | Decisão |
+|---|---|
+| A1 Meta diária | **20 contatos por dia útil** |
+| A2/A3 E-mail | Conta Brevo **separada** para a prospecção (passo a passo na Fase 3); caixa @audita.seg.br a definir (sem custo: Cloudflare Email Routing → Outlook) |
+| A4 Limite | Até **100/dia**, com aquecimento gradual (30 → 100 em ~3 semanas) e pausa automática se devoluções > 3% ou denúncias |
+| A5 WhatsApp da AUDITA | **(15) 99689-1049** confirmado |
+| A6 Grande empresa | Sugestão aceita: grande = S.A., ≥ 3 filiais ou capital ≥ R$ 5 milhões; média = capital ≥ R$ 1 milhão |
+| A7 Guarda | Leads sem resposta: **6 meses**, depois anonimizar |
+| A8 Advogado | Avaliação de Legítimo Interesse preparada para validação; dados do advogado não são registrados, só a data da validação |
+| B Autorizações | **Todas autorizadas** ("Autorizado, execute tudo") |
+| C | C1 passo a passo do Brevo na Fase 3; C2 aprovações quando necessário; C3 ok; C4 validação jurídica pela Direção |
