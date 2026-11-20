@@ -9,7 +9,11 @@ import { getNiches, getReleasedServices } from "@/lib/prospect/queries";
 import { scoreCompany } from "@/lib/prospect/score";
 import { createClient } from "@/lib/supabase/server";
 
-export async function insertLeadsFromBase(cnpjs: string[]): Promise<{ added: number; skipped: number; error?: string }> {
+/** `portfolio`: grupo e nota da carteira no momento do contato (para comparar a chance estimada com a resposta real). */
+export async function insertLeadsFromBase(
+  cnpjs: string[],
+  portfolio?: { group: string; score: number },
+): Promise<{ added: number; skipped: number; error?: string }> {
   const supabase = await createClient();
   const [niches, released, est] = await Promise.all([
     getNiches(),
@@ -43,7 +47,7 @@ export async function insertLeadsFromBase(cnpjs: string[]): Promise<{ added: num
       stage: "importado",
       score: s.score,
       score_band: s.band,
-      score_detail: { items: s.items },
+      score_detail: { items: s.items, ...(portfolio && { portfolio: { ...portfolio, at: new Date().toISOString() } }) },
       score_version: s.version,
       suggested_services: s.suggestedServices,
       source: "receita",

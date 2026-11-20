@@ -62,7 +62,7 @@ test.describe("celular", () => {
     const first = await cardCnpj(page);
     await wa.click();
     await card.getByRole("button", { name: "Enviei a mensagem" }).click();
-    await expect(page.getByText("Contato registrado. Próxima empresa!")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Contato registrado \(\d+ de 20 hoje\)\. Próxima empresa!/)).toBeVisible({ timeout: 30_000 });
     await expect.poll(() => cardCnpj(page), { timeout: 30_000 }).not.toBe(first);
     await shot(page, "p7-proxima");
 
@@ -76,6 +76,17 @@ test.describe("celular", () => {
     await page.getByRole("button", { name: "Descartar" }).click();
     await expect(page.getByText("Empresa descartada.")).toBeVisible({ timeout: 30_000 });
     await expect.poll(() => cardCnpj(page), { timeout: 30_000 }).not.toBe(descartada);
+
+    // Painel: meta de hoje com o contato registrado e atalho para os Quentes (RP-23)
+    await page.goto("/empresa/prospeccao");
+    const meta = page.getByRole("region", { name: "Meta de hoje" });
+    await expect(meta.getByText(/\/ 20 contatos/)).toBeVisible();
+    expect(Number((await meta.locator("p.text-3xl").innerText()).split("/")[0].trim())).toBeGreaterThanOrEqual(1);
+    await expect(meta.getByRole("link", { name: /Contatar os Quentes/ })).toHaveAttribute("href", /grupo=quente/);
+    await shot(page, "p7-painel");
+    // Resultados: o lead vindo dos Quentes aparece na comparação estimativa × real
+    await page.goto("/empresa/prospeccao/resultados?periodo=7");
+    await expect(page.getByRole("table", { name: "Chance estimada × resposta real" }).getByRole("cell", { name: "🔥 Quentes" })).toBeVisible();
   });
 });
 

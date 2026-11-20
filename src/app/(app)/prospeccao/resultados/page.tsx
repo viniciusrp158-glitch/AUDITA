@@ -11,6 +11,7 @@ import { percent } from "@/lib/prospect/results-calc";
 export const metadata = { title: "Resultados da prospecção" };
 
 const num = (n: number) => n.toLocaleString("pt-BR");
+const CHANCE_LABEL: Record<string, string> = { quente: "🔥 Quentes", morno: "🙂 Mornos", frio: "❄️ Frios", precisa_contato: "🔎 Precisa de contato" };
 const pctTxt = (a: number, b: number) => (b ? `${percent(a, b).toLocaleString("pt-BR")}%` : "—");
 
 export default async function ResultadosPage({ searchParams }: { searchParams: Promise<{ periodo?: string }> }) {
@@ -127,6 +128,47 @@ export default async function ResultadosPage({ searchParams }: { searchParams: P
               </table>
             </div>
           )}
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card title="Chance estimada × resposta real">
+          {r.byChance.length === 0 ? (
+            <p className="text-sm text-muted">
+              Ainda sem leads vindos das Oportunidades neste período. A comparação aparece assim que os contatos começarem pelo modo prospecção.
+            </p>
+          ) : (
+            <div className="-mx-5 overflow-x-auto">
+              <table className="w-full min-w-[30rem] text-sm" aria-label="Chance estimada × resposta real">
+                <thead>
+                  <tr className="border-b border-line">
+                    <th className={th}>Grupo no contato</th>
+                    <th className={`${th} text-right`}>Leads</th>
+                    <th className={`${th} text-right`}>Responderam</th>
+                    <th className={`${th} text-right`}>Taxa</th>
+                    <th className={`${th} text-right`}>Reuniões</th>
+                    <th className={`${th} text-right`}>Clientes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {r.byChance.map((c) => (
+                    <tr key={c.group}>
+                      <td className="px-3 py-2">{CHANCE_LABEL[c.group] ?? c.group}</td>
+                      <td className={`${td} text-right`}>{num(c.leads)}</td>
+                      <td className={`${td} text-right`}>{num(c.replied)}</td>
+                      <td className={`${td} text-right`}>{pctTxt(c.replied, c.contacted)}</td>
+                      <td className={`${td} text-right`}>{num(c.meetings)}</td>
+                      <td className={`${td} text-right`}>{num(c.clients)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="mt-3 text-xs text-muted">
+            Se os Quentes respondem mais que os Mornos e os Frios, a estimativa está funcionando. Com cerca de 30 leads por grupo, os pesos da nota são
+            recalibrados com estes números.
+          </p>
         </Card>
       </div>
 

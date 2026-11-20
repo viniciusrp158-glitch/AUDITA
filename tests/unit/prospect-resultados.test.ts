@@ -4,8 +4,8 @@ import { computeResults } from "@/lib/prospect/results-calc";
 
 const D = (d: string) => `${d}T12:00:00.000Z`;
 const leads = [
-  { id: "a", stage: "cliente", score_band: "prioritario", niche_id: "n1", created_at: D("2026-11-10") },
-  { id: "b", stage: "perdido", score_band: "alto", niche_id: "n1", created_at: D("2026-11-11") },
+  { id: "a", stage: "cliente", score_band: "prioritario", niche_id: "n1", created_at: D("2026-11-10"), chance_group: "quente" },
+  { id: "b", stage: "perdido", score_band: "alto", niche_id: "n1", created_at: D("2026-11-11"), chance_group: "frio" },
   { id: "c", stage: "importado", score_band: "prioritario", niche_id: "n2", created_at: D("2026-11-12") },
   { id: "velho", stage: "proposta", score_band: "baixo", niche_id: "n2", created_at: D("2026-09-01") },
 ];
@@ -50,6 +50,12 @@ describe("Resultados da prospecção", () => {
     expect(c.ligacao).toMatchObject({ records: 1, replies: 1, meetings: 1 });
     expect(c.reuniao).toMatchObject({ records: 1, replies: 1 });
     expect(c.anotacao).toBeUndefined();
+  });
+  it("chance estimada × resposta real", () => {
+    expect(r.byChance).toEqual([
+      { group: "quente", leads: 1, contacted: 1, replied: 1, meetings: 1, clients: 1 },
+      { group: "frio", leads: 1, contacted: 1, replied: 0, meetings: 0, clients: 0 },
+    ]);
   });
   it("desde o início inclui tudo", () => {
     const t = computeResults({ leads, activities, history, runs }, null).totals;

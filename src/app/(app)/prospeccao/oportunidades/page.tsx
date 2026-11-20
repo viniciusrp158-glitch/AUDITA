@@ -89,6 +89,7 @@ export default async function OportunidadesPage({ searchParams }: { searchParams
               cnae_main: current.cnae_main,
               years: current.started_on ? today - Number(current.started_on.slice(0, 4)) : null,
               reasons: current.reasons,
+              group: current.group_code,
             }}
           />
           {/* Computador: a fila do grupo ao lado, para escolher outra empresa */}

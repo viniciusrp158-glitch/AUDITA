@@ -28,6 +28,7 @@ export type CardItem = {
   cnae_main: string;
   years: number | null;
   reasons: string[];
+  group: string;
 };
 
 type Kind = "whatsapp" | "ligacao" | "email";
@@ -55,7 +56,7 @@ const RESULTS: Record<Kind, { value: string; label: string; tone?: "ok" | "warn"
 export function OpportunityCard({ item, userName, position, total, nextHref }: { item: CardItem; userName: string; position: number; total: number; nextHref: string | null }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [msg, setMsg] = useState<{ kind: "info" | "error"; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ kind: "info" | "error" | "celebrate"; text: string } | null>(null);
   const [channel, setChannel] = useState<Kind | null>(null);
   const [editPhone, setEditPhone] = useState(false);
   const [phone, setPhone] = useState("");
@@ -71,11 +72,11 @@ export function OpportunityCard({ item, userName, position, total, nextHref }: {
     return `mailto:${item.email}?subject=${encodeURIComponent(e.subject)}&body=${encodeURIComponent(e.body)}`;
   }, [item.email, item.niche_code, company, userName]);
 
-  const run = (fn: () => Promise<{ ok?: string; error?: string }>) =>
+  const run = (fn: () => Promise<{ ok?: string; error?: string; celebrate?: boolean }>) =>
     start(async () => {
       const r = await fn();
       if (r.error) return setMsg({ kind: "error", text: r.error });
-      setMsg({ kind: "info", text: r.ok ?? "Feito." });
+      setMsg({ kind: r.celebrate ? "celebrate" : "info", text: r.ok ?? "Feito." });
       setChannel(null);
       setDiscarding(false);
       setPhone("");
@@ -181,11 +182,16 @@ export function OpportunityCard({ item, userName, position, total, nextHref }: {
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={8} maxLength={1500} aria-label="Mensagem do WhatsApp" className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-navy" />
       </details>
 
-      {msg && (
-        <div className="mt-3">
-          <Alert kind={msg.kind}>{msg.text}</Alert>
-        </div>
-      )}
+      {msg &&
+        (msg.kind === "celebrate" ? (
+          <p role="status" className="mt-3 animate-[pop_0.5s_ease-out] rounded-xl bg-ok px-4 py-3 text-center text-base font-semibold text-white shadow">
+            {msg.text}
+          </p>
+        ) : (
+          <div className="mt-3">
+            <Alert kind={msg.kind}>{msg.text}</Alert>
+          </div>
+        ))}
 
       {channel ? (
         <section aria-label="Como foi o contato" className="sticky bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-10 -mx-4 mt-4 border-t border-line bg-white px-4 py-3 sm:-mx-5 sm:px-5 lg:static lg:mx-0 lg:border-0 lg:p-0">
@@ -196,7 +202,7 @@ export function OpportunityCard({ item, userName, position, total, nextHref }: {
                 key={r.value}
                 type="button"
                 disabled={pending}
-                onClick={() => run(() => quickContactAction({ cnpj: item.cnpj, kind: channel, outcome: r.value, phone: phone || undefined }))}
+                onClick={() => run(() => quickContactAction({ cnpj: item.cnpj, kind: channel, outcome: r.value, phone: phone || undefined, group: item.group, score: item.score }))}
                 className={`min-h-12 rounded-xl border px-3 py-2 text-sm font-semibold disabled:opacity-60 ${
                   r.tone === "ok" ? "border-ok bg-ok text-white" : r.tone === "warn" ? "border-danger/40 text-danger" : "border-line bg-white text-ink"
                 }`}

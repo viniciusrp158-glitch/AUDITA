@@ -11,10 +11,10 @@ import { OPERATE } from "@/lib/permissions";
 import { todaySaoPaulo } from "@/lib/format";
 import { isProduction } from "@/lib/env";
 import { insertLeadsFromBase } from "@/lib/prospect/add-leads";
-import { OUTCOMES } from "@/lib/prospect/labels";
+import { DAILY_GOAL, OUTCOMES } from "@/lib/prospect/labels";
 import { createClient } from "@/lib/supabase/server";
 
-export type QuickState = { ok?: string; error?: string };
+export type QuickState = { ok?: string; error?: string; celebrate?: boolean };
 
 const cnpjRe = /^[0-9A-Z]{12}\d{2}$/;
 const OUTCOME_VALUES = OUTCOMES.map((o) => o.value) as [string, ...string[]];
@@ -40,11 +40,11 @@ function addBusinessDays(day: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function ensureLead(cnpj: string): Promise<{ id: string } | { error: string }> {
+async function ensureLead(cnpj: string, portfolio?: { group: string; score: number }): Promise<{ id: string } | { error: string }> {
   const supabase = await createClient();
   const found = await supabase.from("leads").select("id").eq("cnpj", cnpj).maybeSingle();
   if (found.data) return { id: found.data.id };
-  const r = await insertLeadsFromBase([cnpj]);
+  const r = await insertLeadsFromBase([cnpj], portfolio);
   if (r.error) return { error: r.error };
   const again = await supabase.from("leads").select("id").eq("cnpj", cnpj).maybeSingle();
   return again.data ? { id: again.data.id } : { error: "Não foi possível incluir a empresa no funil (está em \"não contatar\"?)." };
@@ -54,6 +54,8 @@ const quickSchema = z.object({
   cnpj: z.string().regex(cnpjRe),
   kind: z.enum(["whatsapp", "ligacao", "email"]),
   outcome: z.enum(OUTCOME_VALUES),
+  group: z.enum(["quente", "morno", "frio", "precisa_contato"]).optional(),
+  score: z.number().int().min(0).max(100).optional(),
   phone: z
     .string()
     .transform((v) => v.replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, ""))
@@ -61,11 +63,11 @@ const quickSchema = z.object({
     .optional(),
 });
 
-export async function quickContactAction(input: { cnpj: string; kind: string; outcome: string; phone?: string }): Promise<QuickState> {
-  await requireAppUser(OPERATE);
+export async function quickContactAction(input: { cnpj: string; kind: string; outcome: string; phone?: string; group?: string; score?: number }): Promise<QuickState> {
+  const user = await requireAppUser(OPERATE);
   const p = quickSchema.safeParse(input);
   if (!p.success) return { error: p.error.issues[0]?.message ?? "Dados inválidos." };
-  const lead = await ensureLead(p.data.cnpj);
+  const lead = await ensureLead(p.data.cnpj, p.data.group && p.data.score !== undefined ? { group: p.data.group, score: p.data.score } : undefined);
   if ("error" in lead) return lead;
   const supabase = await createClient();
   if (p.data.phone) {
@@ -88,7 +90,19 @@ export async function quickContactAction(input: { cnpj: string; kind: string; ou
     await supabase.from("leads").update({ stage: "aguardando_retorno" }).eq("id", lead.id).eq("stage", "primeiro_contato");
   }
   revalidatePath("/prospeccao", "layout");
-  return { ok: p.data.outcome === "nao_contatar" ? "Registrado em \"não contatar\"." : "Contato registrado. Próxima empresa!" };
+  if (p.data.outcome === "nao_contatar") return { ok: "Registrado em \"não contatar\"." };
+  // Progresso do dia (meta de contatos por dia útil — decisão do Diretor de 19/11/2026)
+  const { count } = await supabase
+    .from("lead_activities")
+    .select("id", { count: "exact", head: true })
+    .eq("created_by", user.id)
+    .in("kind", ["whatsapp", "ligacao", "email"])
+    .gte("occurred_at", new Date(`${todaySaoPaulo()}T00:00:00-03:00`).toISOString());
+  const n = count ?? 0;
+  if (p.data.outcome === "reuniao_marcada") return { ok: `🎉 Reunião marcada! Excelente. (${n} de ${DAILY_GOAL} contatos hoje)`, celebrate: true };
+  if (p.data.outcome === "interesse") return { ok: `🙌 Respondeu com interesse! Retorno agendado para o próximo dia útil. (${n} de ${DAILY_GOAL} hoje)`, celebrate: true };
+  if (n === DAILY_GOAL) return { ok: `🔥 Meta do dia batida: ${DAILY_GOAL} contatos! Tudo o que vier agora é bônus.`, celebrate: true };
+  return { ok: `Contato registrado (${n} de ${DAILY_GOAL} hoje). Próxima empresa!` };
 }
 
 /** "Não é para nós": a empresa sai da carteira e fica no funil como perdida, com o motivo (auditável). */
