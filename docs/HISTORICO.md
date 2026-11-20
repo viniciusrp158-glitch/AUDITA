@@ -2019,6 +2019,12 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   ambiente (nas peças originais ele passa da borda direita). Os painéis foram remontados com a tela da peça dentro da
   moldura completa do notebook; PGR e Indicadores também ficaram com o notebook inteiro. Arquivos `hub2-*-v2.webp`.
   Imagem `audita-site:20261119-hub-r2b`. Para voltar: `cp .env.bak-20261119-hub-r2b .env && docker compose up -d site`.
+- **Celular (20/11/2026, com o "Pode publicar" do Diretor):** a página estava muito longa no celular (~17.000 px no
+  iPhone 13). Só no celular: recursos, uso em campo e diferenciais deslizam para o lado; destaques em 2 x 2; perfis em
+  lista curta; módulos só com o nome; espaçamentos menores (~9.300 px). Computador e página do PRO sem mudança (classe
+  `produto--compacto` só no HUB). Imagem `audita-site:20261120-hub-celular` (o primeiro `docker build` falhou sem
+  mensagem, provavelmente por concorrer com o build da outra sessão; o segundo passou). Para voltar:
+  `cp .env.bak-20261120-hub-celular .env && docker compose up -d site`.
 
 ## Prospecção 2.0 — planejamento e decisões da Direção (19/11/2026)
 
