@@ -2155,3 +2155,13 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   `prospeccao@audita.seg.br`, responder para `engenharia.audita@outlook.com`, limites 30→100); a chave foi decifrada
   com `AUDITA_SECRETS_KEY` dentro do contêiner `audita-web`, tem o formato `xkeysib-` e a leitura de eventos
   transacionais do Brevo respondeu **200 OK**. Script temporário removido do servidor. Nenhum envio registrado ainda.
+- **Teste real (20/11, com autorização do Diretor):** script `scripts/prospect/email-teste-payload.ts` monta o e-mail
+  aprovado marcado **[TESTE]** (empresa fictícia "Empresa de Teste", descadastro com código inexistente); envio feito
+  dentro do contêiner `audita-web`, chave decifrada só ali, para engenharia.audita@outlook.com, sem registro em
+  `prospect_email_sends` (não é prospecção). Resultado: Brevo **201** com o remetente `prospeccao@audita.seg.br`
+  (também com `contato@` e com o remetente outlook). As recusas "valid sender email required" vistas antes eram
+  **erro do script de teste** (o "|" do nome do remetente era usado como separador), não do Brevo nem do sistema;
+  corrigido. O remetente foi trocado para `contato@` e devolvido a `prospeccao@` no mesmo dia.
+- **Entrega:** os testes chegaram no **lixo eletrônico** do Outlook, sem "via brevosend" (assinatura DKIM do domínio
+  alinhada). Causa provável: conta nova no IP compartilhado do plano gratuito, domínio sem histórico de envio e e-mail
+  enviado para o próprio endereço. Acompanhar com os primeiros envios reais (aquecimento 30→100).
