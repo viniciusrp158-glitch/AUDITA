@@ -306,7 +306,17 @@ test("S8: página do Audita HUB no padrão do site com o material da sessão do 
   await expect(page.locator('main img[src*="/plataformas/hub-"]')).toHaveCount(0);
   expect(await page.locator("main").innerText()).not.toMatch(/laudo/i);
   await semRolagemLateral(page);
+  // Celular (20/11/2026): recursos, uso em campo e diferenciais deslizam para o lado, e a página fica curta
+  const largura = page.viewportSize()?.width ?? 1440;
+  const trilhos = page.locator(".produto-recursos__trilho, .produto--compacto .carrossel-m");
+  for (const t of await trilhos.all()) {
+    const desliza = await t.evaluate((el) => el.scrollWidth > el.clientWidth + 20);
+    expect(desliza).toBe(largura < 768);
+  }
+  await expect(page.locator(".dica-deslize").first()).toBeVisible({ visible: largura < 768 });
+  if (largura < 768) expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThan(11000);
   // O PRO continua igual: sem os blocos novos
   await page.goto("/audita-pro/");
   await expect(page.locator(".produto-mods, .janela")).toHaveCount(0);
+  await expect(page.locator(".produto--compacto")).toHaveCount(0);
 });

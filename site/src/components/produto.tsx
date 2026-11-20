@@ -27,8 +27,11 @@ export function PaginaProduto({ p }: { p: Produto }) {
   const d = p.dados;
   const chamada = whatsapp(p.chamada.mensagem);
   const outro = p.nome === "Audita PRO" ? { nome: "Audita HUB", href: "/audita-hub/" } : { nome: "Audita PRO", href: "/audita-pro/" };
+  // HUB (20/11/2026): no celular, recursos, uso em campo e diferenciais viram faixas para deslizar (classe produto--compacto)
+  const compacto = Boolean(d.vitrine);
+  const dica = <p className="dica-deslize" aria-hidden="true">Deslize para o lado para ver mais →</p>;
   return (
-    <>
+    <div className={compacto ? "produto--compacto" : undefined}>
       <HeroInterno
         id="produto-titulo"
         migalhas={[{ rotulo: "Plataformas", href: "/solucoes/" }, { rotulo: p.nome }]}
@@ -64,7 +67,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
 
       {d.fatos ? (
         <section className="secao secao--cinza" style={{ paddingTop: 40, paddingBottom: 40 }} aria-label={`Destaques do ${p.nome}`}>
-          <ul className="container grade grade--4" style={{ listStyle: "none", margin: "0 auto" }}>
+          <ul className="container grade grade--4 produto-fatos" style={{ listStyle: "none", margin: "0 auto" }}>
             {d.fatos.map((f, i) => {
               const Icone = [LayoutGrid, MonitorSmartphone, BellRing, ShieldCheck][i % 4];
               return (
@@ -89,12 +92,21 @@ export function PaginaProduto({ p }: { p: Produto }) {
             <h2 id="o-que-e-titulo" className="t2">{p.nome}</h2>
             {d.oQueE.map((t) => <p key={t.slice(0, 20)} className="medida" style={{ margin: "16px 0 0" }}>{t}</p>)}
           </div>
-          <div data-revelar="direita">
+          <div data-revelar="direita" className="produto-oque-img">
             <Tela img={d.destaque} redonda />
           </div>
         </div>
       </section>
 
+      {/* No computador, produto-recursos e o trilho não têm caixa (display: contents): as seções ficam como antes */}
+      <div className="produto-recursos">
+        {compacto ? (
+          <div className="container so-celular">
+            <p className="kicker" style={{ color: p.corTexto }}>Recursos</p>
+            <p className="t2" style={{ margin: 0 }}>O que o {p.nome} faz</p>
+          </div>
+        ) : null}
+        <div className="produto-recursos__trilho">
       {d.recursos?.map((r, i) => (
         <section key={r.kicker} className={i % 2 ? "secao secao--cinza" : "secao"} aria-labelledby={`recurso-${i}`}>
           <div className="container grade grade--2 grade--meio">
@@ -124,13 +136,16 @@ export function PaginaProduto({ p }: { p: Produto }) {
           </div>
         </section>
       ))}
+        </div>
+        {compacto ? <div className="container so-celular">{dica}</div> : null}
+      </div>
 
       {/* Para quem */}
       <section className="secao secao--cinza" aria-labelledby="para-quem-titulo">
         <div className="container">
           <p className="kicker" style={{ color: p.corTexto }}>Para quem</p>
           <h2 id="para-quem-titulo" className="t2">Cada perfil vê o que precisa</h2>
-          <ul className={d.perfis.length > 4 ? "grade grade--5" : "grade grade--4"} style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
+          <ul className={`${d.perfis.length > 4 ? "grade grade--5" : "grade grade--4"} produto-perfis`} style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
             {d.perfis.map((perfil, i) => (
               <li key={perfil.nome} className="card" data-revelar="" style={{ padding: 20, borderTop: `4px solid ${p.cor}`, transitionDelay: `${i * 80}ms` }}>
                 <UserRound aria-hidden="true" size={24} style={{ color: p.corTexto }} />
@@ -165,7 +180,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
           <div className="container">
             <p className="kicker" style={{ color: p.corTexto }}>Duas formas de usar</p>
             <h2 id="jornadas-titulo" className="t2">Do seu jeito</h2>
-            <div className="grade grade--2" style={{ marginTop: 32 }}>
+            <div className="grade grade--2 produto-jornadas" style={{ marginTop: 32 }}>
               {d.jornadas.map((j, i) => (
                 <div key={j.titulo} className="card" data-revelar="" style={{ padding: 28 }}>
                   <span className="passo__num" style={{ background: p.cor, marginBottom: 16 }}>{i + 1}</span>
@@ -246,7 +261,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
             <p className="kicker">{d.campo.kicker}</p>
             <h2 id="campo-titulo" className="t2">{d.campo.titulo}</h2>
             <p className="medida" style={{ margin: "12px 0 0", color: "#d9e2e9" }}>{d.campo.texto}</p>
-            <ul className="grade grade--3 produto-campo" style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
+            <ul className="grade grade--3 produto-campo carrossel-m" style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
               {d.campo.pecas.map((c, i) => (
                 <li key={c.src} data-revelar="" style={{ transitionDelay: `${i * 120}ms` }}>
                   <figure style={{ margin: 0 }}>
@@ -257,6 +272,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
                 </li>
               ))}
             </ul>
+            {dica}
             <p style={{ margin: "24px 0 0", fontSize: 13, color: "#d9e2e9" }}>Capturas reais do sistema, com dados fictícios de demonstração.</p>
           </div>
         </section>
@@ -293,7 +309,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
         <div className="container">
           <p className="kicker" style={{ color: p.corTexto }}>Diferenciais</p>
           <h2 id="diferenciais-titulo" className="t2">Por que o {p.nome}</h2>
-          <ul className="grade grade--3" style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
+          <ul className="grade grade--3 produto-diferenciais carrossel-m" style={{ listStyle: "none", padding: 0, margin: "32px 0 0" }}>
             {d.diferenciais.map((df, i) => (
               <li key={df.titulo} data-revelar="" style={{ borderLeft: "0", paddingTop: 16, borderTop: `3px solid ${p.cor}`, transitionDelay: `${(i % 3) * 100}ms` }}>
                 <p style={{ margin: 0, fontWeight: 700, fontSize: 17 }}>{df.titulo}</p>
@@ -301,6 +317,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
               </li>
             ))}
           </ul>
+          {dica}
         </div>
       </section>
 
@@ -343,7 +360,7 @@ export function PaginaProduto({ p }: { p: Produto }) {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 

@@ -359,3 +359,63 @@ main, footer { overflow-x: clip; }
 @media (min-width: 640px) { .produto-mods--2 { grid-template-columns: 1fr 1fr; } }
 /* Bloco de recurso com o texto à direita só no computador; no celular o texto vem antes da imagem */
 @media (min-width: 768px) { .recurso-texto--direita { order: 2; } }
+
+/* Página do HUB no celular (20/11/2026): versão compacta pedida pelo Diretor. O computador não muda. */
+.dica-deslize, .so-celular { display: none; }
+@media (min-width: 768px) { .produto-recursos, .produto-recursos__trilho { display: contents; } }
+@media (max-width: 767px) {
+  .produto--compacto .so-celular { display: block; }
+  .produto--compacto .dica-deslize { display: block; margin: 10px 0 0; font-size: 13px; font-weight: 600; color: var(--green-text); }
+  .produto--compacto .secao--escura .dica-deslize { color: var(--green); }
+  .produto--compacto .secao { padding: 44px 0; }
+  .produto--compacto .grade { gap: 14px; }
+  /* Destaques em 2 x 2 */
+  .produto--compacto .produto-fatos { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .produto--compacto .produto-fatos li { flex-direction: column; align-items: flex-start !important; padding: 14px !important; gap: 4px !important; }
+  .produto--compacto .produto-fatos .losango { width: 40px; height: 40px; margin: 4px 6px 6px; }
+  .produto--compacto .produto-fatos .losango svg { width: 18px; height: 18px; }
+  .produto--compacto .produto-fatos li > span:last-child > span:first-child { font-size: 15px !important; line-height: 1.25; }
+  .produto--compacto .produto-fatos .mutado { font-size: 13px !important; line-height: 1.4; display: block; }
+  /* "O que é": o topo já mostra o notebook e o celular */
+  .produto--compacto .produto-oque-img { display: none; }
+  /* Faixas para deslizar: recursos, uso em campo e diferenciais */
+  .produto--compacto .produto-recursos { background: var(--gray-bg); padding: 44px 0 36px; }
+  .produto--compacto .produto-recursos__trilho,
+  .produto--compacto .carrossel-m { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+  .produto--compacto .produto-recursos__trilho { margin: 20px 0 0; padding: 0 16px 8px; scroll-padding-inline: 16px; }
+  .produto--compacto .carrossel-m { margin: 24px -16px 0 !important; padding: 0 16px 8px !important; scroll-padding-inline: 16px; }
+  .produto--compacto .produto-recursos__trilho::-webkit-scrollbar, .produto--compacto .carrossel-m::-webkit-scrollbar { display: none; }
+  .produto--compacto .produto-recursos__trilho > *, .produto--compacto .carrossel-m > * { flex: 0 0 86%; min-width: 0; scroll-snap-align: start; }
+  .produto--compacto .produto-campo > * { flex-basis: 78%; }
+  .produto--compacto .produto-recursos__trilho .revelar, .produto--compacto .carrossel-m > .revelar { opacity: 1; transform: none; }
+  /* Cada recurso vira um cartão: imagem em cima, texto e itens embaixo */
+  .produto--compacto .produto-recursos__trilho > .secao { padding: 0; background: var(--white); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .produto--compacto .produto-recursos__trilho > .secao > .container { padding: 0 16px 18px; gap: 12px; align-items: start; }
+  .produto--compacto .produto-recursos__trilho > .secao > .container > div:last-child { order: -1; margin: 0 -16px; }
+  .produto--compacto .produto-recursos__trilho .produto-painel { border-radius: 0; box-shadow: none; }
+  .produto--compacto .produto-recursos__trilho figcaption { display: none; }
+  .produto--compacto .produto-recursos__trilho .t2 { font-size: 21px; }
+  .produto--compacto .produto-recursos__trilho .medida { font-size: 15px; margin-top: 8px !important; }
+  .produto--compacto .produto-recursos__trilho ul { font-size: 14px; gap: 6px !important; margin-top: 12px !important; }
+  .produto--compacto .produto-recursos__trilho ul svg { width: 17px; height: 17px; }
+  /* Perfis em lista curta */
+  .produto--compacto .produto-perfis { margin-top: 20px !important; gap: 8px; }
+  .produto--compacto .produto-perfis li { padding: 12px 14px !important; display: grid; grid-template-columns: 24px 1fr; column-gap: 12px; align-items: start; }
+  .produto--compacto .produto-perfis li > svg { grid-row: span 2; margin-top: 1px; }
+  .produto--compacto .produto-perfis li p { margin: 0 !important; }
+  .produto--compacto .produto-perfis li p + p { font-size: 14px !important; }
+  /* Formas de uso */
+  .produto--compacto .produto-jornadas { margin-top: 20px !important; }
+  .produto--compacto .produto-jornadas .card { padding: 18px !important; }
+  .produto--compacto .produto-jornadas .passo__num { width: 36px; height: 36px; margin-bottom: 10px !important; }
+  /* Gestão completa: só os nomes dos módulos, em duas colunas */
+  .produto--compacto .produto-suite { margin-top: 20px !important; }
+  .produto--compacto .produto-suite .card { padding: 18px !important; }
+  .produto--compacto .produto-mods { grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 14px; }
+  .produto--compacto .produto-mods span { display: none; }
+  .produto--compacto .produto-mods strong { font-size: 14px; font-weight: 600; }
+  .produto--compacto [aria-label="Em toda a plataforma"] { gap: 6px !important; margin-top: 18px !important; }
+  .produto--compacto [aria-label="Em toda a plataforma"] li { font-size: 12px !important; padding: 6px 10px !important; }
+  /* Diferenciais em cartões */
+  .produto--compacto .produto-diferenciais > li { background: var(--gray-bg); border-radius: 12px; padding: 16px !important; }
+}
