@@ -80,8 +80,9 @@ test("FL-03 / CA-09: novo documento, Rev.00 → vigente, Rev.01 substitui e a an
   const parentLabel = (await parentOpt.textContent())!;
   const parentCode = parentLabel.slice(0, 9);
   let created = false;
+  let docCode = "";
   for (let i = 0; i < 15 && !created; i++) {
-    const code = `${parentCode}-ANX${String(1 + Math.floor(Math.random() * 99)).padStart(2, "0")}`;
+    const code = docCode = `${parentCode}-ANX${String(1 + Math.floor(Math.random() * 99)).padStart(2, "0")}`;
     await page.locator('input[name="doc_code"]').fill(code);
     await page.locator('input[name="title"]').fill(`[TESTE] Anexo e2e ${code}`);
     await page.locator("#family").fill("Teste");
@@ -108,6 +109,13 @@ test("FL-03 / CA-09: novo documento, Rev.00 → vigente, Rev.01 substitui e a an
 
   // Rev.01 substitui; Rev.00 continua no histórico e para download
   await uploadRevision(page, "Rev.01", `[TESTE] conteúdo Rev.01 ${Date.now()}`);
+  // Rascunho de revisão nova aparece na Biblioteca (pedido do Diretor em 20/11: o alerta levava a uma lista sem nada)
+  const docUrl = page.url();
+  await page.goto("/biblioteca?rascunho=1");
+  const waiting = page.getByRole("region", { name: "Aguardando sua aprovação" });
+  await expect(waiting.getByRole("link", { name: `${docCode} Rev.01 — [TESTE] Anexo e2e ${docCode}` })).toBeVisible();
+  await expect(page.getByText("Mostrando só documentos com revisão em rascunho.")).toBeVisible();
+  await page.goto(docUrl);
   await publishDraft(page, true);
   await expect(page.getByTestId("vigente")).toContainText("Rev.01", { timeout: 15_000 });
   const history = page.getByTestId("revisions");

@@ -11,14 +11,21 @@ import { LibraryList } from "./library-list";
 
 export const metadata = { title: "Biblioteca" };
 
-export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<{ q?: string; fase?: string; familia?: string }> }) {
+/** Revisão em rascunho (aguardando aprovação) de um documento, se houver. */
+const draftOf = (d: { library_revisions: { revision: string; status: string }[] }) =>
+  d.library_revisions.filter((r) => r.status === "rascunho").sort((a, b) => b.revision.localeCompare(a.revision))[0]?.revision ?? null;
+
+export default async function BibliotecaPage({ searchParams }: { searchParams: Promise<{ q?: string; fase?: string; familia?: string; rascunho?: string }> }) {
   const me = await requireAppUser(ADMIN_ONLY);
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 80);
   const fase = Object.keys(PHASES).includes(sp.fase ?? "") ? (sp.fase as Phase) : "";
   const familia = (sp.familia ?? "").slice(0, 80);
-  const [{ rows, families, error }, master] = await Promise.all([listLibrary({ q, fase, familia }), getMasterListState()]);
+  const onlyDrafts = sp.rascunho === "1";
+  const [{ rows: all, families, error }, master] = await Promise.all([listLibrary({ q, fase, familia }), getMasterListState()]);
+  const rows = onlyDrafts ? all.filter((d) => draftOf(d)) : all;
   const vigentes = rows.filter((d) => d.library_revisions.some((r) => r.status === "vigente")).length;
+  const drafts = all.filter((d) => draftOf(d));
 
   return (
     <>
@@ -34,19 +41,43 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
         )}
       </div>
 
-      <Link
-        href="/biblioteca/lista-mestra"
-        className={`mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm ${master.upToDate ? "border-line bg-white" : "border-warn/40 bg-warn/10"}`}
-        data-testid="master-list-banner"
-      >
-        <span className="text-ink">
-          <strong>{MASTER_LIST_TITLE}</strong>{" "}
-          {master.upToDate
-            ? `— ${master.vigente?.revision} vigente, igual ao catálogo.`
-            : `— ${master.vigente ? `o catálogo mudou desde a ${master.vigente.revision}` : "ainda não publicada"}: aprove a ${master.nextRevision}.`}
-        </span>
-        <span className="font-semibold text-navy">Abrir</span>
-      </Link>
+      {/* Aviso da lista mestra só quando há algo a fazer (a lista continua no AUDDOC019 e em /biblioteca/lista-mestra) */}
+      {!master.upToDate && (
+        <Link
+          href="/biblioteca/lista-mestra"
+          className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm"
+          data-testid="master-list-banner"
+        >
+          <span className="text-ink">
+            <strong>{MASTER_LIST_TITLE}</strong>{" "}
+            {`— ${master.vigente ? `o catálogo mudou desde a ${master.vigente.revision}` : "ainda não publicada"}: aprove a ${master.nextRevision}.`}
+          </span>
+          <span className="font-semibold text-navy">Abrir</span>
+        </Link>
+      )}
+
+      {drafts.length > 0 && (
+        <section aria-label="Aguardando sua aprovação" className="mb-4 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm">
+          <p className="font-semibold text-ink">Aguardando sua aprovação</p>
+          <ul className="mt-1 space-y-1">
+            {drafts.map((d) => (
+              <li key={d.id}>
+                <Link href={`/biblioteca/${d.id}`} className="text-navy hover:underline">
+                  <span className="font-mono text-xs font-semibold">{d.doc_code}</span> {draftOf(d)} — {d.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {onlyDrafts && (
+        <p className="mb-3 text-sm text-muted">
+          Mostrando só documentos com revisão em rascunho.{" "}
+          <Link href="/biblioteca" className="font-semibold text-navy hover:underline">
+            Ver todos
+          </Link>
+        </p>
+      )}
 
       <form className="mb-4 flex flex-wrap items-end gap-3" role="search">
         <label className="min-w-0 flex-1 basis-64">
@@ -107,6 +138,7 @@ export default async function BibliotecaPage({ searchParams }: { searchParams: P
                 approved_on: r?.approved_on ?? null,
                 revision: r?.revision ?? null,
                 status: r?.status ?? null,
+                draft: r?.status === "rascunho" ? null : draftOf(d),
                 inactive: d.status === "inativo",
               };
             })}
