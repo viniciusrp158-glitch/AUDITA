@@ -2142,3 +2142,16 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   `AUDITA_WEB_TAG=20261119-prospeccao4` (as tabelas novas ficam sem uso).
 - **Pendente da Direção:** conta Brevo da prospecção e chave na tela (passo a passo atualizado); data da validação
   jurídica; aprovação do AUDDOC020 Rev.01.
+
+## 20/11/2026 — Conta Brevo da prospecção configurada e validação jurídica registrada
+
+- **Diretor:** criou a conta Brevo separada, autenticou `audita.seg.br` (só o `brevo-code` novo no Cloudflare; SPF,
+  DKIM e DMARC já existentes mantidos), gerou chave de API **restrita** (só "E-mails transacionais"; vence em
+  20/11/2027 ou após 90 dias sem uso) e salvou em Configurações → E-mail da prospecção.
+- **Validação jurídica:** o Diretor confirmou em 20/11/2026 que o advogado validou a Avaliação de Legítimo Interesse
+  (dados do advogado não registrados, por decisão do Diretor). Data registrada na tela: 20/11/2026 ⇒ envio em lote
+  liberado.
+- **Conferência no servidor (sem exibir a chave e sem enviar e-mail):** configuração presente (remetente
+  `prospeccao@audita.seg.br`, responder para `engenharia.audita@outlook.com`, limites 30→100); a chave foi decifrada
+  com `AUDITA_SECRETS_KEY` dentro do contêiner `audita-web`, tem o formato `xkeysib-` e a leitura de eventos
+  transacionais do Brevo respondeu **200 OK**. Script temporário removido do servidor. Nenhum envio registrado ainda.
