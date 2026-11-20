@@ -2057,3 +2057,37 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   `docs/juridico/AUDITA_Avaliacao_Legitimo_Interesse_Prospeccao.docx`, 3 páginas, Word sem erro): contexto, dados,
   teste em 3 etapas, salvaguardas, riscos, 5 pontos para validar, aviso de privacidade da prospecção (anexo) e campo
   de registro da validação, sem identificar o advogado.
+
+## Prospecção 2.0 — Fases 1 e 2: carteira refinada e modo prospecção (19/11/2026, 21h)
+
+- **Pedido do Diretor:** "Execute tudo conforme documentado" (AUDDOC020 Rev.01 em rascunho; decisões de 19/11).
+- **Migração aditiva `20261120120000_p5_prospect_carteira`:** `audita.cnpj_companies` (capital social e nº de
+  estabelecimentos por CNPJ básico), `audita.prospect_contact_marks` ("é da contabilidade"), `audita.prospect_portfolio`
+  (carteira com dados de exibição) e as funções `refresh_prospect_portfolio` (público-alvo da Rev.01, contato
+  compartilhado em 5+ CNPJs = contabilidade, nota de chance de resposta, grupos Quentes ≥ 90 / Mornos 80–89 / Frios /
+  Precisa de contato, rebaixa em recuperação judicial/falência/liquidação), `prospect_opportunities` e
+  `prospect_opportunity_counts` (aplicam na hora: lead/cliente/"não contatar" novos somem; marcação rebaixa). RLS por
+  `can_operate`, SECURITY DEFINER com `search_path = ''`, sem tabelas temporárias nem DROP (CA-12).
+- **Carga:** `scripts/prospect/cnpj_empresas.py` + `carregar-empresas.sh` (publicação 2026-10 já no servidor):
+  3.433.835 empresas com capital social; carteira de **263.095** empresas até 150 km — produção: 29.839 Quentes,
+  41.123 Mornos, 93.912 Frios, 98.221 Precisa de contato. Recálculo noturno às 2h30 (crontab do deploy; demais
+  tarefas preservadas), 1 min 33 s.
+- **Velocidade (produção, como Diretor):** Quentes 11 ms, contagens 0,4 s, grupos grandes 0,3 s (antes: Pesquisa
+  7,2 s no ambiente de testes). Primeira versão da leitura levava 3–9 s; corrigido gravando os dados de exibição na
+  carteira e trocando verificações linha a linha por junções.
+- **Tela Oportunidades** (`/prospeccao/oportunidades`, nova aba): grupos com contagem; uma empresa por vez com nota,
+  porte, segmento, município/km, CNPJ, "por que está aqui", contatos com selo "da empresa"/"provável
+  contabilidade"; WhatsApp com a **mensagem do Diretor** (segmento + linha de saída), Ligar e E-mail (texto); "Corrigir
+  número" (salvo no lead), "É da contabilidade" (vale para todas as empresas), resultado em um toque (inclui no
+  funil, registra o contato, agenda o retorno em dias úteis e passa para a próxima), "Pular", "Não é para nós"
+  (perdido com motivo). Botões fixos acima da barra de atalhos no celular; fila do grupo ao lado no computador.
+- **Barra de progresso** na navegação (`components/nav-progress.tsx`). **Achado:** o `loading.tsx` do Next.js quebrava
+  os links de filtro (`?grupo=…`, `?visao=quadro`) quando se chegava à tela por navegação interna — reproduzido e
+  descartado; a barra dá o retorno imediato sem esse efeito.
+- **Testes:** PGlite `prospect-p5` **4/4**; unidade `prospect-mensagens` **3/3**; e2e `p7-oportunidades` **2/2**
+  (celular: grupos chegando pela aba, mensagem no link wa.me, corrigir número, registrar e seguir, pular, descartar;
+  computador: fila); regressão `p1` 5/5, `p4` 1/1, `p6` 4/4, `a-frente-a` 3/3, `a-frente-a-2` 4/4; `ca12` só com a
+  falha antiga do teste do site (outra frente).
+- **Produção:** cópia `db_2026-11-19_2102`; migração pelo `apply-migrations.sh` (42 registradas); imagem
+  `audita-sistema:20261119-prospeccao2` pré-testada na 3299 e no ar (healthy). **Reversão:**
+  `AUDITA_WEB_TAG=20261119-celular3` + `docker compose up -d web` (as tabelas novas ficam sem uso).
