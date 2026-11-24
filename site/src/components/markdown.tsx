@@ -6,7 +6,16 @@ import type { ReactNode } from "react";
  * dangerouslySetInnerHTML). Aceita: ## e ### títulos, parágrafos, listas com "-" e "1.", destaques com ">",
  * tabelas com "|", **negrito**, *itálico* e [links](url). Links internos começam com "/" e usam o Link do Next;
  * externos abrem em nova aba.
+ *
+ * Figuras (pedido do Diretor em 24/11/2026: artigos com imagens e figuras, sem espaços vazios):
+ * - ![Legenda](/images/site/arquivo.webp)          foto com legenda (só imagens do próprio site)
+ * - :::etapas            linhas "Título | texto"    etapas numeradas em cartões
+ * - :::linha-do-tempo    linhas "Data | Título | texto"
+ * - :::numeros           linhas "Valor | texto"     números em destaque
+ *   (cada bloco termina com uma linha ":::")
  */
+
+const INICIO_DE_BLOCO = /^(#{2,3} |\s*- |\s*\d+\. |>|\s*\||:::|!\[)/;
 
 function slugTitulo(t: string) {
   return t
@@ -46,6 +55,43 @@ export function titulosDoArtigo(md: string) {
     .map((l) => ({ texto: l.slice(3).trim(), id: slugTitulo(l.slice(3).trim()) }));
 }
 
+function Figura({ tipo, itens, k }: { tipo: string; itens: string[][]; k: string }) {
+  if (tipo === "etapas")
+    return (
+      <ol className="fig-etapas">
+        {itens.map(([t, d], j) => (
+          <li key={j}>
+            <span className="fig-etapas__num" aria-hidden="true">{j + 1}</span>
+            <strong>{emLinha(t, `${k}-${j}t`)}</strong>
+            {d ? <span>{emLinha(d, `${k}-${j}d`)}</span> : null}
+          </li>
+        ))}
+      </ol>
+    );
+  if (tipo === "linha-do-tempo")
+    return (
+      <ol className="fig-tempo">
+        {itens.map(([data, t, d], j) => (
+          <li key={j}>
+            <span className="fig-tempo__data">{data}</span>
+            <strong>{emLinha(t ?? "", `${k}-${j}t`)}</strong>
+            {d ? <span>{emLinha(d, `${k}-${j}d`)}</span> : null}
+          </li>
+        ))}
+      </ol>
+    );
+  return (
+    <ul className="fig-numeros">
+      {itens.map(([v, t], j) => (
+        <li key={j}>
+          <span className={v.length > 7 ? "fig-numeros__valor fig-numeros__valor--longo" : "fig-numeros__valor"}>{v}</span>
+          <span>{emLinha(t ?? "", `${k}-${j}`)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function Markdown({ texto }: { texto: string }) {
   const linhas = texto.replace(/\r\n/g, "\n").split("\n");
   const blocos: ReactNode[] = [];
@@ -58,7 +104,27 @@ export function Markdown({ texto }: { texto: string }) {
       i++;
       continue;
     }
-    if (l.startsWith("### ")) {
+    const bloco = /^:::(etapas|linha-do-tempo|numeros)\s*$/.exec(l.trim());
+    const imagem = /^!\[([^\]]+)\]\((\/images\/[^)\s]+)\)\s*$/.exec(l.trim());
+    if (bloco) {
+      const itens: string[][] = [];
+      i++;
+      while (i < linhas.length && linhas[i].trim() !== ":::") {
+        if (linhas[i].trim()) itens.push(linhas[i].split("|").map((c) => c.trim()));
+        i++;
+      }
+      i++;
+      blocos.push(<Figura key={k} tipo={bloco[1]} itens={itens} k={k} />);
+    } else if (imagem) {
+      blocos.push(
+        <figure key={k} className="fig-foto">
+          {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
+          <img src={imagem[2]} alt={imagem[1]} loading="lazy" width={1200} height={750} />
+          <figcaption>{imagem[1]}</figcaption>
+        </figure>,
+      );
+      i++;
+    } else if (l.startsWith("### ")) {
       blocos.push(<h3 key={k}>{emLinha(l.slice(4).trim(), k)}</h3>);
       i++;
     } else if (l.startsWith("## ")) {
@@ -94,7 +160,7 @@ export function Markdown({ texto }: { texto: string }) {
       );
     } else {
       const partes: string[] = [];
-      while (i < linhas.length && linhas[i].trim() && !/^(#{2,3} |\s*- |\s*\d+\. |>|\s*\|)/.test(linhas[i])) partes.push(linhas[i++].trim());
+      while (i < linhas.length && linhas[i].trim() && !INICIO_DE_BLOCO.test(linhas[i])) partes.push(linhas[i++].trim());
       blocos.push(<p key={k}>{emLinha(partes.join(" "), k)}</p>);
     }
   }

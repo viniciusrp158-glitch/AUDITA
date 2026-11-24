@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Cabecalho } from "@/components/cabecalho";
+import { CartaoArtigo } from "@/components/cartao-artigo";
 import { ChamadaContato, HeroInterno } from "@/components/pagina";
 import { Rodape } from "@/components/rodape";
-import { dataBR, listarArtigos, minutos } from "@/lib/artigos";
+import { listarArtigos } from "@/lib/artigos";
 
 export const metadata: Metadata = {
   title: "Artigos sobre Segurança do Trabalho, Meio Ambiente e SGI",
@@ -12,9 +12,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/artigos/" },
 };
 
-/** Lista de artigos (plano de artigos aprovado pelo Diretor em 24/11/2026). */
+/**
+ * Lista de artigos (plano aprovado pelo Diretor em 24/11/2026). Sem espaços vazios: até 2 artigos, dois cartões grandes
+ * lado a lado; a partir de 3, o mais novo em destaque e os demais em grade que ocupa a largura toda.
+ */
 export default function Artigos() {
   const artigos = listarArtigos();
+  const categorias = [...new Set(artigos.map((a) => a.categoria))];
+  const [primeiro, ...resto] = artigos;
   return (
     <>
       <Cabecalho ativo="A AUDITA" />
@@ -24,32 +29,39 @@ export default function Artigos() {
           migalhas={[{ rotulo: "Artigos" }]}
           kicker="Conteúdo AUDITA"
           titulo="Artigos"
-          resumo="Segurança do Trabalho, Meio Ambiente e Sistemas de Gestão explicados para pequenas e médias empresas, com as fontes oficiais citadas."
+          resumo="Segurança do Trabalho, Meio Ambiente e Sistemas de Gestão explicados para pequenas e médias empresas, com a legislação vigente e as fontes oficiais citadas."
           foto={{ codigo: "IMG-09", descricao: "documentos organizados" }}
-        />
-        <section className="secao" aria-label="Lista de artigos">
+        >
+          {categorias.length ? (
+            <ul className="artigos-temas" aria-label="Temas">
+              {categorias.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+              <li>{artigos.length} {artigos.length === 1 ? "artigo" : "artigos"}</li>
+            </ul>
+          ) : null}
+        </HeroInterno>
+        <section className="secao secao--cinza artigos-secao" aria-label="Lista de artigos">
           <div className="container">
             {artigos.length === 0 ? (
               <p className="medida">Os primeiros artigos estão a caminho.</p>
-            ) : (
-              <ul className="grade grade--3 artigos-lista">
+            ) : artigos.length <= 2 ? (
+              <ul className="artigos-lista artigos-lista--2">
                 {artigos.map((a) => (
-                  <li key={a.slug} className="card artigo-card">
-                    <Link href={`/artigos/${a.slug}/`}>
-                      <span className="artigo-card__capa" aria-hidden="true">
-                        <span>{a.categoria}</span>
-                      </span>
-                      <span className="artigo-card__texto">
-                        <span className="artigo-card__titulo">{a.titulo}</span>
-                        <span className="mutado">{a.descricao}</span>
-                        <span className="artigo-card__meta">
-                          {dataBR(a.publicado)} · {minutos(a)} min de leitura{a.situacao === "rascunho" ? " · RASCUNHO" : ""}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
+                  <CartaoArtigo key={a.slug} a={a} />
                 ))}
               </ul>
+            ) : (
+              <>
+                <ul className="artigos-lista">
+                  <CartaoArtigo a={primeiro} destaque />
+                </ul>
+                <ul className="artigos-lista artigos-lista--auto" style={{ marginTop: 24 }}>
+                  {resto.map((a) => (
+                    <CartaoArtigo key={a.slug} a={a} />
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         </section>

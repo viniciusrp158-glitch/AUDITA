@@ -9,8 +9,17 @@ situacao: rascunho
 servico: /solucoes/documentos-e-procedimentos/
 servicoRotulo: Conhecer o apoio ao PGR
 convite: Olá! Li o artigo sobre o PGR no site e quero falar com a AUDITA.
+capa: IMG-11
+consultado: 2026-11-24
 ---
 > **Em resumo:** o PGR é o programa com que a empresa gerencia os riscos ocupacionais, conforme o capítulo 1.5 da NR-1. Ele tem, no mínimo, dois documentos: o inventário de riscos e o plano de ação. A avaliação de riscos deve ser revista a cada dois anos ou antes, quando algo muda. O MEI está dispensado, e ME e EPP de graus de risco 1 e 2 podem estar, se cumprirem as condições da norma.
+
+:::numeros
+2 | documentos no mínimo: inventário de riscos e plano de ação
+2 anos | prazo máximo para rever a avaliação de riscos
+3 anos | prazo para quem tem certificação em gestão de SST
+20 anos | guarda mínima do histórico do inventário
+:::
 
 ## O que é o PGR
 
@@ -24,14 +33,16 @@ O PGR pode ser feito por estabelecimento, por unidade operacional, por setor ou 
 
 O gerenciamento deve abranger os riscos que vêm de agentes físicos, químicos e biológicos, os riscos de acidentes e os riscos ligados a fatores ergonômicos, **incluindo os fatores de risco psicossociais relacionados ao trabalho** (item 1.5.3.1.4). Essa inclusão veio com a Portaria MTE nº 1.419/2024 e está em vigor desde 26/05/2026.
 
-Na prática, a empresa deve (item 1.5.3.2):
+Na prática, o gerenciamento segue seis etapas (item 1.5.3.2):
 
-1. evitar ou eliminar os perigos que possam surgir no trabalho;
-2. identificar os perigos e as possíveis lesões ou agravos à saúde;
-3. avaliar os riscos, indicando o nível de cada um;
-4. classificar os riscos, para saber onde são necessárias medidas de prevenção;
-5. implementar as medidas, na ordem de prioridade prevista na norma;
-6. acompanhar o controle dos riscos.
+:::etapas
+Evitar ou eliminar | os perigos que possam surgir no trabalho
+Identificar | os perigos e as possíveis lesões ou agravos à saúde
+Avaliar | os riscos, indicando o nível de cada um
+Classificar | os riscos, para saber onde são necessárias medidas de prevenção
+Implementar | as medidas, na ordem de prioridade prevista na norma
+Acompanhar | o controle dos riscos ao longo do tempo
+:::
 
 Os trabalhadores também participam: a empresa precisa ter meios para consultá-los sobre a percepção de riscos e para comunicar a eles o que está no inventário e no plano de ação (item 1.5.3.3).
 
@@ -50,6 +61,8 @@ Dois cuidados importantes. Primeiro, a dispensa vale só para a elaboração do 
 ## O que o PGR deve conter
 
 Pelo item 1.5.7.1, o PGR deve ter, no mínimo, **o inventário de riscos e o plano de ação**. Os documentos são elaborados sob a responsabilidade da organização, datados e assinados, e devem estar disponíveis aos trabalhadores interessados, aos sindicatos e à Inspeção do Trabalho (itens 1.5.7.2 e 1.5.7.2.1). O MTE também cita como obrigatório o registro dos critérios adotados no gerenciamento, como as gradações de severidade e de probabilidade e os níveis de risco.
+
+![O inventário de riscos começa no ambiente de trabalho: processos, atividades e perigos observados no local.](/images/site/img-21-inspecao-sst.webp)
 
 ### Inventário de riscos
 
@@ -73,6 +86,8 @@ O plano de ação indica as medidas de prevenção a introduzir, aprimorar ou ma
 ## Quando revisar o PGR
 
 A avaliação de riscos é um processo contínuo e deve ser revista **a cada dois anos** (item 1.5.4.4.6). Empresas com certificação em sistema de gestão de SST podem usar prazo de até três anos (item 1.5.4.4.6.1).
+
+![Mudanças em processos, equipamentos ou na organização do trabalho pedem nova avaliação, mesmo antes do prazo.](/images/site/img-03-inspecao-de-campo.webp)
 
 Independentemente do prazo, a revisão é obrigatória quando:
 
