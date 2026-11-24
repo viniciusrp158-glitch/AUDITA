@@ -13,6 +13,7 @@ export const MENU: GrupoMenu[] = [
       { rotulo: "Missão, visão e valores", href: "/a-audita/#missao-visao-valores" },
       { rotulo: "Por que a AUDITA", href: "/a-audita/#por-que-a-audita" },
       { rotulo: "Como trabalhamos", href: "/a-audita/#como-trabalhamos" },
+      { rotulo: "Artigos", href: "/artigos/" },
     ],
   },
   { rotulo: "Soluções", itens: FAMILIAS.map((f) => ({ rotulo: f.nome, href: `/solucoes/${f.slug}/` })) },
