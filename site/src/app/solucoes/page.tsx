@@ -9,7 +9,7 @@ import { FORMATOS } from "@/content/institucional";
 import { FAMILIAS, servicosPublicados, type Familia } from "@/content/servicos";
 
 export const metadata: Metadata = {
-  title: "Soluções",
+  title: "Soluções em SST, Meio Ambiente e SGI",
   description: "Os três pilares (SST, Meio Ambiente e SGI) e as cinco famílias de serviço da AUDITA para pequenas e médias empresas.",
   alternates: { canonical: "/solucoes/" },
 };

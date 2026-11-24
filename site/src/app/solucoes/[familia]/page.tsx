@@ -17,7 +17,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ familia: string }> }): Promise<Metadata> {
   const f = buscarFamilia((await params).familia);
-  return f ? { title: f.nome, description: f.resumo, alternates: { canonical: `/solucoes/${f.slug}/` } } : {};
+  return f ? { title: `${f.nome} para pequenas e médias empresas`, description: f.resumo, alternates: { canonical: `/solucoes/${f.slug}/` } } : {};
 }
 
 export default async function PaginaFamilia({ params }: { params: Promise<{ familia: string }> }) {

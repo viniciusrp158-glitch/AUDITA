@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { Animacoes } from "@/components/animacoes";
 import { Flutuantes } from "@/components/flutuantes";
+import { Medicao } from "@/components/medicao";
 import { VLibras } from "@/components/vlibras";
 import { EMPRESA, REDES_SOCIAIS, REDES_SOCIAIS_PUBLICADAS } from "@/content/empresa";
 import "./globals.css";
@@ -14,9 +15,8 @@ const body = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable
 export const metadata: Metadata = {
   metadataBase: new URL("https://audita.seg.br"),
   title: { default: "AUDITA | SSMA & SGI", template: "%s · AUDITA | SSMA & SGI" },
-  description: "Soluções em Segurança, Saúde, Meio Ambiente e Sistemas de Gestão para pequenas e médias empresas.",
-  // Prévia: fora dos buscadores até a publicação autorizada pelo Vinicius (briefing, Etapa 7)
-  robots: { index: false, follow: false },
+  description: "Consultoria em Segurança e Saúde do Trabalho, Meio Ambiente e Sistemas de Gestão para pequenas e médias empresas, em Sorocaba/SP.",
+  robots: { index: true, follow: true },
   openGraph: { type: "website", locale: "pt_BR", siteName: "AUDITA | SSMA & SGI" },
 };
 
@@ -43,6 +43,9 @@ const DADOS_ESTRUTURADOS = {
   ...(REDES_SOCIAIS_PUBLICADAS ? { sameAs: REDES_SOCIAIS.filter((r) => r.url).map((r) => r.url) } : {}),
 };
 
+/** Nome do site para os buscadores (SEO, 24/11/2026) */
+const SITE = { "@context": "https://schema.org", "@type": "WebSite", name: "AUDITA | SSMA & SGI", url: "https://audita.seg.br/", inLanguage: "pt-BR" };
+
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -50,10 +53,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR" className={`${display.variable} ${body.variable}`}>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(DADOS_ESTRUTURADOS) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE) }} />
         {children}
         <Flutuantes />
         <Animacoes />
         <VLibras />
+        <Medicao />
       </body>
     </html>
   );

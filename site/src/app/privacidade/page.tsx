@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Cabecalho } from "@/components/cabecalho";
 import { HeroInterno } from "@/components/pagina";
 import { Rodape } from "@/components/rodape";
-import { EMPRESA, whatsapp } from "@/content/empresa";
+import { CLARITY_ID, EMPRESA, whatsapp } from "@/content/empresa";
 import { EmailTexto, LinkEmail } from "@/components/email";
+import { TrocarEscolha } from "@/components/medicao";
 
 export const metadata: Metadata = {
   title: "Política de privacidade",
@@ -52,7 +53,15 @@ export default function Privacidade() {
 
             <h2>3. Cookies e serviços de terceiros</h2>
             <ul>
-              <li>O site <strong>não usa cookies próprios</strong>, de publicidade ou de medição de audiência.</li>
+              {CLARITY_ID ? (
+                <li>
+                  O site <strong>não usa cookies de publicidade</strong>. Se você aceitar no aviso, usamos o <strong>Microsoft Clarity</strong> para
+                  medir o uso do site (cliques, rolagem e páginas visitadas), com os textos digitados mascarados. O Clarity grava cookies próprios
+                  e trata os dados nos servidores da Microsoft. Sem o seu aceite, ele não é carregado. <TrocarEscolha />
+                </li>
+              ) : (
+                <li>O site <strong>não usa cookies próprios</strong>, de publicidade ou de medição de audiência.</li>
+              )}
               <li>
                 A <strong>Cloudflare</strong>, que protege e entrega o site, pode gravar cookies técnicos de segurança (proteção contra robôs).
               </li>

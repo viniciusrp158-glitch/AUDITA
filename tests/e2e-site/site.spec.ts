@@ -9,10 +9,12 @@ async function semRolagemLateral(page: Page) {
   expect(larguras.doc).toBeLessThanOrEqual(larguras.janela);
 }
 
-test("home: textos aprovados, seções na ordem, fora dos buscadores", async ({ page }) => {
+test("home: textos aprovados, seções na ordem, aberta aos buscadores", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Gestão inteligente para ambientes mais seguros.");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  // Trava dos buscadores retirada (24/11/2026): a home pode ser indexada e tem título com os termos buscados
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+  await expect(page).toHaveTitle("AUDITA | Segurança do Trabalho, Meio Ambiente e SGI em Sorocaba/SP");
   const titulos = await page.getByRole("heading", { level: 2 }).allTextContents();
   const ordem = ["Quem somos", "Nossas soluções", "A AUDITA atende empresas de todos os segmentos.", "Por que a AUDITA", "Como trabalhamos", "Capacitação que gera cultura de segurança.", "Missão, visão e valores", "Vamos organizar a segurança da sua empresa?"];
   const posicoes = ordem.map((t) => titulos.findIndex((h) => h.replace(/\s+/g, " ").trim() === t));
@@ -186,7 +188,7 @@ test("Etapa 4: menu e rodapé levam às páginas internas; mapa do site e dados 
   await expect(page.locator('footer a[href="/privacidade/"]')).toHaveCount(1);
   const mapa = await (await request.get("/sitemap.xml")).text();
   for (const r of ["/a-audita/", "/audita-pro/", "/audita-hub/", "/contato/", "/privacidade/", "/solucoes/meio-ambiente/"]) expect(mapa).toContain(`https://audita.seg.br${r}`);
-  const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}");
+  const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').first().textContent()) ?? "{}");
   expect(ld.taxID).toBe("69.563.249/0001-01");
   expect(ld.address.postalCode).toBe("18079-026");
 });
@@ -232,11 +234,19 @@ test("Etapas 6 e 7: favicon, compartilhamento, endereço canônico, redes sociai
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://audita.seg.br/audita-hub/");
   // A página do HUB tem imagem de compartilhamento própria (S8)
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /hub2-og\.jpg/);
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
   for (const arquivo of ["/favicon.ico", "/icon.png", "/apple-icon.png", "/opengraph-image.png"]) {
     expect((await request.get(arquivo)).status(), arquivo).toBe(200);
   }
-  expect(await (await request.get("/robots.txt")).text()).toContain("Disallow: /");
+  // robots.txt: site aberto, áreas com login fechadas e endereço do sitemap
+  const robots = await (await request.get("/robots.txt")).text();
+  expect(robots).toContain("Allow: /");
+  expect(robots).not.toMatch(/^Disallow: \/\s*$/m);
+  expect(robots).toContain("Disallow: /empresa/");
+  expect(robots).toContain("Sitemap: https://audita.seg.br/sitemap.xml");
+  const mapa = await (await request.get("/sitemap.xml")).text();
+  expect(mapa).toContain("<lastmod>");
+  expect(mapa).toContain("https://audita.seg.br/treinamentos/cursos");
   // Redes sociais confirmadas pelo Diretor em 07/11/2026: só Instagram e LinkedIn
   const redes = page.locator('footer [aria-label="Redes sociais"] a');
   await expect(redes).toHaveCount(2);

@@ -1,3 +1,16 @@
-# Prévia do site institucional: fora dos buscadores até a publicação autorizada (Etapa 7 do briefing)
+# Site institucional da AUDITA aberto aos buscadores (liberado pelo Diretor).
+# Ficam de fora as áreas com login: o sistema da empresa e as telas do aluno na Audita Academy.
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /empresa/
+Disallow: /treinamentos/entrar
+Disallow: /treinamentos/curso/
+Disallow: /treinamentos/meus-cursos
+Disallow: /treinamentos/perfil
+Disallow: /treinamentos/historico
+Disallow: /treinamentos/financeiro
+Disallow: /treinamentos/notificacoes
+Disallow: /treinamentos/compra/
+Disallow: /treinamentos/definir-senha
+
+Sitemap: https://audita.seg.br/sitemap.xml

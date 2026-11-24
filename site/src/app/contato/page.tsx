@@ -8,7 +8,7 @@ import { EMPRESA, whatsapp } from "@/content/empresa";
 import { EmailTexto, LinkEmail } from "@/components/email";
 
 export const metadata: Metadata = {
-  title: "Contato",
+  title: "Contato: WhatsApp e e-mail em Sorocaba/SP",
   description: "Fale com a AUDITA pelo WhatsApp (15) 99689-1049 ou por e-mail. Sorocaba/SP.",
   alternates: { canonical: "/contato/" },
 };

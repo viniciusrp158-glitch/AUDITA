@@ -419,3 +419,10 @@ main, footer { overflow-x: clip; }
   /* Diferenciais em cartões */
   .produto--compacto .produto-diferenciais > li { background: var(--gray-bg); border-radius: 12px; padding: 16px !important; }
 }
+
+/* Aviso do Microsoft Clarity (só aparece com CLARITY_ID preenchido e antes da escolha do visitante) */
+.aviso-medicao { position: fixed; z-index: 60; left: 16px; right: 16px; bottom: 16px; max-width: 560px; margin: 0 auto; background: var(--white); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-card); padding: 16px; display: grid; gap: 12px; font-size: 14px; line-height: 1.5; }
+.aviso-medicao p { margin: 0; }
+.aviso-medicao a { color: var(--green-text); font-weight: 600; }
+.aviso-medicao__botoes { display: flex; gap: 10px; flex-wrap: wrap; }
+.aviso-medicao__botoes .btn { min-height: 44px; padding: 0 18px; }

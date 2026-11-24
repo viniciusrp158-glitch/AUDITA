@@ -17,6 +17,12 @@ export const EMPRESA = {
  * Redes sociais: só entram quando o Vinicius confirmar os perfis (briefing, seção 2). Para publicar: preencher a URL
  * de cada perfil oficial e trocar REDES_SOCIAIS_PUBLICADAS para true. Rede sem URL não aparece.
  */
+/**
+ * Microsoft Clarity: código do projeto (painel do Clarity > Configurações > Visão geral). Vazio = desligado: sem aviso,
+ * sem script e com a política de privacidade dizendo que não há medição. Só preencher com a política aprovada.
+ */
+export const CLARITY_ID = "";
+
 export const REDES_SOCIAIS_PUBLICADAS = true;
 export const REDES_SOCIAIS: { nome: string; url: string }[] = [
   { nome: "Instagram", url: "https://www.instagram.com/audita.ssma/" },

@@ -30,7 +30,13 @@ import { EMPRESA, whatsapp } from "@/content/empresa";
 import { imagemDefinitiva } from "@/lib/imagens";
 import { EmailTexto, LinkEmail } from "@/components/email";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
+/** SEO (24/11/2026): título e descrição da home com os termos que o cliente busca e a cidade. */
+export const metadata: Metadata = {
+  title: { absolute: "AUDITA | Segurança do Trabalho, Meio Ambiente e SGI em Sorocaba/SP" },
+  description:
+    "Consultoria em Segurança e Saúde do Trabalho, Meio Ambiente e Sistemas de Gestão para pequenas e médias empresas, em Sorocaba/SP. Gestão de SST, PGR, documentos, auditorias e treinamentos.",
+  alternates: { canonical: "/" },
+};
 
 /** Home: seções 1 a 15 do briefing (seção 9), na ordem. Textos da seção 4 (AUDDOC002). */
 

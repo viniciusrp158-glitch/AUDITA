@@ -7,7 +7,7 @@ import { Foto } from "@/components/wireframe";
 import { DIFERENCIAIS, MISSAO, NECESSIDADES, PASSOS, PROPOSITO, PUBLICO, QUEM_SOMOS, VALORES, VISAO } from "@/content/institucional";
 
 export const metadata: Metadata = {
-  title: "A AUDITA",
+  title: "Quem somos",
   description: "Quem somos, propósito, missão, visão, valores e como a AUDITA trabalha com pequenas e médias empresas.",
   alternates: { canonical: "/a-audita/" },
 };
