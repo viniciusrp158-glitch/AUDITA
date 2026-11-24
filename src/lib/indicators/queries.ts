@@ -70,7 +70,7 @@ export async function getAlerts(today: string, includeTest: boolean): Promise<Al
     expiredQ,
     overdueQ,
     supabase.from("client_registration_requests").select("id", { count: "exact", head: true }).eq("status", "pendente"),
-    supabase.from("library_revisions").select("id", { count: "exact", head: true }).eq("status", "rascunho"),
+    supabase.from("library_revisions").select("document_id", { count: "exact" }).eq("status", "rascunho").limit(2),
     waitingQ,
   ]);
   const master = await getMasterListState().catch(() => null);
@@ -86,7 +86,15 @@ export async function getAlerts(today: string, includeTest: boolean): Promise<Al
   if (master && !master.upToDate)
     out.push({ kind: "info", text: `Lista mestra de serviços e treinamentos desatualizada: confira e aprove a ${master.nextRevision}.`, href: "/biblioteca/lista-mestra" });
   if (requests.count) out.push({ kind: "info", text: `${requests.count} solicitação(ões) de cadastro aguardando análise.`, href: "/clientes/solicitacoes" });
-  if (drafts.count) out.push({ kind: "info", text: `${drafts.count} documento(s) da biblioteca em rascunho, aguardando aprovação.`, href: "/biblioteca" });
+  if (drafts.count) {
+    // Leva direto ao documento quando há um só rascunho; com vários, à Biblioteca filtrada pelos rascunhos.
+    const one = drafts.count === 1 ? (drafts.data?.[0] as { document_id?: string } | undefined)?.document_id : undefined;
+    out.push({
+      kind: "info",
+      text: `${drafts.count} revisão(ões) de documento da biblioteca em rascunho, aguardando sua aprovação.`,
+      href: one ? `/biblioteca/${one}` : "/biblioteca?rascunho=1",
+    });
+  }
   return out;
 }
 

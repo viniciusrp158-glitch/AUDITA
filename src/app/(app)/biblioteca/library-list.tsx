@@ -15,6 +15,8 @@ export type LibRow = {
   approved_on: string | null;
   revision: string | null;
   status: LibRevStatus | null;
+  /** Nova revisão em rascunho (aguardando aprovação), além da vigente. */
+  draft?: string | null;
   inactive: boolean;
 };
 
@@ -30,6 +32,11 @@ function Situation({ r }: { r: LibRow }) {
     <span className="flex flex-wrap items-center gap-1">
       <span className="font-mono text-xs text-ink">{r.revision}</span>
       <LibStatusPill status={r.status} />
+      {r.draft && (
+        <span className="rounded-full bg-warn/15 px-2 py-0.5 text-[11px] font-semibold text-warn" data-testid="draft-pill">
+          {r.draft} em rascunho
+        </span>
+      )}
       {r.inactive && <span className="text-xs text-muted">(inativo)</span>}
     </span>
   );
