@@ -2171,3 +2171,25 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
 - **Entrega:** os testes chegaram no **lixo eletrônico** do Outlook, sem "via brevosend" (assinatura DKIM do domínio
   alinhada). Causa provável: conta nova no IP compartilhado do plano gratuito, domínio sem histórico de envio e e-mail
   enviado para o próprio endereço. Acompanhar com os primeiros envios reais (aquecimento 30→100).
+
+## S12 — Site institucional: liberado aos buscadores, SEO, cache e Clarity preparado (24/11/2026)
+
+- **Pedido do Diretor:** site no Google, cache para visitas repetidas, SEO, Microsoft Clarity e plano de artigos.
+- **Trava dos buscadores retirada** (autorizada com "Pode publicar"): `robots.txt` aberto, com as áreas com login fora
+  (`/empresa/` e telas do aluno da Academy) e o endereço do sitemap; `index, follow`; sem `X-Robots-Tag` no Nginx do
+  site. O login do sistema continua com `noindex` (vem do próprio sistema).
+- **SEO:** títulos e descrições com os termos buscados e a cidade (home: "AUDITA | Segurança do Trabalho, Meio Ambiente
+  e SGI em Sorocaba/SP"); `WebSite` nos dados estruturados; sitemap com data e as páginas públicas da Academy (14
+  endereços).
+- **Cache:** logos e telas (nome novo a cada troca) 30 dias; fotos 1 dia com `stale-while-revalidate` de 7 dias; páginas
+  continuam `no-cache` (uma página antiga guardada apontaria para arquivos de código que somem na publicação seguinte);
+  código em `/_next/static` segue com 1 ano.
+- **Microsoft Clarity:** pronto e desligado (`CLARITY_ID` vazio em `site/src/content/empresa.ts`). Só carrega depois do
+  aceite do visitante; a política de privacidade muda sozinha quando ligar. Falta o Diretor criar o projeto e passar o código.
+- **Plano de artigos:** https://claude.ai/artifact/BwcnnVDE24x7VvqEHNWP1u (2 por semana, ter e qui 8h, 24 temas; depende
+  de aprovação).
+- **Testes:** site 48/48; aviso do Clarity conferido com código falso (nada carrega antes da escolha).
+- **Produção:** imagem `audita-site:20261124-buscadores`, testada antes na porta 3499; só o container `audita-site`.
+  Conferido no ar: robots, cabeçalhos, título, sitemap, cache e páginas 200.
+- **Falta (Diretor):** Google Search Console (registro TXT na Cloudflare), Perfil da Empresa no Google e projeto no Clarity.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261124-buscadores .env && docker compose up -d site`.
