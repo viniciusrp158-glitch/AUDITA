@@ -21,7 +21,7 @@ export const EMPRESA = {
  * Microsoft Clarity: código do projeto (painel do Clarity > Configurações > Visão geral). Vazio = desligado: sem aviso,
  * sem script e com a política de privacidade dizendo que não há medição. Só preencher com a política aprovada.
  */
-export const CLARITY_ID = "";
+export const CLARITY_ID = "zimezvxjn1"; // projeto "AUDITA | SSMA & SGI", enviado pelo Diretor em 24/11/2026
 
 export const REDES_SOCIAIS_PUBLICADAS = true;
 export const REDES_SOCIAIS: { nome: string; url: string }[] = [
