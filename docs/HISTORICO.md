@@ -2221,3 +2221,22 @@ Desempenho: pesquisa "construção até 50 km" com o banco frio levou 47 s; depo
   Conferido no ar: robots, cabeçalhos, título, sitemap, cache e páginas 200.
 - **Falta (Diretor):** Google Search Console (registro TXT na Cloudflare), Perfil da Empresa no Google e projeto no Clarity.
 - **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261124-buscadores .env && docker compose up -d site`.
+
+## S13 — Site: seção Artigos no ar, Clarity ligado e publicação automática agendada (24/11/2026)
+
+- **Autorizado pelo Diretor** ("Pode publicar") depois de revisar os dois primeiros artigos. Regras acrescentadas por ele,
+  agora no plano e na tarefa: legislação vigente sempre conferida antes de escrever (data visível no artigo), artigos com
+  fotos e figuras (etapas, linha do tempo, números) e sem grandes espaços vazios (coluna lateral no computador).
+- **Artigos:** seção `/artigos/` (menu "A AUDITA" e rodapé). "PGR: o que é, quem precisa e o que deve conter" entra em
+  08/12/2026 e "Riscos psicossociais na NR-1" em 10/12/2026; até lá aparecem em "Em breve" (cartões com foto, sem link),
+  sem página própria e fora do sitemap. Artigo com data futura só vai ao ar num build feito a partir da data.
+- **Microsoft Clarity ligado:** projeto `zimezvxjn1` ("AUDITA | SSMA & SGI"). O script só carrega depois do "Aceitar" no
+  aviso; a política de privacidade passou a citar o Clarity. Conferido: nada carrega antes da escolha.
+- **Publicação automática:** tarefa agendada `artigos-site-audita` no aplicativo do Claude deste computador (ter e qui,
+  8h; começa em 08/12). Cada execução escreve o próximo artigo da pauta com uma semana de folga, confere as regras, monta,
+  testa, tira capturas, publica só o `audita-site` e registra aqui. Scripts em `deploy/vps/site/artigos/`
+  (`publicar-site.sh`, `servidor-local.cjs`, `capturas.cjs`). O computador precisa estar ligado e com o aplicativo aberto.
+- **Testes:** site 51/51 (computador, Pixel 7, iPhone 13).
+- **Produção:** imagem `audita-site:20261124-artigos2`, testada antes na porta 3499. O build do site na VPS falhou duas
+  vezes no `next/font` (download das fontes do Google); na repetição passou. O script de publicação tenta 3 vezes.
+- **Para voltar:** em `~/audita/audita-sistema`: `cp .env.bak-20261124-artigos2 .env && docker compose up -d site`.
