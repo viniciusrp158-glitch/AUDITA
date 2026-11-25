@@ -3,7 +3,7 @@ import { Cabecalho } from "@/components/cabecalho";
 import { CartaoArtigo } from "@/components/cartao-artigo";
 import { ChamadaContato, HeroInterno } from "@/components/pagina";
 import { Rodape } from "@/components/rodape";
-import { listarArtigos } from "@/lib/artigos";
+import { listarArtigos, proximosArtigos } from "@/lib/artigos";
 
 export const metadata: Metadata = {
   title: "Artigos sobre Segurança do Trabalho, Meio Ambiente e SGI",
@@ -18,7 +18,8 @@ export const metadata: Metadata = {
  */
 export default function Artigos() {
   const artigos = listarArtigos();
-  const categorias = [...new Set(artigos.map((a) => a.categoria))];
+  const proximos = proximosArtigos();
+  const categorias = [...new Set([...artigos, ...proximos].map((a) => a.categoria))];
   const [primeiro, ...resto] = artigos;
   return (
     <>
@@ -37,15 +38,15 @@ export default function Artigos() {
               {categorias.map((c) => (
                 <li key={c}>{c}</li>
               ))}
-              <li>{artigos.length} {artigos.length === 1 ? "artigo" : "artigos"}</li>
+              {artigos.length ? <li>{artigos.length} {artigos.length === 1 ? "artigo" : "artigos"}</li> : null}
             </ul>
           ) : null}
         </HeroInterno>
         <section className="secao secao--cinza artigos-secao" aria-label="Lista de artigos">
           <div className="container">
-            {artigos.length === 0 ? (
+            {artigos.length === 0 && proximos.length === 0 ? (
               <p className="medida">Os primeiros artigos estão a caminho.</p>
-            ) : artigos.length <= 2 ? (
+            ) : artigos.length === 0 ? null : artigos.length <= 2 ? (
               <ul className="artigos-lista artigos-lista--2">
                 {artigos.map((a) => (
                   <CartaoArtigo key={a.slug} a={a} />
@@ -63,6 +64,16 @@ export default function Artigos() {
                 </ul>
               </>
             )}
+            {proximos.length ? (
+              <div className="artigos-breve" style={artigos.length ? { marginTop: 48 } : undefined}>
+                <h2 className="artigos-breve__titulo">Em breve</h2>
+                <ul className={proximos.length <= 2 ? "artigos-lista artigos-lista--2" : "artigos-lista artigos-lista--auto"}>
+                  {proximos.map((p) => (
+                    <CartaoArtigo key={p.slug} a={p} breve />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         </section>
         <ChamadaContato mensagem="Olá! Li os artigos do site e quero falar com a AUDITA." />

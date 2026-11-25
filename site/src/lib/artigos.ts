@@ -79,6 +79,17 @@ export function listarArtigos(): Artigo[] {
     .sort((a, b) => (a.publicado < b.publicado ? 1 : a.publicado > b.publicado ? -1 : a.slug.localeCompare(b.slug)));
 }
 
+/** Artigos aprovados com data futura (aparecem em "Em breve", sem link para o texto), do mais próximo ao mais distante. */
+export function proximosArtigos(): Artigo[] {
+  if (!existsSync(PASTA) || process.env.ARTIGOS_RASCUNHOS === "1") return [];
+  const hoje = new Date().toISOString().slice(0, 10);
+  return readdirSync(PASTA)
+    .filter((a) => a.endsWith(".md") && !a.startsWith("_"))
+    .map(ler)
+    .filter((a) => a.situacao === "publicado" && a.publicado > hoje)
+    .sort((a, b) => a.publicado.localeCompare(b.publicado));
+}
+
 export function obterArtigo(slug: string): Artigo | undefined {
   return listarArtigos().find((a) => a.slug === slug);
 }

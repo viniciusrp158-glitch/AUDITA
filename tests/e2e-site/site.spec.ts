@@ -331,15 +331,21 @@ test("S8: página do Audita HUB no padrão do site com o material da sessão do 
   await expect(page.locator(".produto--compacto")).toHaveCount(0);
 });
 
-test("Artigos (24/11/2026): seção no menu, rascunho fora do site e sitemap sem rascunho", async ({ page, request }) => {
+test("Artigos (24/11/2026): seção no menu, artigo agendado só em \"Em breve\" até a data e sitemap sem ele", async ({ page, request }) => {
   await page.goto("/artigos/");
   await expect(page).toHaveTitle(/Artigos sobre Segurança do Trabalho/);
   await expect(page.locator('footer a[href="/artigos/"]')).toHaveCount(1);
-  // Sem ARTIGOS_RASCUNHOS=1 (build da VPS), rascunho não vira página nem entra no sitemap
-  const rascunho = await request.get("/artigos/pgr-o-que-e-quem-precisa-e-o-que-deve-conter/");
-  expect(rascunho.status()).toBe(404);
+  // Antes da data de publicação, o artigo aparece em "Em breve" (sem link), não vira página nem entra no sitemap
+  const hoje = new Date().toISOString().slice(0, 10);
+  if (hoje < "2026-12-08") {
+    await expect(page.getByRole("heading", { name: "Em breve" })).toBeVisible();
+    await expect(page.locator(".artigo-card--breve")).toHaveCount(2);
+    await expect(page.locator(".artigo-card--breve a")).toHaveCount(0);
+    const agendado = await request.get("/artigos/pgr-o-que-e-quem-precisa-e-o-que-deve-conter/");
+    expect(agendado.status()).toBe(404);
+  }
   const mapa = await (await request.get("/sitemap.xml")).text();
   expect(mapa).toContain("https://audita.seg.br/artigos/");
-  expect(mapa).not.toContain("pgr-o-que-e-quem-precisa");
+  if (hoje < "2026-12-08") expect(mapa).not.toContain("pgr-o-que-e-quem-precisa");
   await semRolagemLateral(page);
 });

@@ -5,7 +5,7 @@ categoria: SST
 termo: o que é PGR
 publicado: 2026-12-08
 revisado: 2026-12-08
-situacao: rascunho
+situacao: publicado
 servico: /solucoes/documentos-e-procedimentos/
 servicoRotulo: Conhecer o apoio ao PGR
 convite: Olá! Li o artigo sobre o PGR no site e quero falar com a AUDITA.

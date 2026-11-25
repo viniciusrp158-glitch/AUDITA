@@ -527,3 +527,9 @@ main, footer { overflow-x: clip; }
 .artigo__sumario--celular summary::after { content: "+"; font-size: 22px; line-height: 1; color: var(--green-text); }
 .artigo__sumario--celular[open] summary { margin-bottom: 10px; }
 .artigo__sumario--celular[open] summary::after { content: "−"; }
+/* Artigos agendados ("Em breve"): mesmos cartões, sem link */
+.artigos-breve__titulo { font-family: var(--font-display), Arial, sans-serif; font-size: clamp(22px, 3vw, 28px); color: var(--navy); margin: 0 0 18px; display: flex; align-items: center; gap: 12px; }
+.artigos-breve__titulo::before { content: ""; width: 28px; height: 4px; border-radius: 2px; background: var(--green); }
+.artigo-card--breve > div { display: flex; flex-direction: column; height: 100%; }
+.artigo-card--breve .artigo-card__ler { color: var(--navy-2); }
+.artigo-card--breve:hover .artigo-card__capa img { transform: none; }

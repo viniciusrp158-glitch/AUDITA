@@ -5,7 +5,7 @@ categoria: SST
 termo: riscos psicossociais NR-1
 publicado: 2026-12-10
 revisado: 2026-12-10
-situacao: rascunho
+situacao: publicado
 servico: /solucoes/documentos-e-procedimentos/
 servicoRotulo: Conhecer o apoio ao PGR
 convite: Olá! Li o artigo sobre riscos psicossociais na NR-1 e quero falar com a AUDITA.

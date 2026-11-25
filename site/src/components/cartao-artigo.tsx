@@ -3,11 +3,10 @@ import { dataBR, minutos, type Artigo } from "@/lib/artigos";
 import { imagemDefinitiva } from "@/lib/imagens";
 
 /** Cartão de artigo com a foto de capa (lista e "Leia também"). */
-export function CartaoArtigo({ a, destaque = false }: { a: Artigo; destaque?: boolean }) {
+export function CartaoArtigo({ a, destaque = false, breve = false }: { a: Artigo; destaque?: boolean; breve?: boolean }) {
   const capa = imagemDefinitiva(a.capa);
-  return (
-    <li className={destaque ? "card artigo-card artigo-card--destaque" : "card artigo-card"}>
-      <Link href={`/artigos/${a.slug}/`}>
+  const conteudo = (
+    <>
         <span className="artigo-card__capa" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element -- site estático, imagem já em WebP */}
           {capa ? <img src={capa} alt="" loading="lazy" width={800} height={500} /> : null}
@@ -17,11 +16,16 @@ export function CartaoArtigo({ a, destaque = false }: { a: Artigo; destaque?: bo
           <span className="artigo-card__titulo">{a.titulo}</span>
           <span className="mutado">{a.descricao}</span>
           <span className="artigo-card__meta">
-            {dataBR(a.publicado)} · {minutos(a)} min de leitura{a.situacao === "rascunho" ? " · RASCUNHO" : ""}
+            {breve ? "Em breve" : dataBR(a.publicado)} · {minutos(a)} min de leitura{a.situacao === "rascunho" ? " · RASCUNHO" : ""}
           </span>
-          <span className="artigo-card__ler">Ler artigo →</span>
+          <span className="artigo-card__ler">{breve ? `Publicação prevista para ${dataBR(a.publicado)}` : "Ler artigo →"}</span>
         </span>
-      </Link>
+    </>
+  );
+  const classe = ["card artigo-card", destaque ? "artigo-card--destaque" : "", breve ? "artigo-card--breve" : ""].filter(Boolean).join(" ");
+  return (
+    <li className={classe}>
+      {breve ? <div>{conteudo}</div> : <Link href={`/artigos/${a.slug}/`}>{conteudo}</Link>}
     </li>
   );
 }
